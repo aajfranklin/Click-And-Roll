@@ -52,6 +52,11 @@ const highlightResult = (result, node, currentTextIndex) => {
   const resultEndOffset = result.index - currentTextIndex + 1;
   const resultStartOffset = resultEndOffset - result.name.length;
 
+  if (resultStartOffset < 0) {
+    // match is probably split into two nodes with text formatting on surname i.e. LeBron <b>James</b>
+    return;
+  }
+
   const range = document.createRange();
   range.setStart(node, resultStartOffset);
   range.setEnd(node, resultEndOffset);
