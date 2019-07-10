@@ -8,6 +8,7 @@
         "<all_urls>"
       ],
       "js": [
+        "./content/players.js",
         "./content/ahoCorasick.js",
         "./content/content.js"
       ]

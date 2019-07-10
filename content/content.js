@@ -1,7 +1,6 @@
-const searchDocumentBody = () => {
-  const players = ['Chris Bosh', 'Dwyane Wade', 'LeBron James', 'Kyrie Irving', 'Kevin Love'];
+const searchDocumentBody = (playerNames) => {
   const bodyText = document.body.textContent;
-  const ac = new AhoCorasick(players);
+  const ac = new AhoCorasick(playerNames);
   return ac.search(bodyText);
 };
 
@@ -63,5 +62,10 @@ const highlightResult = (result, node, currentTextIndex) => {
   range.surroundContents(wrapper);
 };
 
-const results = searchDocumentBody();
+// consider moving to background script, to run only once
+const playerNames = playersById.map((player) => {
+  return player.name;
+});
+
+const results = searchDocumentBody(playerNames);
 locateAndFormatResults(results);
