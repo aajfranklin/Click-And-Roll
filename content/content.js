@@ -1,20 +1,44 @@
+let statOverlay;
+
+const run = () => {
+  const playerNames = playersById.map((player) => player.name);
+  const body = document.body;
+  const initialResults = searchTextContent(body, playerNames);
+  statOverlay = initialiseStatOverlay();
+
+  if (initialResults.length > 0) {
+    locateAndFormatResults(body, initialResults);
+  }
+
+  observeMutations(playerNames);
+};
+
 const searchTextContent = (rootNode, playerNames) => {
   const nodeText = rootNode.textContent;
   const ac = new AhoCorasick(playerNames);
   return ac.search(nodeText);
 };
 
-const getNextResult = (results) => {
-  const rawResult = results.shift();
-
-  if (rawResult !== undefined) {
-    return {
-      index: rawResult[0],
-      name: rawResult[1][0]
-    }
-  }
-
-  return undefined;
+const initialiseStatOverlay = () => {
+  const statOverlay = document.createElement('span');
+  statOverlay.setAttribute('class', 'stat-overlay');
+  const style = [
+    'background: #fff',
+    'border-radius: 5px',
+    'background: #fff',
+    'border-radius: 5px',
+    'box-shadow: rgba(0,0,0,0.2) 0px 1px 3px',
+    'height: 50px',
+    'left: 0',
+    'position: absolute',
+    'text-align: centre',
+    'top: 0',
+    'vertical-align: middle',
+    'width: 50px',
+    'zIndex: 1000',
+  ].join(';');
+  statOverlay.setAttribute('style', style);
+  return statOverlay;
 };
 
 const locateAndFormatResults = (rootNode, results) => {
@@ -48,6 +72,19 @@ const locateAndFormatResults = (rootNode, results) => {
   }
 };
 
+const getNextResult = (results) => {
+  const rawResult = results.shift();
+
+  if (rawResult !== undefined) {
+    return {
+      index: rawResult[0],
+      name: rawResult[1][0]
+    }
+  }
+
+  return undefined;
+};
+
 const highlightResult = (result, node, currentTextIndex) => {
   const resultEndOffset = result.index - currentTextIndex + 1;
   const resultStartOffset = resultEndOffset - result.name.length;
@@ -67,6 +104,32 @@ const highlightResult = (result, node, currentTextIndex) => {
     'background-color: yellow; display: inline;'
   );
   range.surroundContents(wrapper);
+
+  wrapper.onmouseenter = function() {
+    statOverlay.style.top = getAbsoluteOffset(wrapper).top + 'px';
+    statOverlay.style.left = getAbsoluteOffset(wrapper).left + 'px';
+    document.body.appendChild(statOverlay);
+  };
+};
+
+const getAbsoluteOffset = function(element) {
+  let lineHeight = parseInt(window.getComputedStyle(element)
+    .getPropertyValue('line-height')
+    .replace('px','')
+  );
+  let top = 0;
+  let left = 0;
+
+  while (element) {
+    top += element.offsetTop  || 0;
+    left += element.offsetLeft || 0;
+    element = element.offsetParent;
+  }
+
+  return {
+    top: top + lineHeight,
+    left: left
+  };
 };
 
 const observeMutations = (playerNames) => {
@@ -88,16 +151,4 @@ const observeMutations = (playerNames) => {
   observer.observe(document.body, { childList: true, subtree: true });
 };
 
-// consider moving to background script, or fetching and caching in local storage on first use
-const playerNames = playersById.map((player) => {
-  return player.name;
-});
-
-const body = document.body;
-const initialResults = searchTextContent(body, playerNames);
-
-if (initialResults.length > 0) {
-  locateAndFormatResults(body, initialResults);
-}
-
-observeMutations(playerNames);
+run();
