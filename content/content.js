@@ -35,7 +35,7 @@ const initialiseStatOverlay = () => {
     'top: 0',
     'vertical-align: middle',
     'width: 50px',
-    'zIndex: 1000',
+    'z-index: 1000000',
   ].join(';');
   statOverlay.setAttribute('style', style);
   return statOverlay;
@@ -106,8 +106,9 @@ const highlightResult = (result, node, currentTextIndex) => {
   range.surroundContents(wrapper);
 
   wrapper.onmouseenter = function() {
-    statOverlay.style.top = getAbsoluteOffset(wrapper).top + 'px';
-    statOverlay.style.left = getAbsoluteOffset(wrapper).left + 'px';
+    const absoluteOffset = getAbsoluteOffset(wrapper);
+    statOverlay.style.top = absoluteOffset.top + 'px';
+    statOverlay.style.left = absoluteOffset.left + 'px';
     document.body.appendChild(statOverlay);
   };
 };

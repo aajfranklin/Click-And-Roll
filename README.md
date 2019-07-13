@@ -25,3 +25,5 @@ A chrome extension that lets you click on an NBA player's name on any web page t
 - [ ] Handle duplicate player names
 - [ ] Handle names that contain other names as a sub-string
 - [x] Fix negative result start offset when part of name has text formatting
+- [x] Fix overlay not appearing over other elements
+- [ ] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
