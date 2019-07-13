@@ -118,19 +118,15 @@ const getAbsoluteOffset = function(element) {
     .getPropertyValue('line-height')
     .replace('px','')
   );
-  let top = 0;
-  let left = 0;
 
-  while (element) {
-    top += element.offsetTop  || 0;
-    left += element.offsetLeft || 0;
-    element = element.offsetParent;
-  }
+  const rect = element.getBoundingClientRect();
+  const scrollY = -(window.scrollY ? window.scrollY : window.pageYOffset);
+  const scrollX = -(window.scrollX ? window.scrollX : window.pageXOffset);
 
   return {
-    top: top + lineHeight,
-    left: left
-  };
+    top: rect.top - scrollY + lineHeight,
+    left: rect.left - scrollX,
+  }
 };
 
 const observeMutations = (playerNames) => {
