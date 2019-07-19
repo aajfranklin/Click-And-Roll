@@ -28,3 +28,5 @@ A chrome extension that lets you click on an NBA player's name on any web page t
 - [x] Fix overlay not appearing over other elements
 - [x] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
 - [ ] Fix overlay not scrolling when the scrolling element is not body
+- [ ] Fix overlay positioning when name extends over two lines
+- [ ] Fix appear animation direction depending on overlay position

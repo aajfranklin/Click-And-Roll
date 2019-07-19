@@ -4,7 +4,8 @@ const run = () => {
   const playerNames = playersById.map((player) => player.name);
   const body = document.body;
   const initialResults = searchTextContent(body, playerNames);
-  statOverlay = initialiseStatOverlay();
+  statOverlay = document.createElement('span');
+  statOverlay.setAttribute('class', 'click-and-roll-stat-overlay');
 
   if (initialResults.length > 0) {
     locateAndFormatResults(body, initialResults);
@@ -17,28 +18,6 @@ const searchTextContent = (rootNode, playerNames) => {
   const nodeText = rootNode.textContent;
   const ac = new AhoCorasick(playerNames);
   return ac.search(nodeText);
-};
-
-const initialiseStatOverlay = () => {
-  const statOverlay = document.createElement('span');
-  statOverlay.setAttribute('class', 'stat-overlay');
-  const style = [
-    'background: #fff',
-    'border-radius: 5px',
-    'background: #fff',
-    'border-radius: 5px',
-    'box-shadow: rgba(0,0,0,0.2) 0px 1px 3px',
-    'height: 50px',
-    'left: 0',
-    'position: absolute',
-    'text-align: centre',
-    'top: 0',
-    'vertical-align: middle',
-    'width: 50px',
-    'z-index: 1000000',
-  ].join(';');
-  statOverlay.setAttribute('style', style);
-  return statOverlay;
 };
 
 const locateAndFormatResults = (rootNode, results) => {
@@ -114,18 +93,21 @@ const highlightResult = (result, node, currentTextIndex) => {
 };
 
 const getAbsoluteOffset = function(element) {
-  let lineHeight = parseInt(window.getComputedStyle(element)
-    .getPropertyValue('line-height')
-    .replace('px','')
-  );
-
   const rect = element.getBoundingClientRect();
-  const scrollY = -(window.scrollY ? window.scrollY : window.pageYOffset);
   const scrollX = -(window.scrollX ? window.scrollX : window.pageXOffset);
+  const scrollY = -(window.scrollY ? window.scrollY : window.pageYOffset);
+
+  const overlayLeft = rect.left < window.innerWidth / 2
+    ? rect.left - scrollX
+    : rect.left - scrollX - window.innerWidth / 2 + rect.width;
+
+  const overlayTop = rect.top < window.innerHeight / 2
+    ? rect.top - scrollY + rect.height
+    : rect.top - scrollY - window.innerHeight / 2;
 
   return {
-    top: rect.top - scrollY + lineHeight,
-    left: rect.left - scrollX,
+    left: overlayLeft,
+    top: overlayTop
   }
 };
 

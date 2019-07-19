@@ -1,0 +1,20 @@
+.click-and-roll-stat-overlay {
+  animation-name: overlay-appear;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
+  background: whitesmoke;
+  border-radius: 5px;
+  box-shadow: darkslategrey 0 1px 3px;
+  height: 0;
+  position: absolute;
+  text-align: center;
+  vertical-align: middle;
+  width: 50vw;
+  z-index: 1000000;
+}
+
+@keyframes overlay-appear {
+  from {height: 0;}
+  to {height: 50vh;}
+}
