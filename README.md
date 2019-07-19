@@ -1,6 +1,6 @@
 # Click And Roll
 
-A chrome extension that lets you click on an NBA player's name on any web page to quickly view their stats.
+A chrome extension that lets you hover on an NBA player's name on any web page to quickly view their stats.
 
 ## To Do
 
@@ -8,12 +8,14 @@ A chrome extension that lets you click on an NBA player's name on any web page t
 
 - [x] Highlight player names on page load
 - [x] Highlight player names in dynamically loaded elements
-- [ ] Placeholder popup window when clicking player name
-- [ ] Fetch data from an open source api on click
-- [ ] Display data in popup window
+- [x] Placeholder overlay when hovering player name
+- [ ] Fetch data from an open source api on hover
+- [ ] Display data in overlay
+- [ ] Make overlay dismissable
 - [ ] Extension icon
 - [ ] User choice of highlight colour (including none)
 - [ ] User choice of sites to include/exclude
+- [ ] Expand ReadMe with features, credits
 
 ### Optimisations
 
@@ -29,4 +31,4 @@ A chrome extension that lets you click on an NBA player's name on any web page t
 - [x] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
 - [ ] Fix overlay not scrolling when the scrolling element is not body
 - [ ] Fix overlay positioning when name extends over two lines
-- [ ] Fix appear animation direction depending on overlay position
+- [x] Fix appear animation direction depending on overlay position

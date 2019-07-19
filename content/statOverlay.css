@@ -1,8 +1,4 @@
-.click-and-roll-stat-overlay {
-  animation-name: overlay-appear;
-  animation-duration: 0.5s;
-  animation-fill-mode: forwards;
-  animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
+#click-and-roll-stat-overlay {
   background: whitesmoke;
   border-radius: 5px;
   box-shadow: darkslategrey 0 1px 3px;
@@ -14,7 +10,26 @@
   z-index: 1000000;
 }
 
-@keyframes overlay-appear {
+.reveal-from-top, .reveal-from-bottom {
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
+}
+
+.reveal-from-top {
+  animation-name: reveal-from-top;
+}
+
+.reveal-from-bottom {
+  animation-name: reveal-from-bottom;
+}
+
+@keyframes reveal-from-top {
   from {height: 0;}
   to {height: 50vh;}
+}
+
+@keyframes reveal-from-bottom {
+  from {height: 0; margin-top: 50vh;}
+  to {height: 50vh; margin-top: 0;}
 }

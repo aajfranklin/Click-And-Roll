@@ -1,11 +1,7 @@
-let statOverlay;
-
 const run = () => {
   const playerNames = playersById.map((player) => player.name);
   const body = document.body;
   const initialResults = searchTextContent(body, playerNames);
-  statOverlay = document.createElement('span');
-  statOverlay.setAttribute('class', 'click-and-roll-stat-overlay');
 
   if (initialResults.length > 0) {
     locateAndFormatResults(body, initialResults);
@@ -84,24 +80,40 @@ const highlightResult = (result, node, currentTextIndex) => {
   );
   range.surroundContents(wrapper);
 
-  wrapper.onmouseenter = function() {
-    const absoluteOffset = getAbsoluteOffset(wrapper);
-    statOverlay.style.top = absoluteOffset.top + 'px';
-    statOverlay.style.left = absoluteOffset.left + 'px';
-    document.body.appendChild(statOverlay);
-  };
+  wrapper.onmouseenter = showStatOverlay;
 };
 
-const getAbsoluteOffset = function(element) {
+const showStatOverlay = (mouseEnterEvent) => {
+  const element = mouseEnterEvent.target;
+
   const rect = element.getBoundingClientRect();
+  const elementIsInLeftHalf = rect.left < window.innerWidth / 2;
+  const elementIsInTopHalf = rect.top < window.innerHeight / 2;
+
+  // remove existing animation class
+  statOverlay.classList.remove(statOverlay.classList[0]);
+
+  if (elementIsInTopHalf) {
+    statOverlay.classList.add('reveal-from-top');
+  } else {
+    statOverlay.classList.add('reveal-from-bottom');
+  }
+
+  const absoluteOffset = getAbsoluteOffset(rect, elementIsInLeftHalf, elementIsInTopHalf);
+  statOverlay.style.top = absoluteOffset.top + 'px';
+  statOverlay.style.left = absoluteOffset.left + 'px';
+  document.body.appendChild(statOverlay);
+};
+
+const getAbsoluteOffset = (rect, elementIsInLeftHalf, elementIsInTopHalf) => {
   const scrollX = -(window.scrollX ? window.scrollX : window.pageXOffset);
   const scrollY = -(window.scrollY ? window.scrollY : window.pageYOffset);
 
-  const overlayLeft = rect.left < window.innerWidth / 2
+  const overlayLeft = elementIsInLeftHalf
     ? rect.left - scrollX
     : rect.left - scrollX - window.innerWidth / 2 + rect.width;
 
-  const overlayTop = rect.top < window.innerHeight / 2
+  const overlayTop = elementIsInTopHalf
     ? rect.top - scrollY + rect.height
     : rect.top - scrollY - window.innerHeight / 2;
 
@@ -130,4 +142,6 @@ const observeMutations = (playerNames) => {
   observer.observe(document.body, { childList: true, subtree: true });
 };
 
+const statOverlay = document.createElement('span');
+statOverlay.id = 'click-and-roll-stat-overlay';
 run();
