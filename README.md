@@ -54,7 +54,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix negative result start offset when part of name has text formatting
 - [x] Fix overlay not appearing over other elements
 - [x] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
-- [ ] Fix unavailable stats to display 'n/a' or similar
+- [x] Fix unavailable stats to display 'n/a' or similar
 - [x] Fix overlay sometimes not closing correctly
 
 #### Other
