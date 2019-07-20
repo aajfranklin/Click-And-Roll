@@ -94,10 +94,13 @@ const run = (players) => {
   const handleHover = (mouseEnterEvent) => {
     const element = mouseEnterEvent.target;
     const name = element.textContent;
-    const id = players.filter(player => player.name === name)[0].id;
+    const newPlayerId = players.filter(player => player.name === name)[0].id;
 
     showOverlay(element);
-    fetchAndDisplayStats(id, name);
+    if (newPlayerId !== currentPlayerId) {
+      currentPlayerId = newPlayerId;
+      fetchAndDisplayStats(currentPlayerId, name);
+    }
   };
 
   const showOverlay = (element) => {
@@ -218,6 +221,7 @@ const run = (players) => {
   const statOverlay = document.createElement('div');
   statOverlay.id = 'click-and-roll-stat-overlay';
 
+  let currentPlayerId;
   const playerNames = players.map((player) => player.name);
   const body = document.body;
   const initialResults = searchTextContent(body, playerNames);
