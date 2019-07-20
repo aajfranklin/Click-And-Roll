@@ -38,11 +38,12 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 #### MVP
 
 - [x] Fetch player names from api and store locally on first use
-- [ ] Cache most recently viewed player(s) and do not repeat API call if player is in cache
+- [x] Store most recently viewed player id and do not repeat API call if user scrolls over same player
 
 #### Other
 
 - [ ] Explore possible time-savings for mutation observer implementation to reduce slow down on complex pages
+- [ ] Store number of times each player has been viewed, store stats of most viewed players
 
 ### Fixes
 
@@ -53,10 +54,10 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix negative result start offset when part of name has text formatting
 - [x] Fix overlay not appearing over other elements
 - [x] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
+- [ ] Fix unavailable stats to display 'n/a' or similar
+- [x] Fix overlay sometimes not closing correctly
 
 #### Other
 
 - [x] Fix appear animation direction depending on overlay position
 - [ ] Fix overlay positioning when name extends over two lines
-- [ ] Fix unavailable stats to display 'n/a' or similar
-- [x] Fix overlay sometimes not closing correctly
