@@ -133,7 +133,7 @@ const run = (players) => {
       })
       .then(stats => {
         document.getElementById('click-and-roll-player-name').textContent = name;
-        mapPlayerProfile(stats.profile);
+        mapPlayerProfile(stats.profile, name);
         mapCareerStatsToRows(stats.career);
       })
       .catch(err => {
@@ -148,7 +148,13 @@ const run = (players) => {
     }
   };
 
-  const mapPlayerProfile = (profile) => {
+  const mapPlayerProfile = (profile, name) => {
+    if (profile.image) {
+      const profileImageElement = document.getElementById('click-and-roll-player-profile-image');
+      profileImageElement.src = profile.image;
+      profileImageElement.alt = name;
+    }
+
     const profileInfoDetails = [
       'team',
       'number',

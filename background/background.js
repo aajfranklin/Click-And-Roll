@@ -31,9 +31,10 @@ function onFetchPlayers(request, sender, sendResponse) {
 function onFetchStats(request, sender, sendResponse) {
   const stats = {
     career: null,
-    photo: null,
     profile: null
   };
+
+  let imageUrl;
 
   if (request.message === 'fetchStats') {
     $.ajax('https://stats.nba.com/stats/playercareerstats',
@@ -71,6 +72,14 @@ function onFetchStats(request, sender, sendResponse) {
           draft: profileData[27] + ' R' + profileData[28] + ' P' + profileData[29]
         };
 
+        imageUrl = 'https://nba-players.herokuapp.com/players/' + profileData[2] + '/' + profileData[1];
+
+        return $.ajax(imageUrl);
+      })
+      .then(response => {
+        if (response !== 'Sorry, that player was not found. Please check the spelling.') {
+          stats.profile.image = imageUrl;
+        }
         sendResponse([null, stats]);
       })
       .catch(err => {

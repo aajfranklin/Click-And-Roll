@@ -98,8 +98,10 @@
 }
 
 #click-and-roll-player-profile-image {
+  border: solid 1px lightgrey;
   height: 100px;
-  padding-left: 8px;
+  object-fit: cover;
+  margin-left: 8px;
   width: 100px;
 }
 
