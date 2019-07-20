@@ -84,7 +84,7 @@ const run = (players) => {
     const wrapper = document.createElement('span');
     wrapper.setAttribute(
       'style',
-      'background-color: yellow; display: inline;'
+      'color: teal; display: inline;'
     );
     range.surroundContents(wrapper);
 
@@ -124,6 +124,8 @@ const run = (players) => {
     $.ajax(chrome.extension.getURL('view/templates.html'), {method: 'GET'})
       .then(templates => {
         statOverlay.innerHTML = templates;
+        document.getElementById('click-and-roll-dismiss').onclick = () => closeOverlay;
+        document.addEventListener('click', closeOverlay);
         return backgroundScriptFetch({message: 'fetchStats', id});
       })
       .then(stats => {
@@ -133,6 +135,13 @@ const run = (players) => {
       .catch(err => {
         console.log(err);
       });
+  };
+
+  const closeOverlay = (e) => {
+    if (e.target.id === 'click-and-roll-dismiss' || (e.target !== statOverlay && !statOverlay.contains(e.target))) {
+      document.body.removeChild(statOverlay)
+    }
+    document.removeEventListener('click', closeOverlay);
   };
 
   const mapStatsToRow = (stats) => {
@@ -148,6 +157,9 @@ const run = (players) => {
 
       for (let k = 0; k < season.length; k++) {
         const stat = document.createElement('td');
+        if (k === 0) {
+          stat.classList.add('season');
+        }
         stat.textContent = season[k];
         row.appendChild(stat)
       }
@@ -196,6 +208,12 @@ const run = (players) => {
 
     observer.observe(document.body, { childList: true, subtree: true });
   };
+
+  const style = document.createElement('link');
+  style.rel = 'stylesheet';
+  style.type = 'text/css';
+  style.href = chrome.extension.getURL('view/styling.css');
+  (document.head || document.documentElement).appendChild(style);
 
   const statOverlay = document.createElement('div');
   statOverlay.id = 'click-and-roll-stat-overlay';

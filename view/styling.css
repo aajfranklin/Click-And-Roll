@@ -1,0 +1,147 @@
+#click-and-roll-stat-overlay {
+  background: white;
+  border-radius: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  text-align: left;
+  vertical-align: middle;
+  width: 50vw;
+  z-index: 1000000;
+}
+
+.reveal-from-top, .reveal-from-bottom {
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
+}
+
+.reveal-from-top {
+  animation-name: reveal-from-top;
+}
+
+.reveal-from-bottom {
+  animation-name: reveal-from-bottom;
+}
+
+@keyframes reveal-from-top {
+  from {height: 0;}
+  to {height: 50vh;}
+}
+
+@keyframes reveal-from-bottom {
+  from {height: 0; margin-top: 50vh;}
+  to {height: 50vh; margin-top: 0;}
+}
+
+#click-and-roll-stat-overlay, #click-and-roll-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+#click-and-roll-stat-overlay, #click-and-roll-player-header {
+  box-shadow: darkslategrey 0 1px 2px;
+}
+
+#click-and-roll-player-header {
+  background: teal;
+  display: flex;
+  height: fit-content;
+  justify-content: space-between;
+  width: 100%;
+}
+
+#click-and-roll-player-name {
+  color: whitesmoke;
+  font-size: 18px;
+  margin: 8px 0 8px 8px;
+  position: relative;
+}
+
+#click-and-roll-dismiss {
+  background: white;
+  border: solid 1px white;
+  border-radius: 50%;
+  height: 14px;
+  opacity: 0.5;
+  position: absolute;
+  right: 8px;
+  top: 12px;
+  width: 14px;
+}
+#click-and-roll-dismiss:hover {
+  opacity: 1;
+}
+#click-and-roll-dismiss:before, #click-and-roll-dismiss:after {
+  background: teal;
+  content: ' ';
+  height: 10px;
+  left: 6px;
+  position: absolute;
+  top: 2px;
+  width: 2px;
+}
+#click-and-roll-dismiss:before {
+  transform: rotate(45deg);
+}
+#click-and-roll-dismiss:after {
+  transform: rotate(-45deg);
+}
+
+#click-and-roll-stat-content {
+  overflow: scroll;
+}
+
+#click-and-roll-sub-heading {
+  color: teal;
+  font-size: 14px;
+  padding: 8px;
+}
+
+#click-and-roll-table {
+  border: none;
+  border-collapse: collapse;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  padding-left: 8px;
+  width: auto;
+}
+
+#click-and-roll-table td {
+  padding: 8px;
+  table-layout: auto;
+}
+
+#click-and-roll-table tr {
+  border-top: none;
+  border-right: none;
+  border-bottom: solid 1px lightgrey;
+  border-left: none;
+  white-space: nowrap;
+}
+
+#click-and-roll-table tr:nth-child(even) {
+  background-color: whitesmoke;
+}
+
+#click-and-roll-table tr:hover {
+  background-color: teal;
+  color: white;
+}
+
+#click-and-roll-table tr:first-child:hover {
+  background: white;
+  color: lightslategrey;
+}
+
+#click-and-roll-table th {
+  color: lightslategrey;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 8px 0 10px 8px;
+}
+
+.season {
+  font-weight: bold;
+}

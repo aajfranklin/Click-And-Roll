@@ -11,9 +11,6 @@
         "./jquery-3.4.1.js",
         "./content/ahoCorasick.js",
         "./content/content.js"
-      ],
-      "css":  [
-        "./view/statOverlay.css"
       ]
     }
   ],
@@ -27,6 +24,7 @@
     "storage"
   ],
   "web_accessible_resources": [
-    "view/templates.html"
+    "view/templates.html",
+    "view/styling.css"
   ]
 }
