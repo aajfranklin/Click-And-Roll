@@ -17,7 +17,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Make data readable
 - [x] Custom overlay styling
 - [ ] Add career totals, averages
-- [ ] Separate current season from career list
+- [ ] Add current season averages for pts, ast, reb, blk, stl for active players
 - [ ] Add player pic, with placeholder if unavailable
 - [ ] Add basic player info
 - [ ] Loading message while fetching data
@@ -28,6 +28,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 #### Other
 
 - [ ] Add player text profile
+- [ ] Add last game for active players
 - [ ] User choice of highlight colour (including none)
 - [ ] User choice of sites to include/exclude
 - [ ] User choice of dynamic highlighting
@@ -58,3 +59,4 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix appear animation direction depending on overlay position
 - [ ] Fix overlay positioning when name extends over two lines
 - [ ] Fix unavailable stats to display 'n/a' or similar
+- [x] Fix overlay sometimes not closing correctly

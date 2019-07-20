@@ -139,9 +139,9 @@ const run = (players) => {
 
   const closeOverlay = (e) => {
     if (e.target.id === 'click-and-roll-dismiss' || (e.target !== statOverlay && !statOverlay.contains(e.target))) {
-      document.body.removeChild(statOverlay)
+      document.body.removeChild(statOverlay);
+      document.removeEventListener('click', closeOverlay);
     }
-    document.removeEventListener('click', closeOverlay);
   };
 
   const mapStatsToRow = (stats) => {
