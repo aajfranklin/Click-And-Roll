@@ -18,7 +18,8 @@
     }
   ],
   "background": {
-    "script": [
+    "scripts": [
+      "./background/jquery-3.4.1.js",
       "./background/background.js"
     ]
   },
