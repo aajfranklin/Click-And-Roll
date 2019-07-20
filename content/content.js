@@ -163,7 +163,7 @@ const run = (players) => {
         if (k === 0) {
           stat.classList.add('season');
         }
-        stat.textContent = season[k];
+        stat.textContent = season[k] || 'n/a';
         row.appendChild(stat)
       }
 
