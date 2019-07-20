@@ -100,6 +100,9 @@ const run = (players) => {
     if (newPlayerId !== currentPlayerId) {
       currentPlayerId = newPlayerId;
       fetchAndDisplayStats(currentPlayerId, name);
+    } else {
+      document.getElementById('click-and-roll-dismiss').onclick = () => closeOverlay;
+      document.addEventListener('click', closeOverlay);
     }
   };
 
