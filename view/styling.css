@@ -70,9 +70,11 @@
   top: 12px;
   width: 14px;
 }
+
 #click-and-roll-dismiss:hover {
   opacity: 1;
 }
+
 #click-and-roll-dismiss:before, #click-and-roll-dismiss:after {
   background: teal;
   content: ' ';
@@ -82,18 +84,49 @@
   top: 2px;
   width: 2px;
 }
+
 #click-and-roll-dismiss:before {
   transform: rotate(45deg);
 }
+
 #click-and-roll-dismiss:after {
   transform: rotate(-45deg);
+}
+
+#click-and-roll-player-profile {
+  display: flex;
+}
+
+#click-and-roll-player-profile-image {
+  height: 100px;
+  padding-left: 8px;
+  width: 100px;
+}
+
+#click-and-roll-player-profile-info {
+  display: flex;
+  justify-content: space-around;
+}
+
+.click-and-roll-player-profile-info-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.click-and-roll-info-data {
+  color: black;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  padding: 7px 0 7px 8px;
 }
 
 #click-and-roll-stat-content {
   overflow: scroll;
 }
 
-#click-and-roll-sub-heading {
+.click-and-roll-sub-heading {
   color: teal;
   font-size: 14px;
   padding: 8px;
@@ -135,10 +168,17 @@
   color: lightslategrey;
 }
 
-#click-and-roll-table th {
+#click-and-roll-table th, .click-and-roll-info-label {
   color: lightslategrey;
   font-size: 10px;
   font-weight: bold;
+}
+
+.click-and-roll-info-label {
+  padding: 8px 0 8px 8px;
+}
+
+#click-and-roll-table th {
   padding: 8px 0 10px 8px;
 }
 

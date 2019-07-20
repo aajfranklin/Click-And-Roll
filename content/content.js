@@ -133,7 +133,8 @@ const run = (players) => {
       })
       .then(stats => {
         document.getElementById('click-and-roll-player-name').textContent = name;
-        mapStatsToRow(stats);
+        mapPlayerProfile(stats.profile);
+        mapCareerStatsToRows(stats.career);
       })
       .catch(err => {
         console.log(err);
@@ -147,9 +148,28 @@ const run = (players) => {
     }
   };
 
-  const mapStatsToRow = (stats) => {
-    for (let i = 0; i < stats.seasons.rowSet.length; i++) {
-      const season = stats.seasons.rowSet[i];
+  const mapPlayerProfile = (profile) => {
+    const profileInfoDetails = [
+      'team',
+      'number',
+      'position',
+      'birthday',
+      'height',
+      'weight',
+      'country',
+      'college',
+      'draft'
+    ];
+
+    for (let i = 0; i < profileInfoDetails.length; i++) {
+      const infoDataElement = document.getElementById('click-and-roll-info-' + profileInfoDetails[i]);
+      infoDataElement.textContent = profile[profileInfoDetails[i]];
+    }
+  };
+
+  const mapCareerStatsToRows = (careerStats) => {
+    for (let i = 0; i < careerStats.seasons.rowSet.length; i++) {
+      const season = careerStats.seasons.rowSet[i];
       const statsToRemove = [3, 2, 0];
 
       for (let j = 0; j < statsToRemove.length; j++) {

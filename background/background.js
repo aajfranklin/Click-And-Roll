@@ -29,6 +29,12 @@ function onFetchPlayers(request, sender, sendResponse) {
 }
 
 function onFetchStats(request, sender, sendResponse) {
+  const stats = {
+    career: null,
+    photo: null,
+    profile: null
+  };
+
   if (request.message === 'fetchStats') {
     $.ajax('https://stats.nba.com/stats/playercareerstats',
       {
@@ -40,7 +46,31 @@ function onFetchStats(request, sender, sendResponse) {
         }
       })
       .then(response => {
-        const stats = {seasons: response.resultSets[0], career: response.resultSets[1]};
+        stats.career = {seasons: response.resultSets[0], career: response.resultSets[1]};
+        return $.ajax('https://stats.nba.com/stats/commonplayerinfo',
+          {
+            method: 'GET',
+            data: {
+              LeagueID: '00',
+              PlayerID: request.id
+            }
+          })
+      })
+      .then(response => {
+        const profileData = response.resultSets[0].rowSet[0];
+
+        stats.profile = {
+          team: profileData[20] + ' ' + profileData[19].charAt(0).toUpperCase() + profileData[19].slice(1),
+          number: profileData[13],
+          position: profileData[14],
+          birthday: profileData[6].split('T')[0],
+          height: profileData[10],
+          weight: profileData[11] + ' lb',
+          country: profileData[8],
+          college: profileData[7],
+          draft: profileData[27] + ' R' + profileData[28] + ' P' + profileData[29]
+        };
+
         sendResponse([null, stats]);
       })
       .catch(err => {
