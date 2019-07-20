@@ -8,22 +8,25 @@
         "<all_urls>"
       ],
       "js": [
-        "./content/players.js",
+        "./jquery-3.4.1.js",
         "./content/ahoCorasick.js",
         "./content/content.js"
       ],
       "css":  [
-        "./content/statOverlay.css"
+        "./view/statOverlay.css"
       ]
     }
   ],
   "background": {
     "scripts": [
-      "./background/jquery-3.4.1.js",
+      "./jquery-3.4.1.js",
       "./background/background.js"
     ]
   },
   "permissions": [
     "storage"
+  ],
+  "web_accessible_resources": [
+    "view/templates.html"
   ]
 }

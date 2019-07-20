@@ -88,22 +88,16 @@ const run = (players) => {
     );
     range.surroundContents(wrapper);
 
-    wrapper.onmouseenter = showStats;
+    wrapper.onmouseenter = handleHover;
   };
 
-  const showStats = (mouseEnterEvent) => {
+  const handleHover = (mouseEnterEvent) => {
     const element = mouseEnterEvent.target;
     const name = element.textContent;
     const id = players.filter(player => player.name === name)[0].id;
 
     showOverlay(element);
-    backgroundScriptFetch({message: 'fetchStats', id})
-      .then(stats => {
-        statOverlay.textContent = JSON.stringify(stats);
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    fetchAndDisplayStats(id, name);
   };
 
   const showOverlay = (element) => {
@@ -124,6 +118,42 @@ const run = (players) => {
     statOverlay.style.top = absoluteOffset.top + 'px';
     statOverlay.style.left = absoluteOffset.left + 'px';
     document.body.appendChild(statOverlay);
+  };
+
+  const fetchAndDisplayStats = (id, name) => {
+    $.ajax(chrome.extension.getURL('view/templates.html'), {method: 'GET'})
+      .then(templates => {
+        statOverlay.innerHTML = templates;
+        return backgroundScriptFetch({message: 'fetchStats', id});
+      })
+      .then(stats => {
+        document.getElementById('click-and-roll-player-name').textContent = name;
+        mapStatsToRow(stats);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  const mapStatsToRow = (stats) => {
+    for (let i = 0; i < stats.seasons.rowSet.length; i++) {
+      const season = stats.seasons.rowSet[i];
+      const statsToRemove = [3, 2, 0];
+
+      for (let j = 0; j < statsToRemove.length; j++) {
+        season.splice(statsToRemove[j], 1);
+      }
+
+      const row = document.createElement('tr');
+
+      for (let k = 0; k < season.length; k++) {
+        const stat = document.createElement('td');
+        stat.textContent = season[k];
+        row.appendChild(stat)
+      }
+
+      document.getElementById('click-and-roll-season-averages-body').appendChild(row);
+    }
   };
 
   const getAbsoluteOffset = (rect, elementIsInLeftHalf, elementIsInTopHalf) => {
@@ -150,6 +180,10 @@ const run = (players) => {
         const addedNodes = mutations[i].addedNodes;
         if (addedNodes.length > 0) {
           const mutationRootNode = addedNodes[0];
+          const mutationTargetId = mutations[i].target.id;
+          if ((mutationTargetId + mutationRootNode.id).indexOf('click-and-roll') !== -1){
+            continue;
+          }
           const results = searchTextContent(mutationRootNode, playerNames);
           if (results.length > 0) {
             observer.disconnect();
@@ -163,8 +197,9 @@ const run = (players) => {
     observer.observe(document.body, { childList: true, subtree: true });
   };
 
-  const statOverlay = document.createElement('span');
+  const statOverlay = document.createElement('div');
   statOverlay.id = 'click-and-roll-stat-overlay';
+
   const playerNames = players.map((player) => player.name);
   const body = document.body;
   const initialResults = searchTextContent(body, playerNames);

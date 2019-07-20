@@ -1,10 +1,20 @@
+#click-and-roll-stat-overlay, #click-and-roll-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+#click-and-roll-stat-overlay, #click-and-roll-player-header {
+  box-shadow: darkslategrey 0 1px 2px;
+}
+
 #click-and-roll-stat-overlay {
   background: whitesmoke;
   border-radius: 5px;
-  box-shadow: darkslategrey 0 1px 3px;
+  font-family: Arial, Helvetica, sans-serif;
   height: 0;
+  overflow: hidden;
   position: absolute;
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
   width: 50vw;
   z-index: 1000000;
@@ -32,4 +42,27 @@
 @keyframes reveal-from-bottom {
   from {height: 0; margin-top: 50vh;}
   to {height: 50vh; margin-top: 0;}
+}
+
+#click-and-roll-player-header {
+  background: teal;
+  color: whitesmoke;
+  font-size: 24px;
+  height: fit-content;
+  width: 100%;
+}
+
+#click-and-roll-player-name {
+  font-weight: bold;
+  margin: 8px 0 8px 8px;
+  position: relative;
+}
+
+#click-and-roll-stat-content {
+  overflow: scroll;
+}
+
+table {
+  margin: 8px;
+  width: 100%;
 }
