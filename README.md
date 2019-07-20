@@ -14,7 +14,11 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fetch data from stats.nba.com api on hover
 - [x] Display data in overlay
 - [ ] Make overlay dismissable
-- [ ] Make data readable
+- [x] Make data readable
+- [ ] Consistent table row formatting, regardless of page
+- [ ] Add career totals, averages
+- [ ] Separate current season from career list
+- [ ] Add basic player info
 - [ ] Loading message while fetching data
 - [ ] User-friendly error messages
 - [ ] Extension icon
@@ -24,6 +28,9 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] Expand ReadMe with features, credits
 
 #### Other
+
+- [ ] Add player profile
+- [ ] Add player pic
 
 ### Optimisations
 
