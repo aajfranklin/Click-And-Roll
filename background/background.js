@@ -59,21 +59,41 @@ function onFetchStats(request, sender, sendResponse) {
           })
       })
       .then(response => {
+        const headers = response.resultSets[0].headers;
         const profileData = response.resultSets[0].rowSet[0];
 
+        const teamName = profileData[headers.indexOf('TEAM_NAME')];
+        const city = profileData[headers.indexOf('TEAM_CITY')];
+        const birthday = profileData[headers.indexOf('BIRTHDATE')];
+        const weight = profileData[headers.indexOf('WEIGHT')];
+
+        const draftYear = profileData[headers.indexOf('DRAFT_YEAR')];
+        let draft;
+        if (draftYear) {
+          draft = (draftYear === 'Undrafted')
+            ? draftYear
+            : draftYear + ', Round ' + profileData[headers.indexOf('DRAFT_ROUND')]
+                        + ', Pick ' + profileData[headers.indexOf('DRAFT_NUMBER')];
+        } else {
+          draft = 'n/a';
+        }
+
+
         stats.profile = {
-          team: profileData[20] + ' ' + profileData[19].charAt(0).toUpperCase() + profileData[19].slice(1),
-          number: profileData[13],
-          position: profileData[14],
-          birthday: profileData[6].split('T')[0],
-          height: profileData[10],
-          weight: profileData[11] + ' lb',
-          country: profileData[8],
-          college: profileData[7],
-          draft: profileData[27] + ' R' + profileData[28] + ' P' + profileData[29]
+          draft,
+          birthday: birthday ? birthday.split('T')[0] : 'n/a',
+          weight:   weight ? weight + ' lb' : 'n/a',
+          team:     (teamName && city) ? teamName + ' ' + city.charAt(0).toUpperCase() + city.slice(1) : 'n/a',
+          number:   profileData[headers.indexOf('JERSEY')] || 'n/a',
+          position: profileData[headers.indexOf('POSITION')]  || 'n/a',
+          height:   profileData[headers.indexOf('HEIGHT')]  || 'n/a',
+          country:  profileData[headers.indexOf('COUNTRY')]  || 'n/a',
+          college:  profileData[headers.indexOf('SCHOOL')]  || 'n/a'
         };
 
-        imageUrl = 'https://nba-players.herokuapp.com/players/' + profileData[2] + '/' + profileData[1];
+        imageUrl = 'https://nba-players.herokuapp.com/players/'
+          + profileData[headers.indexOf('LAST_NAME')] + '/'
+          + profileData[headers.indexOf('FIRST_NAME')];
 
         return $.ajax(imageUrl);
       })

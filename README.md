@@ -61,8 +61,9 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix issue when current node has no parent node while locating matches
 - [x] Fix issue with incorrect player data showing if multiple players are viewed in quick succession
 - [x] Fix overlay not scrolling when the scrolling element is not body
-- [ ] Fix unavailable profile stats to ready 'n/a' or similar
-- [ ] Fix display of draft info for players who went undrafted
+- [x] Fix unavailable profile stats to ready 'n/a' or similar
+- [x] Fix display of draft info for players who went undrafted
+- [ ] Fix overlay position when root offset ancestor is not parent
 
 #### Other
 
