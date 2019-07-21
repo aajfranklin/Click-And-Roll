@@ -124,17 +124,53 @@ const run = (players) => {
       statOverlay.classList.add('reveal-from-bottom');
     }
 
-    const absoluteOffset = getAbsoluteOffset(rect, elementIsInLeftHalf, elementIsInTopHalf);
-    statOverlay.style.top = absoluteOffset.top + 'px';
-    statOverlay.style.left = absoluteOffset.left + 'px';
+    // if root offset parent is not document.body, attach stat overlay to first scrolling parent in its tree
+    let rootOffsetParent = element;
+    let rootScrollParent = null;
 
-    let rootOffsetAncestor = element;
-
-    while (rootOffsetAncestor.offsetParent) {
-      rootOffsetAncestor = rootOffsetAncestor.offsetParent;
+    while (rootOffsetParent.offsetParent) {
+      rootOffsetParent = rootOffsetParent.offsetParent;
+      rootScrollParent = (rootOffsetParent.scrollHeight > rootOffsetParent.clientHeight)
+        ? rootOffsetParent
+        : rootScrollParent;
     }
 
-    rootOffsetAncestor.appendChild(statOverlay);
+    const statOverlayParent = (rootOffsetParent === document.body)
+      ? document.body
+      : rootScrollParent;
+
+    const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, statOverlayParent);
+    statOverlay.style.top = offset.top + 'px';
+    statOverlay.style.left = offset.left + 'px';
+
+    statOverlayParent.appendChild(statOverlay);
+  };
+
+  const getOffsetFromParent = (rect, elementIsInLeftHalf, elementIsInTopHalf, statOverlayParent) => {
+    const scrollX = (statOverlayParent === document.body)
+      ? (window.scrollX ? window.scrollX : window.pageXOffset)
+      : statOverlayParent.scrollLeft;
+    const scrollY = (statOverlayParent === document.body)
+      ? (window.scrollY ? window.scrollY : window.pageYOffset)
+      : statOverlayParent.scrollTop;
+
+    const parentOffset = {
+      x: (statOverlayParent === document.body) ? 0 : statOverlayParent.getBoundingClientRect().left,
+      y: (statOverlayParent === document.body) ? 0 : statOverlayParent.getBoundingClientRect().top
+    };
+
+    const overlayLeft = elementIsInLeftHalf
+      ? rect.left + scrollX - parentOffset.x
+      : rect.left + scrollX - parentOffset.x - window.innerWidth / 2 + rect.width;
+
+    const overlayTop = elementIsInTopHalf
+      ? rect.top + scrollY - parentOffset.y + rect.height
+      : rect.top + scrollY - parentOffset.y - window.innerHeight / 2;
+
+    return {
+      left: overlayLeft,
+      top: overlayTop
+    }
   };
 
   const fetchAndDisplayStats = (id, name) => {
@@ -210,24 +246,6 @@ const run = (players) => {
       }
 
       document.getElementById('click-and-roll-season-averages-body').appendChild(row);
-    }
-  };
-
-  const getAbsoluteOffset = (rect, elementIsInLeftHalf, elementIsInTopHalf) => {
-    const scrollX = -(window.scrollX ? window.scrollX : window.pageXOffset);
-    const scrollY = -(window.scrollY ? window.scrollY : window.pageYOffset);
-
-    const overlayLeft = elementIsInLeftHalf
-      ? rect.left - scrollX
-      : rect.left - scrollX - window.innerWidth / 2 + rect.width;
-
-    const overlayTop = elementIsInTopHalf
-      ? rect.top - scrollY + rect.height
-      : rect.top - scrollY - window.innerHeight / 2;
-
-    return {
-      left: overlayLeft,
-      top: overlayTop
     }
   };
 
