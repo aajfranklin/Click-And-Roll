@@ -127,7 +127,14 @@ const run = (players) => {
     const absoluteOffset = getAbsoluteOffset(rect, elementIsInLeftHalf, elementIsInTopHalf);
     statOverlay.style.top = absoluteOffset.top + 'px';
     statOverlay.style.left = absoluteOffset.left + 'px';
-    document.body.appendChild(statOverlay);
+
+    let firstAncestor = element;
+
+    while (firstAncestor.offsetParent) {
+      firstAncestor = firstAncestor.offsetParent;
+    }
+
+    firstAncestor.appendChild(statOverlay);
   };
 
   const fetchAndDisplayStats = (id, name) => {
@@ -152,7 +159,7 @@ const run = (players) => {
 
   const closeOverlay = (e) => {
     if (e.target.id === 'click-and-roll-dismiss' || (e.target !== statOverlay && !statOverlay.contains(e.target))) {
-      document.body.removeChild(statOverlay);
+      statOverlay.parentNode.removeChild(statOverlay);
       document.removeEventListener('click', closeOverlay);
     }
   };
