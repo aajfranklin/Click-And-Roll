@@ -58,10 +58,10 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix overlay sometimes not closing correctly
 - [ ] Implement more comprehensive profile photo api, or alternative image sourcing approach
 - [x] Fix close button sometimes not centered properly
-- [ ] Fix close button not drawing focus because stat overlay is last element
 - [ ] Fix issue when current node has no parent node while locating matches
 
 #### Other
 
 - [x] Fix appear animation direction depending on overlay position
 - [ ] Fix overlay positioning when name extends over two lines
+- [ ] Fix close button not drawing focus easily because stat overlay is last element
