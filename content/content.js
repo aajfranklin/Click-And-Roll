@@ -128,13 +128,13 @@ const run = (players) => {
     statOverlay.style.top = absoluteOffset.top + 'px';
     statOverlay.style.left = absoluteOffset.left + 'px';
 
-    let firstAncestor = element;
+    let rootOffsetAncestor = element;
 
-    while (firstAncestor.offsetParent) {
-      firstAncestor = firstAncestor.offsetParent;
+    while (rootOffsetAncestor.offsetParent) {
+      rootOffsetAncestor = rootOffsetAncestor.offsetParent;
     }
 
-    firstAncestor.appendChild(statOverlay);
+    rootOffsetAncestor.appendChild(statOverlay);
   };
 
   const fetchAndDisplayStats = (id, name) => {
