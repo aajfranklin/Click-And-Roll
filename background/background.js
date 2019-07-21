@@ -31,6 +31,7 @@ function onFetchPlayers(request, sender, sendResponse) {
 function onFetchStats(request, sender, sendResponse) {
   const stats = {
     career: null,
+    id: request.id,
     profile: null
   };
 

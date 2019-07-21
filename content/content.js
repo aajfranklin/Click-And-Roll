@@ -139,9 +139,11 @@ const run = (players) => {
         return backgroundScriptFetch({message: 'fetchStats', id});
       })
       .then(stats => {
-        document.getElementById('click-and-roll-player-name').textContent = name;
-        mapPlayerProfile(stats.profile, name);
-        mapCareerStatsToRows(stats.career);
+        if (stats.id === currentPlayerId) {
+          document.getElementById('click-and-roll-player-name').textContent = name;
+          mapPlayerProfile(stats.profile, name);
+          mapCareerStatsToRows(stats.career);
+        }
       })
       .catch(err => {
         console.log(err);
