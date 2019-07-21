@@ -39,8 +39,12 @@ const run = (players) => {
 
       if (nodeIncludesNextResult) {
         // do not reformat text nodes within script and style elements, these are not displayed to the user
-        const parentNodeName = currentNode.parentNode.nodeName;
-        const parentNodeIsValid = parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
+        let parentNodeIsValid = true;
+
+        if (currentNode.parentNode) {
+          const parentNodeName = currentNode.parentNode.nodeName;
+          parentNodeIsValid = parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
+        }
 
         if (parentNodeIsValid) {
           highlightResult(nextResult, currentNode, currentTextIndex);
