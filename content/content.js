@@ -137,7 +137,7 @@ const run = (players) => {
 
     const statOverlayParent = (rootOffsetParent === document.body)
       ? document.body
-      : rootScrollParent;
+      : rootScrollParent || rootOffsetParent;
 
     const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, statOverlayParent);
     statOverlay.style.top = offset.top + 'px';
