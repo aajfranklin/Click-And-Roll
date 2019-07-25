@@ -1,14 +1,19 @@
-#click-and-roll-stat-overlay {
+#click-and-roll-frame-body {
+  margin: 0;
+}
+
+#click-and-roll-stat-display {
   background: white;
   border-radius: 5px;
+  box-shadow: darkslategrey 0 1px 2px;
   font-family: Arial, Helvetica, sans-serif;
-  height: 0;
-  overflow: hidden;
+  height: calc(100vh - 2px);
+  left: 2px;
+  overflow-y: auto;
   position: absolute;
   text-align: left;
   vertical-align: middle;
-  width: 50vw;
-  z-index: 1000000;
+  width: calc(100vw - 4px);
 }
 
 .reveal-from-top, .reveal-from-bottom {
@@ -27,12 +32,12 @@
 
 @keyframes reveal-from-top {
   from {height: 0;}
-  to {height: 50vh;}
+  to {height: calc(100vh - 2px);}
 }
 
 @keyframes reveal-from-bottom {
-  from {height: 0; margin-top: 50vh;}
-  to {height: 50vh; margin-top: 0;}
+  from {height: 0; margin-top: calc(100vh - 2px);}
+  to {height: calc(100vh - 2px); margin-top: 0;}
 }
 
 #click-and-roll-stat-overlay, #click-and-roll-stat-content {
@@ -46,10 +51,13 @@
 
 #click-and-roll-player-header {
   background: teal;
+  border-radius: 5px 5px 0 0;
   display: flex;
   height: fit-content;
   justify-content: space-between;
-  width: 100%;
+  position: fixed;
+  width: calc(100vw - 4px);
+  z-index: 1;
 }
 
 #click-and-roll-player-name {
@@ -80,6 +88,10 @@
 }
 
 #click-and-roll-player-profile {
+  position:relative;
+}
+
+#click-and-roll-player-profile-content {
   display: flex;
 }
 
@@ -113,6 +125,7 @@
 }
 
 #click-and-roll-stat-content {
+  margin-top: 37px;
   overflow: scroll;
 }
 
@@ -162,6 +175,7 @@
   color: lightslategrey;
   font-size: 10px;
   font-weight: bold;
+  text-align: left;
 }
 
 .click-and-roll-info-label {

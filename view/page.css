@@ -1,0 +1,16 @@
+#click-and-roll-frame-container {
+  height: calc(50vh + 2px);
+  position: absolute;
+  width: calc(50vw + 2px);
+  z-index: 1000000;
+}
+
+#click-and-roll-frame {
+  height: 100%;
+  overflow: visible;
+  width: 100%;
+}
+
+#click-and-roll-frame-container, #click-and-roll-frame {
+  border: none;
+}

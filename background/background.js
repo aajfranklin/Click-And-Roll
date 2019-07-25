@@ -29,22 +29,23 @@ function onFetchPlayers(request, sender, sendResponse) {
 }
 
 function onFetchStats(request, sender, sendResponse) {
-  const stats = {
-    career: null,
-    id: request.id,
-    profile: null
-  };
-
-  let imageUrl;
-
   if (request.message === 'fetchStats') {
+
+    const stats = {
+      career: null,
+      id: request.playerId,
+      profile: null
+    };
+
+    let imageUrl;
+
     $.ajax('https://stats.nba.com/stats/playercareerstats',
       {
         method: 'GET',
         data: {
           LeagueID: '00',
           PerMode: 'PerGame',
-          PlayerID: request.id
+          PlayerID: request.playerId
         }
       })
       .then(response => {
@@ -54,7 +55,7 @@ function onFetchStats(request, sender, sendResponse) {
             method: 'GET',
             data: {
               LeagueID: '00',
-              PlayerID: request.id
+              PlayerID: request.playerId
             }
           })
       })

@@ -96,35 +96,43 @@ const run = (players) => {
   };
 
   const handleHover = (mouseEnterEvent) => {
-    const element = mouseEnterEvent.target;
-    const name = element.textContent;
+    const targetElement = mouseEnterEvent.target;
+    const name = targetElement.textContent;
     const newPlayerId = players.filter(player => player.name === name)[0].id;
 
-    showOverlay(element);
+    const oldContainerParent = frameContainer.parentNode;
+    const newContainerParent = getContainerParentFromElement(targetElement);
+
+    if (newContainerParent !== oldContainerParent) {
+      if (oldContainerParent) {
+        frameContainer.parentNode.removeChild(frameContainer);
+      }
+
+      newContainerParent.appendChild(frameContainer);
+      frameContainer.appendChild(clickAndRollFrame);
+
+      clickAndRollFrame.contentDocument.body.id = 'click-and-roll-frame-body';
+
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.type = 'text/css';
+      style.href = chrome.extension.getURL('view/frame.css');
+      clickAndRollFrame.contentDocument.head.appendChild(style);
+    }
+
+    clickAndRollFrame.contentDocument.body.innerHTML = '';
+    positionFrameContainer(targetElement, newContainerParent);
+
     if (newPlayerId !== currentPlayerId) {
       currentPlayerId = newPlayerId;
-      fetchAndDisplayStats(currentPlayerId, name);
+      backgroundScriptFetch({message: 'fetchStats', playerId: currentPlayerId})
+        .then(stats => displayStats(stats, name));
     } else {
-      document.getElementById('click-and-roll-dismiss').onclick = () => closeOverlay;
-      document.addEventListener('click', closeOverlay);
+      displayStats();
     }
   };
 
-  const showOverlay = (element) => {
-    const rect = element.getBoundingClientRect();
-    const elementIsInLeftHalf = rect.left < window.innerWidth / 2;
-    const elementIsInTopHalf = rect.top < window.innerHeight / 2;
-
-    // remove existing animation class
-    statOverlay.classList.remove(statOverlay.classList[0]);
-
-    if (elementIsInTopHalf) {
-      statOverlay.classList.add('reveal-from-top');
-    } else {
-      statOverlay.classList.add('reveal-from-bottom');
-    }
-
-    // if root offset parent is not document.body, attach stat overlay to first scrolling parent in its tree
+  const getContainerParentFromElement = (element) => {
     let rootOffsetParent = element;
     let rootScrollParent = null;
 
@@ -135,33 +143,49 @@ const run = (players) => {
         : rootScrollParent;
     }
 
-    const statOverlayParent = (rootOffsetParent === document.body)
+    return (rootOffsetParent === document.body)
       ? document.body
       : rootScrollParent || rootOffsetParent;
-
-    const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, statOverlayParent);
-    statOverlay.style.top = offset.top + 'px';
-    statOverlay.style.left = offset.left + 'px';
-
-    statOverlayParent.appendChild(statOverlay);
   };
 
-  const getOffsetFromParent = (rect, elementIsInLeftHalf, elementIsInTopHalf, statOverlayParent) => {
-    const scrollX = (statOverlayParent === document.body)
+  const positionFrameContainer = (targetElement, containerParent) => {
+    const rect = targetElement.getBoundingClientRect();
+    const elementIsInLeftHalf = rect.left < window.innerWidth / 2;
+    const elementIsInTopHalf = rect.top < window.innerHeight / 2;
+
+    frameContainer.style.marginLeft = elementIsInLeftHalf ? '0' : '4px';
+
+    // remove existing animation class
+    statDisplay.classList.remove(statDisplay.classList[0]);
+
+    if (elementIsInTopHalf) {
+      statDisplay.classList.add('reveal-from-top');
+    } else {
+      statDisplay.classList.add('reveal-from-bottom');
+    }
+
+    const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent);
+    frameContainer.style.top = offset.top + 'px';
+    frameContainer.style.left = offset.left + 'px';
+  };
+
+  const getOffsetFromParent = (rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent) => {
+    const scrollX = (containerParent === document.body)
       ? (window.scrollX ? window.scrollX : window.pageXOffset)
-      : statOverlayParent.scrollLeft;
-    const scrollY = (statOverlayParent === document.body)
+      : containerParent.scrollLeft;
+    const scrollY = (containerParent === document.body)
       ? (window.scrollY ? window.scrollY : window.pageYOffset)
-      : statOverlayParent.scrollTop;
+      : containerParent.scrollTop;
 
     const parentOffset = {
-      x: (statOverlayParent === document.body) ? 0 : statOverlayParent.getBoundingClientRect().left,
-      y: (statOverlayParent === document.body) ? 0 : statOverlayParent.getBoundingClientRect().top
+      x: (containerParent === document.body) ? 0 : containerParent.getBoundingClientRect().left,
+      y: (containerParent === document.body) ? 0 : containerParent.getBoundingClientRect().top
     };
 
+    // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = elementIsInLeftHalf
-      ? rect.left + scrollX - parentOffset.x
-      : rect.left + scrollX - parentOffset.x - window.innerWidth / 2 + rect.width;
+      ? rect.left + scrollX - parentOffset.x - 2
+      : rect.left + scrollX - parentOffset.x - 2 - window.innerWidth / 2 + rect.width;
 
     const overlayTop = elementIsInTopHalf
       ? rect.top + scrollY - parentOffset.y + rect.height
@@ -173,36 +197,26 @@ const run = (players) => {
     }
   };
 
-  const fetchAndDisplayStats = (id, name) => {
-    $.ajax(chrome.extension.getURL('view/templates.html'), {method: 'GET'})
-      .then(templates => {
-        statOverlay.innerHTML = templates;
-        document.getElementById('click-and-roll-dismiss').onclick = () => closeOverlay;
-        document.addEventListener('click', closeOverlay);
-        return backgroundScriptFetch({message: 'fetchStats', id});
-      })
-      .then(stats => {
-        if (stats.id === currentPlayerId) {
-          document.getElementById('click-and-roll-player-name').textContent = name;
-          mapPlayerProfile(stats.profile, name);
-          mapCareerStatsToRows(stats.career);
-        }
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  };
-
-  const closeOverlay = (e) => {
-    if (e.target.id === 'click-and-roll-dismiss' || (e.target !== statOverlay && !statOverlay.contains(e.target))) {
-      statOverlay.parentNode.removeChild(statOverlay);
-      document.removeEventListener('click', closeOverlay);
+  const displayStats = (stats, name) => {
+    if (stats) {
+      statDisplay.innerHTML = statDisplayTemplate;
+      clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
+      clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-name').textContent = name;
+      mapPlayerProfile(stats.profile, name);
+      mapCareerStatsToRows(stats.career);
+    } else {
+      clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
     }
+
+    clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile').style.left = '0px';
+    clickAndRollFrame.contentDocument.getElementById('click-and-roll-dismiss').onclick = closeOverlay;
+    clickAndRollFrame.contentDocument.getElementById('click-and-roll-stat-content').onscroll = fixedHorizontalScroll;
+    document.addEventListener('click', closeOverlay);
   };
 
   const mapPlayerProfile = (profile, name) => {
     if (profile.image) {
-      const profileImageElement = document.getElementById('click-and-roll-player-profile-image');
+      const profileImageElement = clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile-image');
       profileImageElement.src = profile.image;
       profileImageElement.alt = name;
     }
@@ -220,7 +234,7 @@ const run = (players) => {
     ];
 
     for (let i = 0; i < profileInfoDetails.length; i++) {
-      const infoDataElement = document.getElementById('click-and-roll-info-' + profileInfoDetails[i]);
+      const infoDataElement = clickAndRollFrame.contentDocument.getElementById('click-and-roll-info-' + profileInfoDetails[i]);
       infoDataElement.textContent = profile[profileInfoDetails[i]];
     }
   };
@@ -234,10 +248,10 @@ const run = (players) => {
         season.splice(statsToRemove[j], 1);
       }
 
-      const row = document.createElement('tr');
+      const row = clickAndRollFrame.contentDocument.createElement('tr');
 
       for (let k = 0; k < season.length; k++) {
-        const stat = document.createElement('td');
+        const stat = clickAndRollFrame.contentDocument.createElement('td');
         if (k === 0) {
           stat.classList.add('season');
         }
@@ -245,8 +259,18 @@ const run = (players) => {
         row.appendChild(stat)
       }
 
-      document.getElementById('click-and-roll-season-averages-body').appendChild(row);
+      clickAndRollFrame.contentDocument.getElementById('click-and-roll-season-averages-body').appendChild(row);
     }
+  };
+
+  const closeOverlay = () => {
+    frameContainer.parentNode.removeChild(frameContainer);
+    document.removeEventListener('click', closeOverlay);
+  };
+
+  const fixedHorizontalScroll = (e) => {
+    clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile').style.left =
+      (e.target.scrollLeft).toString() + 'px';
   };
 
   const observeMutations = (playerNames) => {
@@ -272,22 +296,26 @@ const run = (players) => {
     observer.observe(document.body, { childList: true, subtree: true });
   };
 
-  const style = document.createElement('link');
-  style.rel = 'stylesheet';
-  style.type = 'text/css';
-  style.href = chrome.extension.getURL('view/styling.css');
-  (document.head || document.documentElement).appendChild(style);
-
-  const statOverlay = document.createElement('div');
-  statOverlay.id = 'click-and-roll-stat-overlay';
+  const frameContainer = document.createElement('div');
+  const clickAndRollFrame = document.createElement('iframe');
+  const statDisplay = document.createElement('div');
+  frameContainer.id = 'click-and-roll-frame-container';
+  clickAndRollFrame.id ='click-and-roll-frame';
+  statDisplay.id = 'click-and-roll-stat-display';
 
   let currentPlayerId;
+  let statDisplayTemplate;
+
+  $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
+    .then(frameHtml => {
+      statDisplayTemplate = frameHtml;
+    });
+
   const playerNames = players.map((player) => player.name);
-  const body = document.body;
-  const initialResults = searchTextContent(body, playerNames);
+  const initialResults = searchTextContent(document.body, playerNames);
 
   if (initialResults.length > 0) {
-    locateAndFormatResults(body, initialResults);
+    locateAndFormatResults(document.body, initialResults);
   }
 
   observeMutations(playerNames);
@@ -309,3 +337,7 @@ chrome.storage.local.get(['players'], (response) => {
     run(players);
   }
 });
+
+// TODO: fix year column when scrolling horizontally, header row when scrolling vertically
+// TODO: fix previous player's stats sometimes briefly showing
+// TODO: fix scroll bar obstructing last year of stats
