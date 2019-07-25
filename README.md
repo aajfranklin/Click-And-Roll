@@ -20,6 +20,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] Add current season averages for pts, ast, reb, blk, stl for active players
 - [x] Add player pic, with placeholder if unavailable
 - [x] Add basic player info
+- [ ] Make year column, header row of table scroll with the user, for easier readability
 - [ ] Loading message while fetching data
 - [ ] User-friendly error messages
 - [ ] Extension icon
@@ -39,10 +40,10 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 
 - [x] Fetch player names from api and store locally on first use
 - [x] Store most recently viewed player id and do not repeat API call if user scrolls over same player
+- [ ] Explore possible time-savings for mutation observer implementation (e.g. searches in background script)
 
 #### Other
 
-- [ ] Explore possible time-savings for mutation observer implementation to reduce slow down on complex pages
 - [ ] Store number of times each player has been viewed, store stats of most viewed players
 
 ### Fixes
@@ -63,7 +64,9 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix overlay not scrolling when the scrolling element is not body
 - [x] Fix unavailable profile stats to ready 'n/a' or similar
 - [x] Fix display of draft info for players who went undrafted
-- [ ] Fix further inconsistencies with table styling across sites (test on BBall Ref, 538)
+- [x] Fix further inconsistencies with table styling across sites (test on BBall Ref, 538)
+- [ ] Fix previous player's stats sometimes briefly showing
+- [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 
 #### Other
 

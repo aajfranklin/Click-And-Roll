@@ -337,7 +337,3 @@ chrome.storage.local.get(['players'], (response) => {
     run(players);
   }
 });
-
-// TODO: fix year column when scrolling horizontally, header row when scrolling vertically
-// TODO: fix previous player's stats sometimes briefly showing
-// TODO: fix scroll bar obstructing last year of stats
