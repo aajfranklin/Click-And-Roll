@@ -16,12 +16,12 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Make overlay dismissable
 - [x] Make data readable
 - [x] Custom overlay styling
-- [ ] Add career totals, averages
-- [ ] Add current season averages for pts, ast, reb, blk, stl for active players
 - [x] Add player pic, with placeholder if unavailable
 - [x] Add basic player info
 - [x] Make year column, header row of table scroll with the user, for easier readability
 - [x] Loading message while fetching data
+- [ ] Add career totals, averages
+- [ ] Add current season averages for pts, ast, reb, blk, stl for active players
 - [ ] User-friendly error messages
 - [ ] Extension icon
 - [ ] Expand ReadMe with features, credits
@@ -50,14 +50,11 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 
 #### MVP
 
-- [ ] Handle duplicate player names
-- [ ] Handle names that contain other names as a sub-string
 - [x] Fix negative result start offset when part of name has text formatting
 - [x] Fix overlay not appearing over other elements
 - [x] Fix absolute offset calculation errors when offsetParent does not cascade up to original document body
 - [x] Fix unavailable stats to display 'n/a' or similar
 - [x] Fix overlay sometimes not closing correctly
-- [ ] Implement more comprehensive profile photo api, or alternative image sourcing approach
 - [x] Fix close button sometimes not centered properly
 - [x] Fix issue when current node has no parent node while locating matches
 - [x] Fix issue with incorrect player data showing if multiple players are viewed in quick succession
@@ -65,15 +62,18 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix unavailable profile stats to ready 'n/a' or similar
 - [x] Fix display of draft info for players who went undrafted
 - [x] Fix further inconsistencies with table styling across sites (test on BBall Ref, 538)
-- [ ] Fix white space when players don't have enough seasons to fill the overlay
 - [x] Fix zero stats showing as n/a?
-- [ ] Fix stat display briefly visible without styling when in new scroll parent
 - [x] Fix previous player's stats sometimes briefly showing
-- [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 - [x] Fix team name and city reversed!
-- [ ] Fix do not observe mutations in content editable fields
 - [x] Fix close overlay to hide container parent, not remove entirely (should resolve some flicker issues)
-- [ ] Fix loading graphic sometimes not displaying correctly if quickly hovering over multiple players
+- [x] Fix loading graphic sometimes not displaying correctly if quickly hovering over multiple players
+- [ ] Handle duplicate player names
+- [ ] Handle names that contain other names as a sub-string
+- [ ] Implement more comprehensive profile photo api, or alternative image sourcing approach
+- [ ] Fix white space when players don't have enough seasons to fill the overlay
+- [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
+- [ ] Fix stat display briefly visible without styling when in new scroll parent
+- [ ] Fix do not observe mutations in content editable fields
 
 #### Other
 

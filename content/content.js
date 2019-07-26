@@ -131,7 +131,12 @@ const run = (players) => {
       statDisplay.innerHTML = statTemplate;
       currentPlayerId = newPlayerId;
       backgroundScriptFetch({message: 'fetchStats', playerId: currentPlayerId})
-        .then(stats => displayStats(stats, name));
+        .then(stats => {
+          // current player id may have been reassigned by a later hover, making these stats out of date
+          if (newPlayerId === currentPlayerId) {
+            displayStats(stats, name)
+          }
+        });
     } else {
       displayStats();
     }
@@ -204,7 +209,6 @@ const run = (players) => {
   };
 
   const displayStats = (stats, name) => {
-
     statDisplay.classList.remove('loading');
     statDisplay.classList.add('loaded');
 
