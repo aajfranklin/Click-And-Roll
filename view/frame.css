@@ -8,7 +8,6 @@
   font-family: Arial, Helvetica, sans-serif;
   height: calc(100vh - 2px);
   left: 2px;
-  overflow-y: auto;
   position: absolute;
   text-align: left;
   vertical-align: middle;
@@ -45,14 +44,14 @@
 
 #click-and-roll-stat-display,
 #click-and-roll-player-header,
-#click-and-roll-stat-content,
+#click-and-roll-content,
 #click-and-roll-player-profile-info,
 #click-and-roll-player-profile-content,
 .click-and-roll-player-profile-info-column {
   display: flex;
 }
 
-#click-and-roll-stat-display, #click-and-roll-stat-content, .click-and-roll-player-profile-info-column {
+#click-and-roll-stat-display, #click-and-roll-content, .click-and-roll-player-profile-info-column {
   flex-direction: column;
 }
 
@@ -64,7 +63,7 @@
   border-radius: 5px 5px 0 0;
   height: fit-content;
   position: fixed;
-  z-index: 1;
+  z-index: 3;
 }
 
 #click-and-roll-player-header, #click-and-roll-dismiss {
@@ -131,7 +130,8 @@
   font-size: 12px;
 }
 
-#click-and-roll-stat-content {
+#click-and-roll-content {
+  border-radius: 5px;
   margin-top: 37px;
   overflow: scroll;
 }
@@ -179,10 +179,19 @@
 }
 
 #click-and-roll-table th {
+  border-bottom: solid 1px lightgrey;
   padding: 8px 0 10px 8px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .click-and-roll-season {
   background: inherit;
   border-right: solid 1px lightgrey;
+}
+
+#click-and-roll-season-header {
+  z-index: 2 !important;
 }
