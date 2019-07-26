@@ -5,7 +5,6 @@
 #click-and-roll-stat-display {
   background: white;
   border-radius: 5px;
-  box-shadow: darkslategrey 0 1px 2px;
   font-family: Arial, Helvetica, sans-serif;
   height: calc(100vh - 2px);
   left: 2px;
@@ -13,6 +12,10 @@
   position: absolute;
   text-align: left;
   vertical-align: middle;
+}
+
+#click-and-roll-stat-display, #click-and-roll-player-header {
+  box-shadow: darkslategrey 0 1px 2px;
   width: calc(100vw - 4px);
 }
 
@@ -40,43 +43,54 @@
   to {height: calc(100vh - 2px); margin-top: 0;}
 }
 
-#click-and-roll-stat-overlay, #click-and-roll-stat-content {
+#click-and-roll-stat-display,
+#click-and-roll-player-header,
+#click-and-roll-stat-content,
+#click-and-roll-player-profile-info,
+#click-and-roll-player-profile-content,
+.click-and-roll-player-profile-info-column {
   display: flex;
+}
+
+#click-and-roll-stat-display, #click-and-roll-stat-content, .click-and-roll-player-profile-info-column {
   flex-direction: column;
 }
 
-#click-and-roll-stat-overlay, #click-and-roll-player-header {
-  box-shadow: darkslategrey 0 1px 2px;
+#click-and-roll-player-header, .click-and-roll-player-profile-info-column {
+  justify-content: space-between;
 }
 
 #click-and-roll-player-header {
-  background: teal;
   border-radius: 5px 5px 0 0;
-  display: flex;
   height: fit-content;
-  justify-content: space-between;
   position: fixed;
-  width: calc(100vw - 4px);
   z-index: 1;
 }
 
-#click-and-roll-player-name {
+#click-and-roll-player-header, #click-and-roll-dismiss {
+  background: teal;
   color: whitesmoke;
+}
+
+#click-and-roll-player-name {
   font-size: 18px;
+}
+
+#click-and-roll-player-name, .click-and-roll-info-label {
   margin: 8px 0 8px 8px;
-  position: relative;
 }
 
 #click-and-roll-dismiss {
-  background: teal;
-  border: none;
   border-radius: 50%;
-  color: white;
   height: 20px;
-  margin: 8px;
   opacity: 0.3;
+  margin: 8px;
   padding: 0;
   width: 20px;
+}
+
+#click-and-roll-dismiss, #click-and-roll-table {
+  border: none;
 }
 
 #click-and-roll-dismiss > * {
@@ -87,12 +101,9 @@
   opacity: 1;
 }
 
-#click-and-roll-player-profile {
-  position:relative;
-}
-
-#click-and-roll-player-profile-content {
-  display: flex;
+#click-and-roll-player-profile, #click-and-roll-career-heading, .click-and-roll-season {
+  left: 0;
+  position: sticky;
 }
 
 #click-and-roll-player-profile-image {
@@ -100,28 +111,24 @@
   height: 100px;
   object-fit: cover;
   margin-left: 8px;
-  margin-bottom: 8px;
   width: 100px;
 }
 
 #click-and-roll-player-profile-info {
-  display: flex;
   justify-content: space-around;
-}
-
-.click-and-roll-player-profile-info-column {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-bottom: 8px;
 }
 
 .click-and-roll-info-data {
   color: black;
-  font-size: 12px;
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 7px 0 7px 8px;
+}
+
+.click-and-roll-info-data, #click-and-roll-table th, .click-and-roll-info-label, .click-and-roll-season {
   font-weight: bold;
-  padding: 7px 0 7px 8px;
+}
+
+.click-and-roll-info-data, #click-and-roll-table {
+  font-size: 12px;
 }
 
 #click-and-roll-stat-content {
@@ -132,33 +139,27 @@
 .click-and-roll-sub-heading {
   color: teal;
   font-size: 14px;
+}
+
+.click-and-roll-sub-heading, #click-and-roll-table td {
   padding: 8px;
 }
 
 #click-and-roll-table {
-  border: none;
-  border-collapse: collapse;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  padding-left: 8px;
-  width: auto;
-}
-
-#click-and-roll-table td {
-  padding: 8px;
-  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 #click-and-roll-table tr {
-  border-top: none;
-  border-right: none;
-  border-bottom: solid 1px lightgrey;
-  border-left: none;
   white-space: nowrap;
 }
 
 #click-and-roll-table tr:nth-child(even) {
   background-color: whitesmoke;
+}
+
+#click-and-roll-table tr:nth-child(odd) {
+  background-color: white;
 }
 
 #click-and-roll-table tr:hover {
@@ -167,25 +168,21 @@
 }
 
 #click-and-roll-table tr:first-child:hover {
-  background: white;
+  background-color: white;
   color: lightslategrey;
 }
 
 #click-and-roll-table th, .click-and-roll-info-label {
   color: lightslategrey;
   font-size: 10px;
-  font-weight: bold;
   text-align: left;
-}
-
-.click-and-roll-info-label {
-  padding: 8px 0 8px 8px;
 }
 
 #click-and-roll-table th {
   padding: 8px 0 10px 8px;
 }
 
-.season {
-  font-weight: bold;
+.click-and-roll-season {
+  background: inherit;
+  border-right: solid 1px lightgrey;
 }

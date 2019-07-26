@@ -208,9 +208,7 @@ const run = (players) => {
       clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
     }
 
-    clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile').style.left = '0px';
     clickAndRollFrame.contentDocument.getElementById('click-and-roll-dismiss').onclick = closeOverlay;
-    clickAndRollFrame.contentDocument.getElementById('click-and-roll-stat-content').onscroll = fixedHorizontalScroll;
     document.addEventListener('click', closeOverlay);
   };
 
@@ -253,7 +251,7 @@ const run = (players) => {
       for (let k = 0; k < season.length; k++) {
         const stat = clickAndRollFrame.contentDocument.createElement('td');
         if (k === 0) {
-          stat.classList.add('season');
+          stat.classList.add('click-and-roll-season');
         }
         stat.textContent = season[k] || 'n/a';
         row.appendChild(stat)
@@ -266,11 +264,6 @@ const run = (players) => {
   const closeOverlay = () => {
     frameContainer.parentNode.removeChild(frameContainer);
     document.removeEventListener('click', closeOverlay);
-  };
-
-  const fixedHorizontalScroll = (e) => {
-    clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile').style.left =
-      (e.target.scrollLeft).toString() + 'px';
   };
 
   const observeMutations = (playerNames) => {
