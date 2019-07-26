@@ -111,7 +111,7 @@ const run = (players) => {
       newContainerParent.appendChild(frameContainer);
       frameContainer.appendChild(clickAndRollFrame);
 
-      clickAndRollFrame.contentDocument.body.id = 'click-and-roll-frame-body';
+      clickAndRollFrame.contentDocument.body.id = 'frame-body';
 
       const style = document.createElement('link');
       style.rel = 'stylesheet';
@@ -123,7 +123,12 @@ const run = (players) => {
     clickAndRollFrame.contentDocument.body.innerHTML = '';
     positionFrameContainer(targetElement, newContainerParent);
 
+    statDisplay.classList.remove('loaded');
+    statDisplay.classList.add('loading');
+    clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
+
     if (newPlayerId !== currentPlayerId) {
+      statDisplay.innerHTML = statTemplate;
       currentPlayerId = newPlayerId;
       backgroundScriptFetch({message: 'fetchStats', playerId: currentPlayerId})
         .then(stats => displayStats(stats, name));
@@ -198,23 +203,23 @@ const run = (players) => {
   };
 
   const displayStats = (stats, name) => {
+
+    statDisplay.classList.remove('loading');
+    statDisplay.classList.add('loaded');
+
     if (stats) {
-      statDisplay.innerHTML = statDisplayTemplate;
-      clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
-      clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-name').textContent = name;
+      clickAndRollFrame.contentDocument.getElementsByClassName('player-name')[0].textContent = name;
       mapPlayerProfile(stats.profile, name);
       mapCareerStatsToRows(stats.career);
-    } else {
-      clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
     }
 
-    clickAndRollFrame.contentDocument.getElementById('click-and-roll-dismiss').onclick = closeOverlay;
+    clickAndRollFrame.contentDocument.getElementsByClassName('dismiss')[0].onclick = closeOverlay;
     document.addEventListener('click', closeOverlay);
   };
 
   const mapPlayerProfile = (profile, name) => {
     if (profile.image) {
-      const profileImageElement = clickAndRollFrame.contentDocument.getElementById('click-and-roll-player-profile-image');
+      const profileImageElement = clickAndRollFrame.contentDocument.getElementById('player-profile-image');
       profileImageElement.src = profile.image;
       profileImageElement.alt = name;
     }
@@ -232,7 +237,7 @@ const run = (players) => {
     ];
 
     for (let i = 0; i < profileInfoDetails.length; i++) {
-      const infoDataElement = clickAndRollFrame.contentDocument.getElementById('click-and-roll-info-' + profileInfoDetails[i]);
+      const infoDataElement = clickAndRollFrame.contentDocument.getElementById('info-' + profileInfoDetails[i]);
       infoDataElement.textContent = profile[profileInfoDetails[i]];
     }
   };
@@ -251,7 +256,7 @@ const run = (players) => {
       for (let k = 0; k < season.length; k++) {
         const stat = clickAndRollFrame.contentDocument.createElement('td');
         if (k === 0) {
-          stat.classList.add('click-and-roll-season');
+          stat.classList.add('season');
         }
         stat.textContent = (season[k] === null)
           ? 'n/a'
@@ -259,7 +264,7 @@ const run = (players) => {
         row.appendChild(stat)
       }
 
-      clickAndRollFrame.contentDocument.getElementById('click-and-roll-season-averages-body').appendChild(row);
+      clickAndRollFrame.contentDocument.getElementById('season-averages-body').appendChild(row);
     }
   };
 
@@ -296,14 +301,14 @@ const run = (players) => {
   const statDisplay = document.createElement('div');
   frameContainer.id = 'click-and-roll-frame-container';
   clickAndRollFrame.id ='click-and-roll-frame';
-  statDisplay.id = 'click-and-roll-stat-display';
+  statDisplay.id = 'stat-display';
 
   let currentPlayerId;
-  let statDisplayTemplate;
+  let statTemplate;
 
   $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
     .then(frameHtml => {
-      statDisplayTemplate = frameHtml;
+      statTemplate = frameHtml;
     });
 
   const playerNames = players.map((player) => player.name);

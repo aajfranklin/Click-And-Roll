@@ -1,56 +1,59 @@
-<div id="click-and-roll-player-header">
-    <div id="click-and-roll-player-name"></div>
-    <button id="click-and-roll-dismiss">
+<div class="player-header">
+    <div class="player-name"></div>
+    <button class="dismiss">
         <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle" class="svg-inline--fa fa-times-circle fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
         </svg>
     </button>
 </div>
-<div id="click-and-roll-content">
-    <div id="click-and-roll-player-profile">
-        <div class="click-and-roll-sub-heading">Player Profile:</div>
-        <div id="click-and-roll-player-profile-content">
-            <img src ="https://cdn.clipart.email/3cd6f4d8f61a5da065d31bc13bbd4d5b_generic-silhouette-at-getdrawingscom-free-for-personal-use-_600-600.jpeg" alt="Generic Silhouette" id="click-and-roll-player-profile-image"/>
-            <div id="click-and-roll-player-profile-info">
-                <div class="click-and-roll-player-profile-info-column">
-                    <div class="click-and-roll-info-label">Team: </div>
-                    <div class="click-and-roll-info-label">Number: </div>
-                    <div class="click-and-roll-info-label">Position: </div>
+<div id="loading-container">
+    <div id="loading-graphic"></div>
+</div>
+<div id="content" class="hidden">
+    <div id="player-profile">
+        <div class="sub-heading">Player Profile:</div>
+        <div id="player-profile-content">
+            <img src ="https://cdn.clipart.email/3cd6f4d8f61a5da065d31bc13bbd4d5b_generic-silhouette-at-getdrawingscom-free-for-personal-use-_600-600.jpeg" alt="Generic Silhouette" id="player-profile-image"/>
+            <div id="player-profile-info">
+                <div class="player-profile-info-column">
+                    <div class="info-label">Team: </div>
+                    <div class="info-label">Number: </div>
+                    <div class="info-label">Position: </div>
                 </div>
-                <div class="click-and-roll-player-profile-info-column">
-                    <div id="click-and-roll-info-team" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-number" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-position" class="click-and-roll-info-data"></div>
+                <div class="player-profile-info-column">
+                    <div id="info-team" class="info-data"></div>
+                    <div id="info-number" class="info-data"></div>
+                    <div id="info-position" class="info-data"></div>
                 </div>
-                <div class="click-and-roll-player-profile-info-column">
-                    <div class="click-and-roll-info-label">Birthday: </div>
-                    <div class="click-and-roll-info-label">Height: </div>
-                    <div class="click-and-roll-info-label">Weight: </div>
+                <div class="player-profile-info-column">
+                    <div class="info-label">Birthday: </div>
+                    <div class="info-label">Height: </div>
+                    <div class="info-label">Weight: </div>
                 </div>
-                <div class="click-and-roll-player-profile-info-column">
-                    <div id="click-and-roll-info-birthday" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-height" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-weight" class="click-and-roll-info-data"></div>
+                <div class="player-profile-info-column">
+                    <div id="info-birthday" class="info-data"></div>
+                    <div id="info-height" class="info-data"></div>
+                    <div id="info-weight" class="info-data"></div>
                 </div>
-                <div class="click-and-roll-player-profile-info-column">
-                    <div class="click-and-roll-info-label">Country: </div>
-                    <div class="click-and-roll-info-label">College: </div>
-                    <div class="click-and-roll-info-label">Draft: </div>
+                <div class="player-profile-info-column">
+                    <div class="info-label">Country: </div>
+                    <div class="info-label">College: </div>
+                    <div class="info-label">Draft: </div>
                 </div>
-                <div class="click-and-roll-player-profile-info-column">
-                    <div id="click-and-roll-info-country" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-college" class="click-and-roll-info-data"></div>
-                    <div id="click-and-roll-info-draft" class="click-and-roll-info-data"></div>
+                <div class="player-profile-info-column">
+                    <div id="info-country" class="info-data"></div>
+                    <div id="info-college" class="info-data"></div>
+                    <div id="info-draft" class="info-data"></div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="click-and-roll-career-heading" class="click-and-roll-sub-heading">Career Stats:</div>
-    <div id="click-and-roll-table-container">
-        <table id="click-and-roll-table">
-            <tbody id="click-and-roll-season-averages-body">
-            <tr id="click-and-roll-stat-headings">
-                <th id="click-and-roll-season-header" class="click-and-roll-season">Season</th>
+    <div id="career-heading" class="sub-heading">Career Stats:</div>
+    <div id="table-container">
+        <table>
+            <tbody id="season-averages-body">
+            <tr id="stat-headings">
+                <th id="season-header" class="season">Season</th>
                 <th>Team</th>
                 <th>Age</th>
                 <th>GP</th>
