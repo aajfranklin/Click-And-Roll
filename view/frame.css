@@ -61,7 +61,6 @@
 
 #click-and-roll-player-header {
   border-radius: 5px 5px 0 0;
-  height: fit-content;
   position: fixed;
   z-index: 3;
 }

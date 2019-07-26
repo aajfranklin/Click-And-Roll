@@ -253,7 +253,9 @@ const run = (players) => {
         if (k === 0) {
           stat.classList.add('click-and-roll-season');
         }
-        stat.textContent = season[k] || 'n/a';
+        stat.textContent = (season[k] === null)
+          ? 'n/a'
+          : season[k];
         row.appendChild(stat)
       }
 
