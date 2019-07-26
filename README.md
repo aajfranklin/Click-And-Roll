@@ -70,7 +70,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] Fix stat display briefly visible without styling when same as previous player but in new scroll parent
 - [ ] Fix previous player's stats sometimes briefly showing
 - [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
-- [ ] Fix team name and city reversed!
+- [x] Fix team name and city reversed!
 
 #### Other
 

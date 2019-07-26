@@ -84,7 +84,7 @@ function onFetchStats(request, sender, sendResponse) {
           draft,
           birthday: birthday ? birthday.split('T')[0] : 'n/a',
           weight:   weight ? weight + ' lb' : 'n/a',
-          team:     (teamName && city) ? teamName + ' ' + city.charAt(0).toUpperCase() + city.slice(1) : 'n/a',
+          team:     (teamName && city) ? city.charAt(0).toUpperCase() + city.slice(1) + ' ' + teamName: 'n/a',
           number:   profileData[headers.indexOf('JERSEY')] || 'n/a',
           position: profileData[headers.indexOf('POSITION')]  || 'n/a',
           height:   profileData[headers.indexOf('HEIGHT')]  || 'n/a',
