@@ -40,7 +40,8 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 
 - [x] Fetch player names from api and store locally on first use
 - [x] Store most recently viewed player id and do not repeat API call if user scrolls over same player
-- [ ] Explore possible time-savings for mutation observer implementation (e.g. searches in background script)
+- [x] Explore possible time-savings for mutation observer implementation
+- [ ] Move text searching to background script
 
 #### Other
 
@@ -67,6 +68,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix team name and city reversed!
 - [x] Fix close overlay to hide container parent, not remove entirely (should resolve some flicker issues)
 - [x] Fix loading graphic sometimes not displaying correctly if quickly hovering over multiple players
+- [x] Fix searching mutations that do not alter text content, or not long enough to be names
 - [ ] Handle duplicate player names
 - [ ] Handle names that contain other names as a sub-string
 - [ ] Implement more comprehensive profile photo api, or alternative image sourcing approach

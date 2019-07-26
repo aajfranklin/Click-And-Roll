@@ -280,19 +280,18 @@ const run = (players) => {
 
   const observeMutations = (playerNames) => {
     const observer = new MutationObserver(function (mutations) {
-      for (let i = 0; i < mutations.length; i++) {
-        const addedNodes = mutations[i].addedNodes;
-        if (addedNodes.length > 0) {
-          const mutationRootNode = addedNodes[0];
-          const mutationTargetId = mutations[i].target.id;
-          if ((mutationTargetId + mutationRootNode.id).indexOf('click-and-roll') !== -1){
-            continue;
-          }
-          const results = searchTextContent(mutationRootNode, playerNames);
-          if (results.length > 0) {
-            observer.disconnect();
-            locateAndFormatResults(mutationRootNode, results);
-            observer.observe(document.body, { childList: true, subtree: true });
+      if (document.body.textContent !== lastBodyText) {
+        lastBodyText = document.body.textContent;
+        for (let i = 0; i < mutations.length; i++) {
+          const addedNodes = mutations[i].addedNodes;
+          if (addedNodes.length > 0 && addedNodes[0].textContent.trim().length >= 4) {
+            console.log(addedNodes[0].textContent);
+            const results = searchTextContent(addedNodes[0], playerNames);
+            if (results.length > 0) {
+              observer.disconnect();
+              locateAndFormatResults(addedNodes[0], results);
+              observer.observe(document.body, { childList: true, subtree: true });
+            }
           }
         }
       }
@@ -316,6 +315,7 @@ const run = (players) => {
       statTemplate = frameHtml;
     });
 
+  let lastBodyText = document.body.textContent;
   const playerNames = players.map((player) => player.name);
   const initialResults = searchTextContent(document.body, playerNames);
 
@@ -326,19 +326,23 @@ const run = (players) => {
   observeMutations(playerNames);
 };
 
-chrome.storage.local.get(['players'], (response) => {
-  const players = response.players;
+const checkPlayerCache = () => {
+  chrome.storage.local.get(['players'], (response) => {
+    const players = response.players;
 
-  if (players === undefined) {
-    backgroundScriptFetch({message: 'fetchPlayers'})
-      .then(players => {
-        saveToChromeStorage('players', players);
-        run(players);
-      })
-      .catch(err => {
-        console.log(err);
-      })
-  } else {
-    run(players);
-  }
-});
+    if (players === undefined) {
+      backgroundScriptFetch({message: 'fetchPlayers'})
+        .then(players => {
+          saveToChromeStorage('players', players);
+          run(players);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+    } else {
+      run(players);
+    }
+  });
+};
+
+window.addEventListener('load', checkPlayerCache);
