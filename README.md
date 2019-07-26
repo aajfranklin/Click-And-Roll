@@ -67,12 +67,13 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix further inconsistencies with table styling across sites (test on BBall Ref, 538)
 - [ ] Fix white space when players don't have enough seasons to fill the overlay
 - [x] Fix zero stats showing as n/a?
-- [ ] Fix stat display briefly visible without styling when same as previous player but in new scroll parent
+- [ ] Fix stat display briefly visible without styling when in new scroll parent
 - [x] Fix previous player's stats sometimes briefly showing
 - [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 - [x] Fix team name and city reversed!
 - [ ] Fix do not observe mutations in content editable fields
-- [ ] Fix close overlay to hide container parent, not remove entirely (should resolve some flicker issues)
+- [x] Fix close overlay to hide container parent, not remove entirely (should resolve some flicker issues)
+- [ ] Fix loading graphic sometimes not displaying correctly if quickly hovering over multiple players
 
 #### Other
 

@@ -172,6 +172,7 @@ const run = (players) => {
     const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent);
     frameContainer.style.top = offset.top + 'px';
     frameContainer.style.left = offset.left + 'px';
+    frameContainer.hidden = false;
   };
 
   const getOffsetFromParent = (rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent) => {
@@ -269,7 +270,7 @@ const run = (players) => {
   };
 
   const closeOverlay = () => {
-    frameContainer.parentNode.removeChild(frameContainer);
+    frameContainer.hidden = true;
     document.removeEventListener('click', closeOverlay);
   };
 
