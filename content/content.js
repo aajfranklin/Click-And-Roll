@@ -28,10 +28,11 @@ const run = (players) => {
     const treeWalker = document.createTreeWalker(rootNode, 4);
     let currentTextIndex = 0;
     let nextResult = getNextResult(results);
+    let currentNode = rootNode;
 
-    while (nextResult !== undefined) {
+    while (nextResult !== null && currentNode !== null) {
       // traverse node tree and locate text node containing next result
-      const currentNode = treeWalker.currentNode.nodeName === '#text'
+      currentNode = treeWalker.currentNode.nodeName === '#text'
         ? treeWalker.currentNode
         : treeWalker.nextNode();
       const nodeTextLength = currentNode.textContent.length;
@@ -54,7 +55,7 @@ const run = (players) => {
 
       } else {
         currentTextIndex += nodeTextLength;
-        treeWalker.nextNode();
+        currentNode = treeWalker.nextNode();
       }
     }
   };
@@ -69,7 +70,7 @@ const run = (players) => {
       }
     }
 
-    return undefined;
+    return null;
   };
 
   const highlightResult = (result, node, currentTextIndex) => {
@@ -280,12 +281,14 @@ const run = (players) => {
 
   const observeMutations = (playerNames) => {
     const observer = new MutationObserver(function (mutations) {
+
       if (document.body.textContent !== lastBodyText) {
         lastBodyText = document.body.textContent;
+
         for (let i = 0; i < mutations.length; i++) {
           const addedNodes = mutations[i].addedNodes;
+
           if (addedNodes.length > 0 && addedNodes[0].textContent.trim().length >= 4) {
-            console.log(addedNodes[0].textContent);
             const results = searchTextContent(addedNodes[0], playerNames);
             if (results.length > 0) {
               observer.disconnect();

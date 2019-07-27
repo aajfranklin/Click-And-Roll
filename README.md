@@ -33,6 +33,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] User choice of highlight colour (including none)
 - [ ] User choice of sites to include/exclude
 - [ ] User choice of dynamic highlighting
+- [ ] Periodically update player list
 
 ### Optimisations
 
