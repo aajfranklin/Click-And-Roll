@@ -286,15 +286,17 @@ const run = (players) => {
         lastBodyText = document.body.textContent;
 
         for (let i = 0; i < mutations.length; i++) {
-          const addedNodes = mutations[i].addedNodes;
-
-          if (addedNodes.length > 0 && addedNodes[0].textContent.trim().length >= 4) {
-            const results = searchTextContent(addedNodes[0], playerNames);
-            if (results.length > 0) {
-              observer.disconnect();
-              locateAndFormatResults(addedNodes[0], results);
-              observer.observe(document.body, { childList: true, subtree: true });
-            }
+          if (mutations[i].addedNodes) {
+            mutations[i].addedNodes.forEach(node => {
+              if (node.innerText && node.innerText.trim().length >= 4) {
+                const results = searchTextContent(node, playerNames);
+                if (results.length > 0) {
+                  observer.disconnect();
+                  locateAndFormatResults(node, results);
+                  observer.observe(document.body, { childList: true, subtree: true });
+                }
+              }
+            });
           }
         }
       }
