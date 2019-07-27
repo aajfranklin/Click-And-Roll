@@ -39,20 +39,10 @@ const run = (players) => {
       const nodeIncludesNextResult = currentTextIndex + nodeTextLength >= nextResult.index;
 
       if (nodeIncludesNextResult) {
-        // do not reformat text nodes within script and style elements, these are not displayed to the user
-        let parentNodeIsValid = true;
-
-        if (currentNode.parentNode) {
-          const parentNodeName = currentNode.parentNode.nodeName;
-          parentNodeIsValid = parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
-        }
-
-        if (parentNodeIsValid) {
+        if (parentNodeIsValid(currentNode)) {
           highlightResult(nextResult, currentNode, currentTextIndex);
         }
-
         nextResult = getNextResult(results);
-
       } else {
         currentTextIndex += nodeTextLength;
         currentNode = treeWalker.nextNode();
@@ -62,15 +52,21 @@ const run = (players) => {
 
   const getNextResult = (results) => {
     const rawResult = results.shift();
-
     if (rawResult !== undefined) {
       return {
         index: rawResult[0],
         name: rawResult[1][0]
       }
     }
-
     return null;
+  };
+
+  const parentNodeIsValid = (currentNode) => {
+    if (currentNode.parentNode) {
+      const parentNodeName = currentNode.parentNode.nodeName;
+      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
+    }
+    return true;
   };
 
   const highlightResult = (result, node, currentTextIndex) => {
@@ -105,25 +101,11 @@ const run = (players) => {
     const newContainerParent = getContainerParentFromElement(targetElement);
 
     if (newContainerParent !== oldContainerParent) {
-      if (oldContainerParent) {
-        frameContainer.parentNode.removeChild(frameContainer);
-      }
-
-      newContainerParent.appendChild(frameContainer);
-      frameContainer.appendChild(clickAndRollFrame);
-
-      clickAndRollFrame.contentDocument.body.id = 'frame-body';
-
-      const style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.type = 'text/css';
-      style.href = chrome.extension.getURL('view/frame.css');
-      clickAndRollFrame.contentDocument.head.appendChild(style);
+      updateContainerParent(oldContainerParent, newContainerParent);
     }
 
     clickAndRollFrame.contentDocument.body.innerHTML = '';
     positionFrameContainer(targetElement, newContainerParent);
-
     statDisplay.classList.remove('loaded');
     statDisplay.classList.add('loading');
     clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
@@ -157,6 +139,23 @@ const run = (players) => {
     return (rootOffsetParent === document.body)
       ? document.body
       : rootScrollParent || rootOffsetParent;
+  };
+
+  const updateContainerParent = (oldParent, newParent) => {
+    if (oldParent) {
+      frameContainer.parentNode.removeChild(frameContainer);
+    }
+
+    newParent.appendChild(frameContainer);
+    frameContainer.appendChild(clickAndRollFrame);
+
+    clickAndRollFrame.contentDocument.body.id = 'frame-body';
+
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.type = 'text/css';
+    style.href = chrome.extension.getURL('view/frame.css');
+    clickAndRollFrame.contentDocument.head.appendChild(style);
   };
 
   const positionFrameContainer = (targetElement, containerParent) => {
