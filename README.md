@@ -78,6 +78,8 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 - [ ] Fix stat display briefly visible without styling when in new scroll parent
 - [ ] Fix do not observe mutations in content editable fields
+- [ ] Fix some names not highlighting with current mutation observer filtering
+- [ ] Fix loading graphic not displaying if same player is selected before previous load finished
 
 #### Other
 
