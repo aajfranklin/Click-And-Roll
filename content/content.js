@@ -113,10 +113,12 @@ const run = (players) => {
     if (newPlayerId !== currentPlayerId) {
       statDisplay.innerHTML = statTemplate;
       currentPlayerId = newPlayerId;
+      dataReceived = false;
       backgroundScriptFetch({message: 'fetchStats', playerId: currentPlayerId})
         .then(stats => {
           // current player id may have been reassigned by a later hover, making these stats out of date
           if (newPlayerId === currentPlayerId) {
+            dataReceived = true;
             displayStats(stats, name)
           }
         });
@@ -209,6 +211,12 @@ const run = (players) => {
   };
 
   const displayStats = (stats, name) => {
+    /*
+    * Catches the edge case where user has hovered on the same name twice in quick succession,
+    * ensures the loading graphic continues to display until data has come in
+     */
+    if (!dataReceived) return;
+
     statDisplay.classList.remove('loading');
     statDisplay.classList.add('loaded');
 
@@ -312,6 +320,7 @@ const run = (players) => {
   statDisplay.id = 'stat-display';
 
   let currentPlayerId;
+  let dataReceived;
   let statTemplate;
 
   $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})

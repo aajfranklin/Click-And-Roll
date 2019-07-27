@@ -72,6 +72,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix searching mutations that do not alter text content, or not long enough to be names
 - [x] Fix infinite loop when treewalker has no next node before last result has been found
 - [x] Fix some names not highlighting with current mutation observer filtering
+- [x] Fix loading graphic not displaying if same player is selected before previous load finished
 - [ ] Handle duplicate player names
 - [ ] Handle names that contain other names as a sub-string
 - [ ] Implement more comprehensive profile photo api, or alternative image sourcing approach
@@ -79,7 +80,6 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 - [ ] Fix stat display briefly visible without styling when in new scroll parent
 - [ ] Fix do not observe mutations in content editable fields
-- [ ] Fix loading graphic not displaying if same player is selected before previous load finished
 
 #### Other
 
