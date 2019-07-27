@@ -153,10 +153,9 @@ const run = (players) => {
 
     clickAndRollFrame.contentDocument.body.id = 'frame-body';
 
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
+    const style = document.createElement('style');
     style.type = 'text/css';
-    style.href = chrome.extension.getURL('view/frame.css');
+    style.textContent = frameStyle;
     clickAndRollFrame.contentDocument.head.appendChild(style);
   };
 
@@ -322,10 +321,16 @@ const run = (players) => {
   let currentPlayerId;
   let dataReceived;
   let statTemplate;
+  let frameStyle;
 
   $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
-    .then(frameHtml => {
-      statTemplate = frameHtml;
+    .then(response => {
+      statTemplate = response;
+    });
+
+  $.ajax(chrome.extension.getURL('view/frame.css'), {method: 'GET'})
+    .then(response => {
+      frameStyle = response;
     });
 
   let lastBodyText = document.body.textContent;
