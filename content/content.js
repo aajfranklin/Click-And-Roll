@@ -230,11 +230,16 @@ const run = (players) => {
   };
 
   const mapPlayerProfile = (profile, name) => {
-    if (profile.image) {
-      const profileImageElement = clickAndRollFrame.contentDocument.getElementById('player-profile-image');
-      profileImageElement.src = profile.image;
-      profileImageElement.alt = name;
-    }
+    const profileImageElement = clickAndRollFrame.contentDocument.getElementById('player-profile-image');
+
+    fetch(profile.imageUrl, {cache: 'force-cache', redirect: 'error'})
+      .then(() => {
+        profileImageElement.src = profile.imageUrl;
+        profileImageElement.alt = name;
+      })
+      .catch(err => {
+        console.log(err);
+      });
 
     const profileInfoDetails = [
       'team',
@@ -326,9 +331,8 @@ const run = (players) => {
   $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
     .then(response => {
       statTemplate = response;
-    });
-
-  $.ajax(chrome.extension.getURL('view/frame.css'), {method: 'GET'})
+      return $.ajax(chrome.extension.getURL('view/frame.css'), {method: 'GET'})
+    })
     .then(response => {
       frameStyle = response;
     });

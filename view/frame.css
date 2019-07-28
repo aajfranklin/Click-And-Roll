@@ -50,8 +50,12 @@
   flex-direction: column;
 }
 
-.player-header, .player-profile-info-column {
+.player-header {
   justify-content: space-between;
+}
+
+.player-profile-info-column {
+  justify-content: center;
 }
 
 .player-header {
@@ -69,8 +73,12 @@
   font-size: 18px;
 }
 
-.player-name, .info-label {
+.player-name {
   margin: 8px 0 8px 8px;
+}
+
+.info-label {
+  margin: 12px 0 12px 24px;
 }
 
 .dismiss {
@@ -101,10 +109,10 @@
 
 #player-profile-image {
   border: solid 1px lightgrey;
-  height: 100px;
-  object-fit: cover;
+  height: 120px;
   margin-left: 8px;
-  width: 100px;
+  width: 85px;
+  object-fit: cover;
 }
 
 #player-profile-info {
@@ -113,7 +121,7 @@
 
 .info-data {
   color: black;
-  margin: 7px 0 7px 8px;
+  margin: 11px 0 11px 8px;
 }
 
 .info-data, table th, .info-label, .season {

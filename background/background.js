@@ -37,8 +37,6 @@ function onFetchStats(request, sender, sendResponse) {
       profile: null
     };
 
-    let imageUrl;
-
     $.ajax('https://stats.nba.com/stats/playercareerstats',
       {
         method: 'GET',
@@ -79,6 +77,23 @@ function onFetchStats(request, sender, sendResponse) {
           draft = 'n/a';
         }
 
+        const fullName = profileData[headers.indexOf('DISPLAY_FIRST_LAST')];
+        const names = fullName.split(' ');
+        const surNameAbb = names[names.length - 1].slice(0, 5).toLowerCase();
+        const firstNameAbb = names[0].slice(0, 2).toLowerCase();
+        const imageRef = Object.getOwnPropertyNames(playerImageRefMap).includes(fullName)
+          ? playerImageRefMap[fullName]
+          : '01';
+
+        const date = new Date();
+        const year = date.getFullYear().toString();
+        const month = (date.getMonth() + 1 < 10)
+          ? '0' + (date.getMonth() + 1)
+          : date.getMonth().toString();
+        const day = date.getDate().toString();
+        const dateStr = year + month + day + '1';
+
+        const imageUrl = 'https://d2cwpp38twqe55.cloudfront.net/req/'+ dateStr + '/images/players/' + surNameAbb + firstNameAbb + imageRef + '.jpg';
 
         stats.profile = {
           draft,
@@ -89,19 +104,10 @@ function onFetchStats(request, sender, sendResponse) {
           position: profileData[headers.indexOf('POSITION')] || 'n/a',
           height:   profileData[headers.indexOf('HEIGHT')] || 'n/a',
           country:  profileData[headers.indexOf('COUNTRY')] || 'n/a',
-          college:  profileData[headers.indexOf('SCHOOL')] || 'n/a'
+          college:  profileData[headers.indexOf('SCHOOL')] || 'n/a',
+          imageUrl
         };
 
-        imageUrl = 'https://nba-players.herokuapp.com/players/'
-          + profileData[headers.indexOf('LAST_NAME')] + '/'
-          + profileData[headers.indexOf('FIRST_NAME')];
-
-        return $.ajax(imageUrl);
-      })
-      .then(response => {
-        if (response !== 'Sorry, that player was not found. Please check the spelling.') {
-          stats.profile.image = imageUrl;
-        }
         sendResponse([null, stats]);
       })
       .catch(err => {
@@ -110,3 +116,54 @@ function onFetchStats(request, sender, sendResponse) {
   }
   return true
 }
+
+const playerImageRefMap = {
+  "Dairis Bertans": "02",
+  "Bojan Bogdanovic": "02",
+  "Miles Bridges": "02",
+  "Anthony Brown": "02",
+  "Jaylen Brown": "02",
+  "Daequan Cook": "02",
+  "Anthony Davis": "02",
+  "Jacob Evans": "02",
+  "Jerian Grant": "02",
+  "Danny Green": "02",
+  "Jaxson Hayes": "02",
+  "Marc Jackson": "02",
+  "Alize Johnson": "02",
+  "Armon Johnson": "02",
+  "Cameron Johnson": "02",
+  "JaJuan Johnson": "02",
+  "Magic Johnson": "02",
+  "Dahntay Jones": "02",
+  "Damian Jones": "03",
+  "Derrick Jones Jr.": "02",
+  "Dominique Jones": "02",
+  "Donny Marshall": "02",
+  "Kevin Martin": "02",
+  "Patty Mills": "02",
+  "Cherokee Parks": "02",
+  "Marshall Plumlee": "02",
+  "Taurean Prince": "02",
+  "Willie Reed": "02",
+  "Clifford Robinson": "02",
+  "Isaiah Thomas": "02",
+  "Trey Thompkins": "02",
+  "Mychel Thompson": "02",
+  "Mario West": "02",
+  "Derrick Williams": "02",
+  "Jason Williams": "02",
+  "Jay Williams": "03",
+  "Jawad Williams": "04",
+  "John Williams": "02",
+  "Jordan Williams": "03",
+  "Johnathan Williams": "04",
+  "Kevin Willis": "02",
+  "Kenny Williams": "03",
+  "Kenrich Williams": "04",
+  "Marvin Williams": "02",
+  "Marcus Williams": "02",
+  "Shelden Williams": "02",
+  "Shawne Williams": "03",
+  "Justin Wright-Foreman": "02",
+};

@@ -2,3 +2,4 @@
 config.js
 .DS_Store
 background/endpointAnalysis.js
+sandbox/
