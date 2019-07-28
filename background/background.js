@@ -79,8 +79,8 @@ function onFetchStats(request, sender, sendResponse) {
 
         const fullName = profileData[headers.indexOf('DISPLAY_FIRST_LAST')];
         const names = fullName.split(' ');
-        const surNameAbb = names[names.length - 1].slice(0, 5).toLowerCase();
-        const firstNameAbb = names[0].slice(0, 2).toLowerCase();
+        const surNameAbb = names[names.length - 1].replace('-', '').slice(0, 5).toLowerCase();
+        const firstNameAbb = names[0].replace('-', '').slice(0, 2).toLowerCase();
         const imageRef = Object.getOwnPropertyNames(playerImageRefMap).includes(fullName)
           ? playerImageRefMap[fullName]
           : '01';
