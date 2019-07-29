@@ -6,8 +6,8 @@
   background: white;
   border-radius: 5px;
   font-family: Arial, Helvetica, sans-serif;
-  height: calc(100vh - 2px);
   left: 2px;
+  overflow: hidden;
   position: absolute;
   text-align: left;
   vertical-align: middle;
