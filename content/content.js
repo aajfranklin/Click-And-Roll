@@ -197,7 +197,7 @@ const run = (players) => {
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = elementIsInLeftHalf
       ? rect.left + scrollX - parentOffset.x - 2
-      : rect.left + scrollX - parentOffset.x - 2 - window.innerWidth / 2 + rect.width;
+      : rect.left + scrollX - parentOffset.x - 2 - window.innerWidth / 2 + rect.width + Math.max((window.innerWidth / 2 - 800), 0);
 
     const overlayTop = elementIsInTopHalf
       ? rect.top + scrollY - parentOffset.y + rect.height
