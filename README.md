@@ -76,7 +76,8 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix stat display briefly visible without styling when in new scroll parent
 - [x] Implement more comprehensive profile photo api, or alternative image sourcing approach
 - [x] Handle duplicate player names
-- [x] Fix hyphenate surnames leading to invalid image urls 
+- [x] Fix hyphenate surnames leading to invalid image urls
+- [ ] Fix names with apostrophes leading to invalid image urls
 - [ ] Handle names that contain other names as a sub-string
 
 #### Other
