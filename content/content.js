@@ -93,7 +93,14 @@ const run = (players) => {
   };
 
   const handleHover = (mouseEnterEvent) => {
+    // prevent repeat hovers on current target, restore hover event to previous target
+    if (currentNameElement) {
+      currentNameElement.onmouseenter = handleHover
+    }
     const targetElement = mouseEnterEvent.target;
+    targetElement.onmouseenter = null;
+    currentNameElement = targetElement;
+
     const name = targetElement.textContent;
     const newPlayerId = players.filter(player => player.name === name)[0].id;
 
@@ -104,16 +111,18 @@ const run = (players) => {
       updateContainerParent(oldContainerParent, newContainerParent);
     }
 
-    clickAndRollFrame.contentDocument.body.innerHTML = '';
+    frameContainer.style.height = 'calc(50vh + 2px)';
+    getFrameDocument().body.innerHTML = '';
     positionFrameContainer(targetElement, newContainerParent);
-    statDisplay.classList.remove('loaded');
-    statDisplay.classList.add('loading');
-    clickAndRollFrame.contentDocument.body.appendChild(statDisplay);
+    getFrameDocument().body.appendChild(statDisplay);
 
     if (newPlayerId !== currentPlayerId) {
+      statDisplay.classList.remove('loaded');
+      statDisplay.classList.add('loading');
       statDisplay.innerHTML = statTemplate;
       currentPlayerId = newPlayerId;
       dataReceived = false;
+
       backgroundScriptFetch({message: 'fetchStats', playerId: currentPlayerId})
         .then(stats => {
           // current player id may have been reassigned by a later hover, making these stats out of date
@@ -151,37 +160,38 @@ const run = (players) => {
     newParent.appendChild(frameContainer);
     frameContainer.appendChild(clickAndRollFrame);
 
-    clickAndRollFrame.contentDocument.body.id = 'frame-body';
+    getFrameDocument().body.id = 'frame-body';
 
     const style = document.createElement('style');
     style.type = 'text/css';
     style.textContent = frameStyle;
-    clickAndRollFrame.contentDocument.head.appendChild(style);
+    style.title = 'click-and-roll';
+    getFrameDocument().head.appendChild(style);
   };
 
   const positionFrameContainer = (targetElement, containerParent) => {
     const rect = targetElement.getBoundingClientRect();
-    const elementIsInLeftHalf = rect.left < window.innerWidth / 2;
-    const elementIsInTopHalf = rect.top < window.innerHeight / 2;
+    namePosition.isLeft = rect.left < getHalfViewWidth();
+    namePosition.isTop = rect.top < getHalfViewHeight();
 
-    frameContainer.style.marginLeft = elementIsInLeftHalf ? '0' : '4px';
+    frameContainer.style.marginLeft = namePosition.isLeft ? '0' : '4px';
 
     // remove existing animation class
-    statDisplay.classList.remove(statDisplay.classList[0]);
+    statDisplay.classList.remove('reveal-from-top', 'reveal-from-bottom');
 
-    if (elementIsInTopHalf) {
+    if (namePosition.isTop) {
       statDisplay.classList.add('reveal-from-top');
     } else {
       statDisplay.classList.add('reveal-from-bottom');
     }
 
-    const offset = getOffsetFromParent(rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent);
+    const offset = getOffsetFromParent(rect, containerParent);
     frameContainer.style.top = offset.top + 'px';
     frameContainer.style.left = offset.left + 'px';
     frameContainer.hidden = false;
   };
 
-  const getOffsetFromParent = (rect, elementIsInLeftHalf, elementIsInTopHalf, containerParent) => {
+  const getOffsetFromParent = (rect, containerParent) => {
     const scrollX = (containerParent === document.body)
       ? (window.scrollX ? window.scrollX : window.pageXOffset)
       : containerParent.scrollLeft;
@@ -195,13 +205,13 @@ const run = (players) => {
     };
 
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
-    const overlayLeft = elementIsInLeftHalf
+    const overlayLeft = namePosition.isLeft
       ? rect.left + scrollX - parentOffset.x - 2
-      : rect.left + scrollX - parentOffset.x - 2 - window.innerWidth / 2 + rect.width + Math.max((window.innerWidth / 2 - 800), 0);
+      : rect.left + scrollX - parentOffset.x - 2 - getHalfViewWidth() + rect.width + Math.max(getHalfViewWidth() - 800, 0);
 
-    const overlayTop = elementIsInTopHalf
+    const overlayTop = namePosition.isTop
       ? rect.top + scrollY - parentOffset.y + rect.height
-      : rect.top + scrollY - parentOffset.y - window.innerHeight / 2;
+      : rect.top + scrollY - parentOffset.y - getHalfViewHeight();
 
     return {
       left: overlayLeft,
@@ -220,17 +230,18 @@ const run = (players) => {
     statDisplay.classList.add('loaded');
 
     if (stats) {
-      clickAndRollFrame.contentDocument.getElementsByClassName('player-name')[0].textContent = name;
+      getFrameDocument().getElementsByClassName('player-name')[0].textContent = name;
       mapPlayerProfile(stats.profile, name);
       mapCareerStatsToRows(stats.career);
     }
 
-    clickAndRollFrame.contentDocument.getElementsByClassName('dismiss')[0].onclick = closeOverlay;
+    resizeStatDisplay();
+    getFrameDocument().getElementsByClassName('dismiss')[0].onclick = closeOverlay;
     document.addEventListener('click', closeOverlay);
   };
 
   const mapPlayerProfile = (profile, name) => {
-    const profileImageElement = clickAndRollFrame.contentDocument.getElementById('player-profile-image');
+    const profileImageElement = getFrameDocument().getElementById('player-profile-image');
 
     fetch(profile.imageUrl, {cache: 'force-cache', redirect: 'error'})
       .then(() => {
@@ -254,12 +265,17 @@ const run = (players) => {
     ];
 
     for (let i = 0; i < profileInfoDetails.length; i++) {
-      const infoDataElement = clickAndRollFrame.contentDocument.getElementById('info-' + profileInfoDetails[i]);
+      const infoDataElement = getFrameDocument().getElementById('info-' + profileInfoDetails[i]);
       infoDataElement.textContent = profile[profileInfoDetails[i]];
     }
   };
 
   const mapCareerStatsToRows = (careerStats) => {
+    if (careerStats.seasons.rowSet.length === 0) {
+      getFrameDocument().getElementById('content').removeChild(getFrameDocument().getElementById('career-heading'));
+      getFrameDocument().getElementById('content').removeChild(getFrameDocument().getElementById('table-container'));
+    }
+
     for (let i = 0; i < careerStats.seasons.rowSet.length; i++) {
       const season = careerStats.seasons.rowSet[i];
       const statsToRemove = [3, 2, 0];
@@ -268,10 +284,10 @@ const run = (players) => {
         season.splice(statsToRemove[j], 1);
       }
 
-      const row = clickAndRollFrame.contentDocument.createElement('tr');
+      const row = getFrameDocument().createElement('tr');
 
       for (let k = 0; k < season.length; k++) {
-        const stat = clickAndRollFrame.contentDocument.createElement('td');
+        const stat = getFrameDocument().createElement('td');
         if (k === 0) {
           stat.classList.add('season');
         }
@@ -281,13 +297,82 @@ const run = (players) => {
         row.appendChild(stat)
       }
 
-      clickAndRollFrame.contentDocument.getElementById('season-averages-body').appendChild(row);
+      getFrameDocument().getElementById('season-averages-body').appendChild(row);
+    }
+  };
+
+  const resizeStatDisplay = () => {
+    const frameContent = getFrameDocument().getElementById('content');
+    const playerHeaderHeight = 37;
+    const chromeScrollBarHeight = 17;
+
+    if (frameContent.scrollHeight + playerHeaderHeight < (getHalfViewHeight()) - 2) {
+      statDisplay.classList.remove('reveal-from-top', 'reveal-from-bottom');
+      const newHeight = (frameContent.scrollHeight + playerHeaderHeight + chromeScrollBarHeight) + 'px';
+
+      const rule = namePosition.isTop
+        ? '@keyframes resize{from{height:calc(100vh - 2px);}to{height:' + newHeight + ';}}'
+        : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}to{height:'
+          + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
+
+      // if user has scrolled over multiple names in quick succession, existing resize rule and event listeners should be removed
+      removeResizeAnimation();
+      statDisplay.removeEventListener('animationend', handleAnimationEnd);
+
+      getStyleSheet().insertRule(rule, 0);
+      statDisplay.addEventListener('animationend', handleAnimationEnd);
+      statDisplay.classList.add('resize');
+    }
+  };
+
+  const handleAnimationEnd = (animationEvent) => {
+    if (animationEvent.animationName === 'resize') {
+      removeResizeAnimation();
+      statDisplay.classList.remove('resize');
+      statDisplay.removeEventListener('animationend', handleAnimationEnd);
+
+      const statDisplayHeight = statDisplay.scrollHeight + 2;
+      frameContainer.style.height = statDisplayHeight + 'px';
+      frameContainer.style.top = namePosition.isTop
+        ? frameContainer.style.top
+        : frameContainer.offsetTop + getHalfViewHeight() - statDisplayHeight + 'px';
+    }
+  };
+
+  const removeResizeAnimation = () => {
+    const stylesheet = getStyleSheet();
+    const resizeRules = Array.prototype.filter.call(stylesheet.rules, rule => rule.name === 'resize');
+    for (let i = 0; i < resizeRules.length; i++) {
+      stylesheet.deleteRule(Array.prototype.indexOf.call(stylesheet.rules, resizeRules[i]));
     }
   };
 
   const closeOverlay = () => {
+    currentNameElement.onmouseenter = handleHover;
     frameContainer.hidden = true;
     document.removeEventListener('click', closeOverlay);
+  };
+
+  const getHalfViewHeight = () => {
+    return window.innerHeight / 2;
+  };
+
+  const getHalfViewWidth = () => {
+    return window.innerWidth / 2;
+  };
+
+  /*
+   * Even in iframe, some other extensions may be injecting additional stylesheets.
+   * This method ensures we always manipulate the intended stylesheet
+   */
+  const getStyleSheet = () => {
+    return Array.prototype.filter.call(getFrameDocument().styleSheets, stylesheet => {
+      return stylesheet.title === 'click-and-roll';
+    })[0];
+  };
+
+  const getFrameDocument = () => {
+    return clickAndRollFrame.contentDocument;
   };
 
   const observeMutations = (playerNames) => {
@@ -327,6 +412,8 @@ const run = (players) => {
   let dataReceived;
   let statTemplate;
   let frameStyle;
+  let namePosition = {};
+  let currentNameElement;
 
   $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
     .then(response => {

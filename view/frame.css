@@ -18,7 +18,7 @@
   width: calc(100vw - 4px);
 }
 
-.reveal-from-top, .reveal-from-bottom {
+.reveal-from-top, .reveal-from-bottom, .resize {
   animation-duration: 0.5s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
@@ -30,6 +30,10 @@
 
 .reveal-from-bottom {
   animation-name: reveal-from-bottom;
+}
+
+.resize {
+  animation-name: resize;
 }
 
 @keyframes reveal-from-top {
@@ -135,7 +139,7 @@
 #content {
   border-radius: 5px;
   margin-top: 37px;
-  overflow: scroll;
+  overflow-x: scroll;
 }
 
 .sub-heading {

@@ -80,13 +80,15 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix names with apostrophes leading to invalid image urls
 - [x] Fix max width on wider monitors
 - [x] Fix scroll bar not adhering to border radius
-- [ ] Prevent hovering on same wrapper if overlay still open, to avoid animation stutter
+- [x] Fix vertical white space when players don't have enough seasons to fill the overlay
+- [x] Fix horizontal white space when players haven't played a single season yet
+- [x] Prevent hovering on same wrapper if overlay still open, to avoid animation stutter
 - [ ] Handle names that contain other names as a sub-string
 
 #### Other
 
 - [x] Fix appear animation direction depending on overlay position
-- [ ] Fix white space when players don't have enough seasons to fill the overlay
+- [ ] If same as previous player and small stat display height, do not resize, just open to correct height right away
 - [ ] Fix scroll bar blocking stats of players with too few years to fill the overlay
 - [ ] Fix overlay positioning when name extends over two lines
 - [ ] Fix close button not drawing focus easily because stat overlay is last element
