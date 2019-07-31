@@ -47,7 +47,11 @@ function onFetchStats(request, sender, sendResponse) {
         }
       })
       .then(response => {
-        stats.career = {seasons: response.resultSets[0], career: response.resultSets[1]};
+        const seasons = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsRegularSeason')[0];
+        const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
+        const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
+        const allStarSeasons = allStar.rowSet.map(row => row[allStar.headers.indexOf('SEASON_ID')]);
+        stats.career = {seasons, career, allStarSeasons};
         return $.ajax('https://stats.nba.com/stats/commonplayerinfo',
           {
             method: 'GET',

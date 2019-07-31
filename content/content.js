@@ -232,7 +232,7 @@ const run = (players) => {
     if (stats) {
       getFrameDocument().getElementsByClassName('player-name')[0].textContent = name;
       mapPlayerProfile(stats.profile, name);
-      mapCareerStatsToRows(stats.career);
+      mapStatsToRows(stats.career);
     }
 
     resizeStatDisplay();
@@ -270,35 +270,51 @@ const run = (players) => {
     }
   };
 
-  const mapCareerStatsToRows = (careerStats) => {
-    if (careerStats.seasons.rowSet.length === 0) {
+  const mapStatsToRows = (stats) => {
+    if (stats.seasons.rowSet.length === 0) {
       getFrameDocument().getElementById('content').removeChild(getFrameDocument().getElementById('career-heading'));
       getFrameDocument().getElementById('content').removeChild(getFrameDocument().getElementById('table-container'));
     }
 
-    for (let i = 0; i < careerStats.seasons.rowSet.length; i++) {
-      const season = careerStats.seasons.rowSet[i];
-      const statsToRemove = [3, 2, 0];
+    for (let i = 0; i < stats.seasons.rowSet.length; i++) {
+      const season = stats.seasons.rowSet[i];
+      const row = createRow(season, stats.allStarSeasons.indexOf(season[1]) !== -1, false);
+      getFrameDocument().getElementById('season-averages-body').appendChild(row);
+    }
 
+    const careerRow = createRow(stats.career.rowSet[0], false, true);
+    careerRow.classList.add('career');
+    getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
+  };
+
+  const createRow = (season, isAllStarSeason, isCareerRow) => {
+    if (isCareerRow) {
+      season[0] = 'Career';
+      season[1] = season[2] = '-';
+    } else {
+      const statsToRemove = [3, 2, 0];
       for (let j = 0; j < statsToRemove.length; j++) {
         season.splice(statsToRemove[j], 1);
       }
-
-      const row = getFrameDocument().createElement('tr');
-
-      for (let k = 0; k < season.length; k++) {
-        const stat = getFrameDocument().createElement('td');
-        if (k === 0) {
-          stat.classList.add('season');
-        }
-        stat.textContent = (season[k] === null)
-          ? 'n/a'
-          : season[k];
-        row.appendChild(stat)
-      }
-
-      getFrameDocument().getElementById('season-averages-body').appendChild(row);
     }
+
+    const row = getFrameDocument().createElement('tr');
+
+    for (let k = 0; k < season.length; k++) {
+      const stat = getFrameDocument().createElement('td');
+      stat.textContent = (season[k] === null)
+        ? 'n/a'
+        : season[k];
+      if (k === 0) {
+        stat.classList.add('season');
+        stat.innerHTML += isAllStarSeason
+          ? '<span style="color:gold; padding-left: 8px">&#9733;</span>'
+          : '';
+      }
+      row.appendChild(stat)
+    }
+
+    return row;
   };
 
   const resizeStatDisplay = () => {

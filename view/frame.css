@@ -198,6 +198,10 @@ table th {
   border-right: solid 1px lightgrey;
 }
 
+.career {
+  font-weight: bold;
+}
+
 #season-header {
   z-index: 2 !important;
 }
