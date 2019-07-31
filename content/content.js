@@ -309,6 +309,7 @@ const run = (players) => {
         : season[k];
       if (k === 0) {
         stat.classList.add('season');
+        stat.classList.add('stick-left');
         stat.innerHTML += isAllStarSeason
           ? '<span style="color:gold; padding-left: 8px">&#9733;</span>'
           : '';

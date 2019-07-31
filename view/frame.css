@@ -1,3 +1,5 @@
+/* Body and outer styles */
+
 #frame-body {
   margin: 0;
 }
@@ -5,16 +7,15 @@
 #stat-display {
   background: white;
   border-radius: 5px;
+  box-shadow: darkslategrey 0 1px 2px;
+  flex-direction: column;
+  display: flex;
   font-family: Arial, Helvetica, sans-serif;
   left: 2px;
   overflow: hidden;
   position: absolute;
   text-align: left;
   vertical-align: middle;
-}
-
-#stat-display, .player-header {
-  box-shadow: darkslategrey 0 1px 2px;
   width: calc(100vw - 4px);
 }
 
@@ -46,51 +47,33 @@
   to {height: calc(100vh - 2px); margin-top: 0;}
 }
 
-#stat-display, .player-header, #content, #player-profile-info, #player-profile-content, .player-profile-info-column {
-  display: flex;
-}
-
-#stat-display, #content, .player-profile-info-column {
-  flex-direction: column;
-}
+/* Header styles */
 
 .player-header {
-  justify-content: space-between;
-}
-
-.player-profile-info-column {
-  justify-content: center;
-}
-
-.player-header {
-  border-radius: 5px 5px 0 0;
-  position: fixed;
-  z-index: 3;
-}
-
-.player-header, .dismiss {
   background: teal;
+  box-shadow: darkslategrey 0 1px 2px;
+  border-radius: 5px 5px 0 0;
   color: whitesmoke;
+  display: flex;
+  justify-content: space-between;
+  position: fixed;
+  width: calc(100vw - 4px);
+  z-index: 3;
 }
 
 .player-name {
   font-size: 18px;
-}
-
-.player-name {
   margin: 8px 0 8px 8px;
 }
 
-.info-label {
-  margin: 12px 0 12px 24px;
-}
-
 .dismiss {
+  background: teal;
   border-radius: 50%;
   height: 20px;
   opacity: 0.3;
   margin: 8px;
   padding: 0;
+  color: whitesmoke;
   width: 20px;
 }
 
@@ -106,9 +89,56 @@
   opacity: 1;
 }
 
-#player-profile, #career-heading, .season {
+/* Loading styles */
+
+#loading-container {
+  margin: auto;
+}
+
+#loading-graphic {
+  border: 5px solid whitesmoke;
+  border-radius: 50%;
+  border-top: 5px solid teal;
+  border-bottom: 5px solid teal;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#stat-display.loading > #content, #stat-display.loaded > #loading-container {
+  display: none;
+}
+
+/* Content section styles */
+
+#content {
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 37px;
+  overflow-x: scroll;
+}
+
+.sub-heading {
+  color: teal;
+  font-size: 14px;
+  padding: 8px;
+}
+
+.stick-left {
   left: 0;
   position: sticky;
+}
+
+/* Profile styles */
+
+#player-profile-content {
+  display: flex;
 }
 
 #player-profile-image {
@@ -120,40 +150,41 @@
 }
 
 #player-profile-info {
+  display: flex;
   justify-content: space-around;
+}
+
+.player-profile-info-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info-label {
+  color: lightslategrey;
+  font-size: 10px;
+  font-weight: bold;
+  margin: 12px 0 12px 24px;
+  text-align: left;
 }
 
 .info-data {
   color: black;
+  font-size: 12px;
+  font-weight: bold;
   margin: 11px 0 11px 8px;
 }
 
-.info-data, table th, .info-label, .season {
-  font-weight: bold;
-}
-
-.info-data, table {
-  font-size: 12px;
-}
-
-#content {
-  border-radius: 5px;
-  margin-top: 37px;
-  overflow-x: scroll;
-}
-
-.sub-heading {
-  color: teal;
-  font-size: 14px;
-}
-
-.sub-heading, table td {
-  padding: 8px;
-}
+/* Table styles */
 
 table {
   border-collapse: separate;
   border-spacing: 0;
+  font-size: 12px;
+}
+
+table td {
+  padding: 8px;
 }
 
 table tr {
@@ -178,17 +209,15 @@ table tr:first-child:hover {
   color: lightslategrey;
 }
 
-table th, .info-label {
-  color: lightslategrey;
-  font-size: 10px;
-  text-align: left;
-}
-
 table th {
   border-bottom: solid 1px lightgrey;
+  color: lightslategrey;
+  font-size: 10px;
+  font-weight: bold;
   padding: 8px 0 10px 8px;
   background: white;
   position: sticky;
+  text-align: left;
   top: 0;
   z-index: 1;
 }
@@ -196,6 +225,7 @@ table th {
 .season {
   background: inherit;
   border-right: solid 1px lightgrey;
+  font-weight: bold;
 }
 
 .career {
@@ -204,27 +234,4 @@ table th {
 
 #season-header {
   z-index: 2 !important;
-}
-
-#stat-display.loading > #content, #stat-display.loaded > #loading-container {
-  display: none;
-}
-
-#loading-container {
-  margin: auto;
-}
-
-#loading-graphic {
-  border: 5px solid whitesmoke;
-  border-radius: 50%;
-  border-top: 5px solid teal;
-  border-bottom: 5px solid teal;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
