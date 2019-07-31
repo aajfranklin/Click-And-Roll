@@ -282,9 +282,11 @@ const run = (players) => {
       getFrameDocument().getElementById('season-averages-body').appendChild(row);
     }
 
-    const careerRow = createRow(stats.career.rowSet[0], false, true);
-    careerRow.classList.add('career');
-    getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
+    if (stats.career.rowSet.length !== 0) {
+      const careerRow = createRow(stats.career.rowSet[0], false, true);
+      careerRow.classList.add('career');
+      getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
+    }
   };
 
   const createRow = (season, isAllStarSeason, isCareerRow) => {
