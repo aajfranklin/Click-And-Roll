@@ -282,9 +282,11 @@ const run = (players) => {
       getFrameDocument().getElementById('season-averages-body').appendChild(row);
     }
 
-    const careerRow = createRow(stats.career.rowSet[0], false, true);
-    careerRow.classList.add('career');
-    getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
+    if (stats.career.rowSet.length !== 0) {
+      const careerRow = createRow(stats.career.rowSet[0], false, true);
+      careerRow.classList.add('career');
+      getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
+    }
   };
 
   const createRow = (season, isAllStarSeason, isCareerRow) => {
@@ -307,6 +309,7 @@ const run = (players) => {
         : season[k];
       if (k === 0) {
         stat.classList.add('season');
+        stat.classList.add('stick-left');
         stat.innerHTML += isAllStarSeason
           ? '<span style="color:gold; padding-left: 8px">&#9733;</span>'
           : '';
