@@ -136,13 +136,13 @@ const displayStats = (stats, name) => {
   statDisplay.classList.add('loaded');
 
   if (stats) {
-    getFrameDocument().getElementsByClassName('player-name')[0].textContent = name;
+    getFrameDocument().getElementById('player-name').textContent = name;
     mapPlayerProfile(stats.profile, name);
     mapStatsToRows(stats.career);
   }
 
   resizeStatDisplay();
-  getFrameDocument().getElementsByClassName('dismiss')[0].onclick = closeOverlay;
+  getFrameDocument().getElementById('dismiss').onclick = closeOverlay;
   document.addEventListener('click', closeOverlay);
 };
 

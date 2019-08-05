@@ -32,17 +32,16 @@ const run = (players) => {
     })
     .then(response => {
       frameStyle = response;
+      lastBodyText = document.body.textContent;
+      const playerNames = players.map((player) => player.name);
+      const initialResults = searchTextContent(document.body, playerNames);
+
+      if (initialResults.length > 0) {
+        locateAndFormatResults(document.body, initialResults);
+      }
+
+      observeMutations(playerNames);
     });
-
-  lastBodyText = document.body.textContent;
-  const playerNames = players.map((player) => player.name);
-  const initialResults = searchTextContent(document.body, playerNames);
-
-  if (initialResults.length > 0) {
-    locateAndFormatResults(document.body, initialResults);
-  }
-
-  observeMutations(playerNames);
 };
 
 const checkPlayerCache = () => {
