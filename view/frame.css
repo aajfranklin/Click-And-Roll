@@ -150,8 +150,12 @@
 }
 
 #player-profile-info {
+  align-self: center;
   display: grid;
+  grid-column-gap: 8px;
   grid-template-columns: auto auto auto;
+  height: 120px;
+  margin-left: 16px;
 }
 
 .player-profile-info-item {
@@ -160,19 +164,18 @@
   display: flex;
 }
 
+.info-label, .info-data {
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .info-label {
   color: lightslategrey;
-  font-size: 10px;
-  font-weight: bold;
-  margin: 12px 0 12px 24px;
-  text-align: left;
 }
 
 .info-data {
   color: black;
-  font-size: 12px;
-  font-weight: bold;
-  margin: 11px 0 11px 8px;
+  margin-left: 8px;
 }
 
 /* Table styles */
