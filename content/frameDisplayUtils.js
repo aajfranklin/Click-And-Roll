@@ -229,16 +229,16 @@ const createRow = (season, isAllStarSeason, isCareerRow) => {
 const resizeStatDisplay = () => {
   const frameContent = getFrameDocument().getElementById('content');
   const playerHeaderHeight = 37;
-  const chromeScrollBarHeight = 17;
 
   if (frameContent.scrollHeight + playerHeaderHeight < (getHalfViewHeight()) - 2) {
     statDisplay.classList.remove('reveal-from-top', 'reveal-from-bottom');
-    const newHeight = (frameContent.scrollHeight + playerHeaderHeight + chromeScrollBarHeight) + 'px';
+    const newHeight = (frameContent.scrollHeight + playerHeaderHeight) + 'px';
 
     const rule = namePosition.isTop
-      ? '@keyframes resize{from{height:calc(100vh - 2px);}to{height:' + newHeight + ';}}'
-      : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}to{height:'
-      + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
+      ? '@keyframes resize{from{height:calc(100vh - 2px);}'
+        + 'to{height:' + newHeight + ';}}'
+      : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}'
+        + 'to{height:' + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
 
     // if user has scrolled over multiple names in quick succession, existing resize rule and event listeners should be removed
     removeResizeAnimation();
