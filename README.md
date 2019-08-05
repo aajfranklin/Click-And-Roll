@@ -89,13 +89,13 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Prevent hovering on same wrapper if overlay still open, to avoid animation stutter
 - [x] Fix uneven text styling in player profile
 - [x] Fix undefined err if user hovers on player name before frame has properly initialised
-- [ ] Fix overlay can't be closed while loading
-- [ ] Fix ignore changes from content editable divs
+- [x] Fix overlay can't be closed while loading
 - [ ] Handle names that contain other names as a sub-string
 
 #### Other
 
 - [x] Fix appear animation direction depending on overlay position
+- [ ] Fix ignore changes from content editable divs - should not add nodes in editable field anyway?
 - [ ] If same as previous player and small stat display height, do not resize, just open to correct height right away
 - [ ] Fix overlay positioning when name extends over two lines
 - [ ] Fix close button not drawing focus easily because stat overlay is last element

@@ -26,6 +26,7 @@ const handleHover = (mouseEnterEvent) => {
     statDisplay.classList.remove('loaded');
     statDisplay.classList.add('loading');
     statDisplay.innerHTML = statTemplate;
+    addCloseOverlayListeners();
     currentPlayerId = newPlayerId;
     dataReceived = false;
 
@@ -38,6 +39,7 @@ const handleHover = (mouseEnterEvent) => {
         }
       });
   } else {
+    addCloseOverlayListeners();
     displayStats();
   }
 };
@@ -125,6 +127,17 @@ const getOffsetFromParent = (rect, containerParent) => {
   }
 };
 
+const addCloseOverlayListeners = () => {
+  getFrameDocument().getElementById('dismiss').onclick = closeOverlay;
+  document.addEventListener('click', closeOverlay);
+};
+
+const closeOverlay = () => {
+  currentNameElement.onmouseenter = handleHover;
+  frameContainer.hidden = true;
+  document.removeEventListener('click', closeOverlay);
+};
+
 const displayStats = (stats, name) => {
   /*
   * Catches the edge case where user has hovered on the same name twice in quick succession,
@@ -141,9 +154,9 @@ const displayStats = (stats, name) => {
     mapStatsToRows(stats.career);
   }
 
-  resizeStatDisplay();
-  getFrameDocument().getElementById('dismiss').onclick = closeOverlay;
-  document.addEventListener('click', closeOverlay);
+  if (!frameContainer.hidden) {
+    resizeStatDisplay();
+  }
 };
 
 const mapPlayerProfile = (profile, name) => {
@@ -270,12 +283,6 @@ const removeResizeAnimation = () => {
   for (let i = 0; i < resizeRules.length; i++) {
     stylesheet.deleteRule(Array.prototype.indexOf.call(stylesheet.rules, resizeRules[i]));
   }
-};
-
-const closeOverlay = () => {
-  currentNameElement.onmouseenter = handleHover;
-  frameContainer.hidden = true;
-  document.removeEventListener('click', closeOverlay);
 };
 
 const getHalfViewHeight = () => {
