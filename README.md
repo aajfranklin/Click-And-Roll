@@ -89,6 +89,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Prevent hovering on same wrapper if overlay still open, to avoid animation stutter
 - [ ] Fix uneven text styling in player profile
 - [ ] Handle names that contain other names as a sub-string
+- [ ] Fix undefined err if user hovers on player name before frame has properly initialised
 
 #### Other
 

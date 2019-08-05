@@ -150,14 +150,14 @@
 }
 
 #player-profile-info {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: auto auto auto;
 }
 
-.player-profile-info-column {
+.player-profile-info-item {
+  align-items: center;
+  align-self: center;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .info-label {
