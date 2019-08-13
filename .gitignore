@@ -3,3 +3,4 @@ config.js
 .DS_Store
 background/endpointAnalysis.js
 sandbox/
+tests/node_modules

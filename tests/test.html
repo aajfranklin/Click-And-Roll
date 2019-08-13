@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Click And Roll Test Suite</title>
+    <link rel="stylesheet" href="./node_modules/mocha/mocha.css">
+</head>
+<body>
+    <div id="mocha"></div>
+    <script src="../content/ahoCorasick.js"></script>
+    <script src="../content/content.js"></script>
+    <!--<script src="../background/background.js"></script>-->
+    <script src="./node_modules/mocha/mocha.js"></script>
+    <script src="./node_modules/chai/chai.js"></script>
+    <script>
+      mocha.ui('bdd');
+      mocha.reporter('html');
+      const expect = chai.expect;
+    </script>
+    <script src="./spec.js"></script>
+    <script>
+      mocha.run();
+    </script>
+</body>
+</html>
