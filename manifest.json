@@ -10,8 +10,6 @@
       "js": [
         "./jquery-3.4.1.js",
         "./content/ahoCorasick.js",
-        "./content/frameDisplayUtils.js",
-        "./content/annotatePageUtils.js",
         "./content/content.js"
       ],
       "css": [
