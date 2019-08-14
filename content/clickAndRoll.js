@@ -31,7 +31,7 @@ function ClickAndRoll(players) {
   };
 
   /*
-  Functions relating to finding and formatting results.
+  Functions relating to locating and highlighting matches.
    */
 
   this.searchTextContent = (rootNode, playerNames) => {
