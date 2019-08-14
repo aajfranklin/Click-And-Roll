@@ -97,6 +97,47 @@ describe('Utils', () => {
 
   });
 
+  describe('saveToChromeStorage', () => {
+
+    let chromeStorageLocalSetSpy;
+    let consoleLogSpy;
+
+    before(() => {
+      chrome.storage = {
+        local: {
+          set: (input, callback) => callback()
+        }
+      };
+
+      chromeStorageLocalSetSpy = sinon.spy(chrome.storage.local, 'set');
+      consoleLogSpy = sinon.spy(console, 'log');
+    });
+
+    afterEach(() => {
+      chromeStorageLocalSetSpy.resetHistory();
+      consoleLogSpy.resetHistory();
+    });
+
+    after(() => {
+      chromeStorageLocalSetSpy.restore();
+      consoleLogSpy.restore();
+      delete chrome.storage;
+    });
+
+    it('should call set on chrome local storage with passed in name and values', () => {
+      testUtils.saveToChromeStorage('testName', ['testValues']);
+      expect(chromeStorageLocalSetSpy.calledOnce).to.equal(true);
+      expect(chromeStorageLocalSetSpy.withArgs({['testName']: ['testValues']}).calledOnce).to.equal(true);
+    });
+
+    it('should log that players have been saved', () => {
+      testUtils.saveToChromeStorage('testName', ['testValues']);
+      expect(consoleLogSpy.calledOnce).to.equal(true);
+      expect(consoleLogSpy.withArgs('testName saved').calledOnce).to.equal(true);
+    });
+
+  });
+
 });
 
 describe('ClickAndRoll', () => {
@@ -121,12 +162,16 @@ describe('ClickAndRoll', () => {
       body.innerHTML = '<div>Some Text<div>LeBron James</div><div>Some Text<div>Michael Jordan</div></div></div>'
     });
 
-    it('should locate player names in HTML text content', () => {
-      const expectedResult = [
-        [20, ['LeBron James']],
-        [43, ['Michael Jordan']]
-      ];
-      expect(testClickAndRoll.searchTextContent(body, ['LeBron James', 'Michael Jordan'])).to.deep.equal(expectedResult);
+    describe('searchTextContent', () => {
+
+      it('should locate player names in HTML text content', () => {
+        const expectedResult = [
+          [20, ['LeBron James']],
+          [43, ['Michael Jordan']]
+        ];
+        expect(testClickAndRoll.searchTextContent(body, ['LeBron James', 'Michael Jordan'])).to.deep.equal(expectedResult);
+      });
+
     });
 
   });
