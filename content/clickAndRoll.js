@@ -48,9 +48,10 @@ function ClickAndRoll(players) {
 
     while (nextResult !== null && currentNode !== null) {
       // traverse node tree and locate text node containing next result
-      currentNode = treeWalker.currentNode.nodeName === '#text'
-        ? treeWalker.currentNode
-        : treeWalker.nextNode();
+      if (treeWalker.currentNode.nodeName !== '#text') {
+        currentNode = treeWalker.nextNode();
+        continue;
+      }
       const nodeTextLength = currentNode.textContent.length;
       const nodeIncludesNextResult = currentTextIndex + nodeTextLength >= nextResult.index;
 
