@@ -20,14 +20,37 @@ function ClickAndRoll(players) {
         this.frameStyle = response;
         this.lastBodyText = document.body.textContent;
         const playerNames = this.players.map((player) => player.name);
-        const initialResults = this.searchTextContent(document.body, playerNames);
+        const rawResults = this.searchTextContent(document.body, playerNames);
+        const filteredResults = this.filterSubStrings(rawResults);
 
-        if (initialResults.length > 0) {
-          this.locateAndFormatResults(document.body, initialResults);
+        if (filteredResults.length > 0) {
+          this.locateAndFormatResults(document.body, filteredResults);
         }
 
         this.observeMutations(playerNames);
       });
+  };
+
+  this.filterSubStrings = (rawResults) => {
+    return rawResults.filter((result, i) => {
+      const nextResult = rawResults[i + 1];
+      if (nextResult) {
+        const resultEnd = this.getResultBounds(result).end;
+        const nextResultStart = this.getResultBounds(nextResult).start;
+
+        return (resultEnd < nextResultStart);
+      }
+      return true;
+    });
+  };
+
+  this.getResultBounds = (result) => {
+    const end = result[0];
+    const start = end - result[1][0].length;
+    return {
+      start,
+      end
+    }
   };
 
   /*
@@ -120,9 +143,10 @@ function ClickAndRoll(players) {
             mutations[i].addedNodes.forEach(node => {
               if (node.innerText && node.innerText.trim().length >= 4) {
                 const results = this.searchTextContent(node, playerNames);
-                if (results.length > 0) {
+                const filteredResults = this.filterSubStrings(results);
+                if (filteredResults.length > 0) {
                   observer.disconnect();
-                  this.locateAndFormatResults(node, results);
+                  this.locateAndFormatResults(node, filteredResults);
                   observer.observe(document.body, { childList: true, subtree: true });
                 }
               }
