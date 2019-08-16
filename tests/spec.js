@@ -3,11 +3,7 @@ describe('Content Scripts', () => {
 
   describe('Utils', () => {
 
-    let testUtils;
-
-    before(() => {
-      testUtils = new Utils();
-    });
+    const testUtils = new Utils();
 
     describe('checkPlayers', () => {
 
@@ -144,21 +140,65 @@ describe('Content Scripts', () => {
 
   describe('ResultSearch', () => {
 
-    let searchStrings;
-    let testResultSearch;
-
-    before(() => {
-      searchStrings = ['LeBron James', 'Michael Jordan'];
-      testResultSearch = new ResultSearch();
-
-      testResultSearch.setSearchStrings(searchStrings);
-    });
+    const testResultSearch = new ResultSearch();
 
     describe('setSearchStrings', () => {
+
+      let searchStrings;
+
+      before(() => {
+        searchStrings = ['LeBron James', 'Michael Jordan'];
+        testResultSearch.setSearchStrings(searchStrings);
+      });
 
       it('should set search strings to the passed in value', () => {
         expect(testResultSearch.searchStrings).to.deep.equal(searchStrings);
       });
+
+    });
+
+    describe('searchRootNode', () => {
+
+      let filterOverlappingStringsStub;
+      let mapHitsToResultNodesStub;
+      let rootNode;
+      let searchTextStub;
+
+      before(() => {
+        rootNode = {
+          textContent: 'textContent'
+        };
+
+        filterOverlappingStringsStub = sinon.stub(testResultSearch, 'filterOverlappingStrings');
+        mapHitsToResultNodesStub = sinon.stub(testResultSearch, 'mapHitsToResultNodes');
+        searchTextStub = sinon.stub(testResultSearch, 'searchText');
+
+        filterOverlappingStringsStub.returns('filteredHits');
+        mapHitsToResultNodesStub.returns(null);
+        searchTextStub.returns('hits');
+
+        testResultSearch.searchRootNode(rootNode);
+      });
+
+      after(() => {
+        filterOverlappingStringsStub.restore();
+        mapHitsToResultNodesStub.restore();
+        searchTextStub.restore();
+      });
+
+      it('should call searchText with text content of passed in node', () => {
+        expect(searchTextStub.calledOnce).to.equal(true);
+        expect(searchTextStub.withArgs('textContent').calledOnce).to.equal(true);
+      });
+
+      it('should pass search text hits to filterOverLappingStrings', () => {
+        expect(filterOverlappingStringsStub.calledOnce).to.equal(true);
+        expect(filterOverlappingStringsStub.withArgs('hits').calledOnce).to.equal(true);
+      });
+
+      it('should pass node and filtered hits to mapHitsToResultNodes', () => {
+        expect(mapHitsToResultNodesStub.calledOnce).to.equal(true);
+        expect(mapHitsToResultNodesStub.withArgs(rootNode, 'filteredHits').calledOnce).to.equal(true);      });
 
     });
 
