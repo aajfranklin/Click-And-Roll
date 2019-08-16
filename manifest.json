@@ -11,7 +11,7 @@
         "./jquery-3.4.1.js",
         "./content/ahoCorasick.js",
         "./content/utils.js",
-        "./content/locateResults.js",
+        "./content/resultSearch.js",
         "./content/clickAndRoll.js",
         "./content/index.js"
       ],
