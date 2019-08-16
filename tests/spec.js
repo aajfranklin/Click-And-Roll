@@ -142,186 +142,185 @@ describe('Content Scripts', () => {
 
   });
 
-  describe('ClickAndRoll', () => {
+  describe('ResultSearch', () => {
 
-    let players;
-    let testClickAndRoll;
+    let body;
+    let searchStrings;
+    let testResultSearch;
 
     before(() => {
-      players = [
-        {id: 1, name: 'Michael Jordan'},
-        {id: 2, name: 'LeBron James'},
-      ];
-      testClickAndRoll = new ClickAndRoll(players);
+      body = document.createElement('body');
+      searchStrings = ['LeBron James', 'Michael Jordan'];
+      testResultSearch = new ResultSearch();
+
+      testResultSearch.setSearchStrings(searchStrings);
     });
 
-    describe('Locating and highlighting matches', () => {
+    describe('setSearchStrings', () => {
 
-      let body;
+      it('should set search strings to the passed in value', () => {
+        expect(testResultSearch.searchStrings).to.deep.equal(searchStrings);
+      });
+
+    });
+
+    describe('searchText', () => {
+
+      it('should return start index, end index, and name of matched players', () => {
+        const text = 'LeBron James Michael Jordan';
+        const expectedResult = [
+          {start: 0, end: 11, name: 'LeBron James'},
+          {start: 13, end: 26, name: 'Michael Jordan'}
+        ];
+        expect(testResultSearch.searchText(text)).to.deep.equal(expectedResult);
+      });
+
+    });
+
+    describe('locateAndFormatResults', () => {
+
+      let createTreeWalkerStub;
+      let nextResultStub;
+      let mockTreeWalker = {
+        currentNode: {
+          nodeName: null,
+        },
+        nextNode: null
+      };
 
       before(() => {
-        body = document.createElement('body');
+        createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
+        createTreeWalkerStub.returns(mockTreeWalker);
+        nextResultStub = sinon.stub(testClickAndRoll, 'getNextHit');
       });
 
-      describe('searchTextContent', () => {
-
-        it('return index and name of matched players', () => {
-          body.innerHTML = '<div>Some Text<div>LeBron James</div><div>Some Text<div>Michael Jordan</div></div></div>';
-          const expectedResult = [
-            [20, ['LeBron James']],
-            [43, ['Michael Jordan']]
-          ];
-          expect(testClickAndRoll.searchTextContent(body, ['LeBron James', 'Michael Jordan'])).to.deep.equal(expectedResult);
-        });
-
+      beforeEach(() => {
+        nextResultStub.returns('someResult');
       });
 
-      describe('locateAndFormatResults', () => {
+      afterEach(() => {
+        createTreeWalkerStub.resetHistory();
+        nextResultStub.resetHistory();
+      });
 
-        let createTreeWalkerStub;
-        let nextResultStub;
-        let mockTreeWalker = {
-          currentNode: {
-            nodeName: null,
-          },
-          nextNode: null
-        };
+      after(() => {
+        createTreeWalkerStub.restore();
+        nextResultStub.restore();
+      });
+
+      it('should stop when there are no more results', () => {
+        nextResultStub.returns(null);
+        testClickAndRoll.locateAndFormatResults(body, []);
+        expect(nextResultStub.calledOnce).to.equal(true);
+        expect(nextResultStub.withArgs([]).calledOnce).to.equal(true);
+      });
+
+      it('should stop if the current node is null', () => {
+        testClickAndRoll.locateAndFormatResults(null, []);
+        expect(nextResultStub.calledOnce).to.equal(true);
+        expect(nextResultStub.withArgs([]).calledOnce).to.equal(true);
+      });
+
+      it('should skip non-text nodes', () => {
+        mockTreeWalker.currentNode.nodeName = 'notText';
+        mockTreeWalker.nextNode = () => null;
+        const nextNodeSpy = sinon.spy(mockTreeWalker, 'nextNode');
+
+        testClickAndRoll.locateAndFormatResults(body, []);
+        expect(nextNodeSpy.calledOnce).to.equal(true);
+
+        mockTreeWalker.currentNode.nodeName = null;
+        mockTreeWalker.nextNode = null;
+        nextNodeSpy.restore();
+      });
+
+      describe('if the current node does not include a result', () => {
+
+        let nextNodeSpy;
 
         before(() => {
-          createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
-          createTreeWalkerStub.returns(mockTreeWalker);
-          nextResultStub = sinon.stub(testClickAndRoll, 'getNextHit');
-        });
-
-        beforeEach(() => {
-          nextResultStub.returns('someResult');
+          mockTreeWalker.nextNode = () => null;
+          mockTreeWalker.currentNode.nodeName = '#text';
+          nextNodeSpy = sinon.spy(mockTreeWalker, 'nextNode');
+          nextResultStub.onCall(0).returns({index: 11, name: 'LeBron James'});
         });
 
         afterEach(() => {
-          createTreeWalkerStub.resetHistory();
-          nextResultStub.resetHistory();
+          nextNodeSpy.resetHistory();
         });
 
         after(() => {
-          createTreeWalkerStub.restore();
-          nextResultStub.restore();
-        });
-
-        it('should stop when there are no more results', () => {
-          nextResultStub.returns(null);
-          testClickAndRoll.locateAndFormatResults(body, []);
-          expect(nextResultStub.calledOnce).to.equal(true);
-          expect(nextResultStub.withArgs([]).calledOnce).to.equal(true);
-        });
-
-        it('should stop if the current node is null', () => {
-          testClickAndRoll.locateAndFormatResults(null, []);
-          expect(nextResultStub.calledOnce).to.equal(true);
-          expect(nextResultStub.withArgs([]).calledOnce).to.equal(true);
-        });
-
-        it('should skip non-text nodes', () => {
-          mockTreeWalker.currentNode.nodeName = 'notText';
-          mockTreeWalker.nextNode = () => null;
-          const nextNodeSpy = sinon.spy(mockTreeWalker, 'nextNode');
-
-          testClickAndRoll.locateAndFormatResults(body, []);
-          expect(nextNodeSpy.calledOnce).to.equal(true);
-
-          mockTreeWalker.currentNode.nodeName = null;
           mockTreeWalker.nextNode = null;
+          mockTreeWalker.currentNode.nodeName = null;
+          mockTreeWalker.currentNode.textContent = null;
           nextNodeSpy.restore();
         });
 
-        describe('if the current node does not include a result', () => {
+        it('should progress to the next node', () => {
+          body.innerHTML = 'test';
+          testClickAndRoll.locateAndFormatResults(body, []);
+          expect(nextNodeSpy.calledOnce).to.equal(true);
+        });
 
-          let nextNodeSpy;
+      });
 
-          before(() => {
-            mockTreeWalker.nextNode = () => null;
-            mockTreeWalker.currentNode.nodeName = '#text';
-            nextNodeSpy = sinon.spy(mockTreeWalker, 'nextNode');
-            nextResultStub.onCall(0).returns({index: 11, name: 'LeBron James'});
-          });
+      describe('if the current node includes a result', () => {
 
-          afterEach(() => {
-            nextNodeSpy.resetHistory();
-          });
+        let highlightResultStub;
+        let parentNodeIsValidStub;
 
-          after(() => {
-            mockTreeWalker.nextNode = null;
-            mockTreeWalker.currentNode.nodeName = null;
-            mockTreeWalker.currentNode.textContent = null;
-            nextNodeSpy.restore();
-          });
+        before(() => {
+          body.innerHTML = 'LeBron James';
+          highlightResultStub = sinon.stub(testClickAndRoll, 'highlightResult');
+          mockTreeWalker.currentNode.nodeName = '#text';
+          mockTreeWalker.currentNode.textContent = 'LeBron James';
+          nextResultStub.onCall(0).returns({index: 11, name: 'LeBron James'});
+          nextResultStub.onCall(1).returns(null);
+          parentNodeIsValidStub = sinon.stub(testClickAndRoll, 'parentNodeIsValid');
+        });
 
-          it('should progress to the next node', () => {
-            body.innerHTML = 'test';
+        afterEach(() => {
+          highlightResultStub.resetHistory();
+          parentNodeIsValidStub.resetHistory();
+        });
+
+        after(() => {
+          highlightResultStub.restore();
+          mockTreeWalker.currentNode.nodeName = null;
+          mockTreeWalker.currentNode.textContent = null;
+          parentNodeIsValidStub.restore();
+        });
+
+        it('should check parent node validity', () => {
+          parentNodeIsValidStub.returns(false);
+          testClickAndRoll.locateAndFormatResults(body, []);
+          expect(parentNodeIsValidStub.calledOnce).to.equal(true);
+          expect(parentNodeIsValidStub.withArgs(body).calledOnce).to.equal(true);
+        });
+
+        it('should get the next result', () => {
+          parentNodeIsValidStub.returns(false);
+          testClickAndRoll.locateAndFormatResults(body, []);
+          expect(nextResultStub.calledTwice).to.equal(true);
+        });
+
+        describe('if the parent node is valid', () => {
+
+          it('should highlight the result', () => {
+            parentNodeIsValidStub.returns(true);
             testClickAndRoll.locateAndFormatResults(body, []);
-            expect(nextNodeSpy.calledOnce).to.equal(true);
+            expect(highlightResultStub.calledOnce).to.equal(true);
+            expect(highlightResultStub.withArgs({index: 11, name: 'LeBron James'}, body, 0).calledOnce).to.equal(true);
           });
 
         });
 
-        describe('if the current node includes a result', () => {
+        describe('if the parent node is invalid', () => {
 
-          let highlightResultStub;
-          let parentNodeIsValidStub;
-
-          before(() => {
-            body.innerHTML = 'LeBron James';
-            highlightResultStub = sinon.stub(testClickAndRoll, 'highlightResult');
-            mockTreeWalker.currentNode.nodeName = '#text';
-            mockTreeWalker.currentNode.textContent = 'LeBron James';
-            nextResultStub.onCall(0).returns({index: 11, name: 'LeBron James'});
-            nextResultStub.onCall(1).returns(null);
-            parentNodeIsValidStub = sinon.stub(testClickAndRoll, 'parentNodeIsValid');
-          });
-
-          afterEach(() => {
-            highlightResultStub.resetHistory();
-            parentNodeIsValidStub.resetHistory();
-          });
-
-          after(() => {
-            highlightResultStub.restore();
-            mockTreeWalker.currentNode.nodeName = null;
-            mockTreeWalker.currentNode.textContent = null;
-            parentNodeIsValidStub.restore();
-          });
-
-          it('should check parent node validity', () => {
+          it('should not highlight the result', () => {
             parentNodeIsValidStub.returns(false);
             testClickAndRoll.locateAndFormatResults(body, []);
-            expect(parentNodeIsValidStub.calledOnce).to.equal(true);
-            expect(parentNodeIsValidStub.withArgs(body).calledOnce).to.equal(true);
-          });
-
-          it('should get the next result', () => {
-            parentNodeIsValidStub.returns(false);
-            testClickAndRoll.locateAndFormatResults(body, []);
-            expect(nextResultStub.calledTwice).to.equal(true);
-          });
-
-          describe('if the parent node is valid', () => {
-
-            it('should highlight the result', () => {
-              parentNodeIsValidStub.returns(true);
-              testClickAndRoll.locateAndFormatResults(body, []);
-              expect(highlightResultStub.calledOnce).to.equal(true);
-              expect(highlightResultStub.withArgs({index: 11, name: 'LeBron James'}, body, 0).calledOnce).to.equal(true);
-            });
-
-          });
-
-          describe('if the parent node is invalid', () => {
-
-            it('should not highlight the result', () => {
-              parentNodeIsValidStub.returns(false);
-              testClickAndRoll.locateAndFormatResults(body, []);
-              expect(highlightResultStub.notCalled).to.equal(true);
-            });
-
+            expect(highlightResultStub.notCalled).to.equal(true);
           });
 
         });
@@ -330,9 +329,9 @@ describe('Content Scripts', () => {
 
     });
 
-    describe('Displaying stat overlay', () => {
+  });
 
-    });
+  describe('ClickAndRoll', () => {
 
   });
 

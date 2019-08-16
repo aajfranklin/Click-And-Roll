@@ -12,7 +12,13 @@ function ResultSearch() {
 
   this.searchText = (text) => {
     const ac = new AhoCorasick(this.searchStrings);
-    return ac.search(text);
+    return ac.search(text).map(rawHit => {
+      return {
+        start: rawHit[0] - rawHit[1][0].length + 1,
+        end: rawHit[0],
+        name: rawHit[1][0]
+      }
+    });
   };
 
   this.filterSubStrings = (hits) => {
