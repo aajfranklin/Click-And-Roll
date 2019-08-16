@@ -1,15 +1,16 @@
 function ClickAndRoll(players) {
   this.bodyText = document.body.textContent;
-  this.clickAndRollFrame = document.createElement('iframe');
-  this.clickAndRollFrame.id ='click-and-roll-frame';
   this.dataReceived = false;
+  this.frame = document.createElement('iframe');
+  this.frame.id ='click-and-roll-frame';
   this.frameContainer = document.createElement('div');
   this.frameContainer.id = 'click-and-roll-frame-container';
+  this.frameContent = document.createElement('div');
+  this.frameContent.id = 'frame-content';
   this.namePosition = {};
   this.players = players;
   this.resultSearch = new ResultSearch();
-  this.statDisplay = document.createElement('div');
-  this.statDisplay.id = 'stat-display';
+
   this.utils = new Utils();
 
   this.run = () => {
@@ -22,8 +23,10 @@ function ClickAndRoll(players) {
         this.frameStyle = response;
 
         const playerNames = this.players.map((player) => player.name);
+
         this.resultSearch.setSearchStrings(playerNames);
         const resultNodes = this.resultSearch.searchRootNode(document.body);
+
         this.highlight(resultNodes);
         this.observeMutations();
       });
@@ -84,12 +87,12 @@ function ClickAndRoll(players) {
     this.frameContainer.style.height = 'calc(50vh + 2px)';
     this.getFrameDocument().body.innerHTML = '';
     this.positionFrameContainer(targetElement, newContainerParent);
-    this.getFrameDocument().body.appendChild(this.statDisplay);
+    this.getFrameDocument().body.appendChild(this.frameContent);
 
     if (newPlayerId !== this.currentPlayerId) {
-      this.statDisplay.classList.remove('loaded');
-      this.statDisplay.classList.add('loading');
-      this.statDisplay.innerHTML = this.statTemplate;
+      this.frameContent.classList.remove('loaded');
+      this.frameContent.classList.add('loading');
+      this.frameContent.innerHTML = this.statTemplate;
       this.addCloseOverlayListeners();
       this.currentPlayerId = newPlayerId;
       this.dataReceived = false;
@@ -130,7 +133,7 @@ function ClickAndRoll(players) {
     }
 
     newParent.appendChild(this.frameContainer);
-    this.frameContainer.appendChild(this.clickAndRollFrame);
+    this.frameContainer.appendChild(this.frame);
 
     this.getFrameDocument().body.id = 'frame-body';
 
@@ -149,12 +152,12 @@ function ClickAndRoll(players) {
     this.frameContainer.style.marginLeft = this.namePosition.isLeft ? '0' : '4px';
 
     // remove existing animation class
-    this.statDisplay.classList.remove('reveal-from-top', 'reveal-from-bottom');
+    this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
 
     if (this.namePosition.isTop) {
-      this.statDisplay.classList.add('reveal-from-top');
+      this.frameContent.classList.add('reveal-from-top');
     } else {
-      this.statDisplay.classList.add('reveal-from-bottom');
+      this.frameContent.classList.add('reveal-from-bottom');
     }
 
     const offset = this.getOffsetFromParent(rect, containerParent);
@@ -206,8 +209,8 @@ function ClickAndRoll(players) {
     // catches edge case where user hovers on same name in quick succession, ensures loading graphic displays until data arrives
     if (!this.dataReceived) return;
 
-    this.statDisplay.classList.remove('loading');
-    this.statDisplay.classList.add('loaded');
+    this.frameContent.classList.remove('loading');
+    this.frameContent.classList.add('loaded');
 
     if (stats) {
       this.getFrameDocument().getElementById('player-name').textContent = name;
@@ -216,7 +219,7 @@ function ClickAndRoll(players) {
     }
 
     if (!this.frameContainer.hidden) {
-      this.resizeStatDisplay();
+      this.resizeFrameContent();
     }
   };
 
@@ -300,12 +303,12 @@ function ClickAndRoll(players) {
     return row;
   };
 
-  this.resizeStatDisplay = () => {
+  this.resizeFrameContent = () => {
     const frameContent = this.getFrameDocument().getElementById('content');
     const playerHeaderHeight = 37;
 
     if (frameContent.scrollHeight + playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
-      this.statDisplay.classList.remove('reveal-from-top', 'reveal-from-bottom');
+      this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
       const newHeight = (frameContent.scrollHeight + playerHeaderHeight) + 'px';
 
       const rule = this.namePosition.isTop
@@ -316,25 +319,25 @@ function ClickAndRoll(players) {
 
       // if user has scrolled over multiple names in quick succession, existing resize rule and event listeners should be removed
       this.removeResizeAnimation();
-      this.statDisplay.removeEventListener('animationend', this.handleAnimationEnd);
+      this.frameContent.removeEventListener('animationend', this.handleAnimationEnd);
 
       this.getStyleSheet().insertRule(rule, 0);
-      this.statDisplay.addEventListener('animationend', this.handleAnimationEnd);
-      this.statDisplay.classList.add('resize');
+      this.frameContent.addEventListener('animationend', this.handleAnimationEnd);
+      this.frameContent.classList.add('resize');
     }
   };
 
   this.handleAnimationEnd = (animationEvent) => {
     if (animationEvent.animationName === 'resize') {
       this.removeResizeAnimation();
-      this.statDisplay.classList.remove('resize');
-      this.statDisplay.removeEventListener('animationend', this.handleAnimationEnd);
+      this.frameContent.classList.remove('resize');
+      this.frameContent.removeEventListener('animationend', this.handleAnimationEnd);
 
-      const statDisplayHeight = this.statDisplay.scrollHeight + 2;
-      this.frameContainer.style.height = statDisplayHeight + 'px';
+      const frameContentHeight = this.frameContent.scrollHeight + 2;
+      this.frameContainer.style.height = frameContentHeight + 'px';
       this.frameContainer.style.top = this.namePosition.isTop
         ? this.frameContainer.style.top
-        : this.frameContainer.offsetTop + this.getHalfViewHeight() - statDisplayHeight + 'px';
+        : this.frameContainer.offsetTop + this.getHalfViewHeight() - frameContentHeight + 'px';
     }
   };
 
@@ -362,7 +365,7 @@ function ClickAndRoll(players) {
   };
 
   this.getFrameDocument = () => {
-    return this.clickAndRollFrame.contentDocument;
+    return this.frame.contentDocument;
   };
 
 }

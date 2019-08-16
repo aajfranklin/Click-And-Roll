@@ -4,7 +4,7 @@
   margin: 0;
 }
 
-#stat-display {
+#frame-content {
   background: white;
   border-radius: 5px;
   box-shadow: darkslategrey 0 1px 2px;
@@ -110,7 +110,7 @@
   100% { transform: rotate(360deg); }
 }
 
-#stat-display.loading > #content, #stat-display.loaded > #loading-container {
+#frame-content.loading > #content, #frame-content.loaded > #loading-container {
   display: none;
 }
 
