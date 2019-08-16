@@ -1,7 +1,7 @@
 function Utils() {
 
   this.checkPlayers = (cachedPlayers) => {
-    if (cachedPlayers === undefined) {
+    if (!cachedPlayers || $.isEmptyObject(cachedPlayers)) {
       return this.backgroundScriptRequest({message: 'fetchPlayers'})
         .then(fetchedPlayers => {
           this.saveToChromeStorage('players', fetchedPlayers);

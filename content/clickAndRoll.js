@@ -1,4 +1,5 @@
 function ClickAndRoll(players) {
+  this.bodyText = document.body.textContent;
   this.clickAndRollFrame = document.createElement('iframe');
   this.clickAndRollFrame.id ='click-and-roll-frame';
   this.dataReceived = false;
@@ -6,6 +7,7 @@ function ClickAndRoll(players) {
   this.frameContainer.id = 'click-and-roll-frame-container';
   this.namePosition = {};
   this.players = players;
+  this.resultSearch = new ResultSearch();
   this.statDisplay = document.createElement('div');
   this.statDisplay.id = 'stat-display';
   this.utils = new Utils();
@@ -18,137 +20,37 @@ function ClickAndRoll(players) {
       })
       .then(response => {
         this.frameStyle = response;
-        this.lastBodyText = document.body.textContent;
+
         const playerNames = this.players.map((player) => player.name);
-        const rawResults = this.searchTextContent(document.body, playerNames);
-        const filteredResults = this.filterSubStrings(rawResults);
-
-        if (filteredResults.length > 0) {
-          this.locateAndFormatResults(document.body, filteredResults);
-        }
-
-        this.observeMutations(playerNames);
+        this.resultSearch.setSearchStrings(playerNames);
+        const resultNodes = this.resultSearch.searchRootNode(document.body);
+        this.highlight(resultNodes);
+        this.observeMutations();
       });
   };
 
-  this.filterSubStrings = (rawResults) => {
-    return rawResults.filter((result, i) => {
-      const nextResult = rawResults[i + 1];
-      if (nextResult) {
-        const resultEnd = this.getResultBounds(result).end;
-        const nextResultStart = this.getResultBounds(nextResult).start;
-
-        return (resultEnd < nextResultStart);
-      }
-      return true;
+  this.highlight = (nodes) => {
+    nodes.forEach(node => {
+      node.style.color = 'teal';
+      node.style.display = 'inline';
+      node.onmouseenter = this.handleHover;
     });
   };
 
-  this.getResultBounds = (result) => {
-    const end = result[0];
-    const start = end - result[1][0].length + 1;
-    return {
-      start,
-      end
-    }
-  };
-
-  /*
-  Functions relating to locating and highlighting matches.
-   */
-
-  this.searchTextContent = (rootNode, playerNames) => {
-    const nodeText = rootNode.textContent;
-    const ac = new AhoCorasick(playerNames);
-    return ac.search(nodeText);
-  };
-
-  this.locateAndFormatResults = (rootNode, results) => {
-    const treeWalker = document.createTreeWalker(rootNode, 4);
-    let currentTextIndex = 0;
-    let nextResult = this.getNextResult(results);
-    let currentNode = rootNode;
-
-    while (nextResult !== null && currentNode !== null) {
-      // traverse node tree and locate text node containing next result
-      if (treeWalker.currentNode.nodeName !== '#text') {
-        currentNode = treeWalker.nextNode();
-        continue;
-      }
-      const nodeTextLength = currentNode.textContent.length;
-      const nodeIncludesNextResult = currentTextIndex + nodeTextLength >= nextResult.index;
-
-      if (nodeIncludesNextResult) {
-        if (this.parentNodeIsValid(currentNode)) {
-          this.highlightResult(nextResult, currentNode, currentTextIndex);
-        }
-        nextResult = this.getNextResult(results);
-      } else {
-        currentTextIndex += nodeTextLength;
-        currentNode = treeWalker.nextNode();
-      }
-    }
-  };
-
-  this.getNextResult = (results) => {
-    const rawResult = results.shift();
-    if (rawResult !== undefined) {
-      return {
-        index: rawResult[0],
-        name: rawResult[1][0]
-      }
-    }
-    return null;
-  };
-
-  this.parentNodeIsValid = (currentNode) => {
-    if (currentNode.parentNode) {
-      const parentNodeName = currentNode.parentNode.nodeName;
-      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
-    }
-    return true;
-  };
-
-  this.highlightResult = (result, node, currentTextIndex) => {
-    const resultEndOffset = result.index - currentTextIndex + 1;
-    const resultStartOffset = resultEndOffset - result.name.length;
-
-    if (resultStartOffset < 0) {
-      // match is probably split into two nodes with text formatting on surname i.e. LeBron <b>James</b>
-      return;
-    }
-
-    const range = document.createRange();
-    range.setStart(node, resultStartOffset);
-    range.setEnd(node, resultEndOffset);
-
-    const wrapper = document.createElement('span');
-    wrapper.setAttribute(
-      'style',
-      'color: teal; display: inline;'
-    );
-    range.surroundContents(wrapper);
-
-    wrapper.onmouseenter = this.handleHover;
-  };
-
-  this.observeMutations = (playerNames) => {
+  this.observeMutations = () => {
 
     const observerCallback = (function(mutations) {
-      if (document.body.textContent !== this.lastBodyText) {
-        this.lastBodyText = document.body.textContent;
+      if (this.bodyText !== document.body.textContent) {
+        this.bodyText = document.body.textContent;
 
         for (let i = 0; i < mutations.length; i++) {
           if (mutations[i].addedNodes) {
             mutations[i].addedNodes.forEach(node => {
               if (node.innerText && node.innerText.trim().length >= 4) {
-                const results = this.searchTextContent(node, playerNames);
-                const filteredResults = this.filterSubStrings(results);
-                if (filteredResults.length > 0) {
-                  observer.disconnect();
-                  this.locateAndFormatResults(node, filteredResults);
-                  observer.observe(document.body, { childList: true, subtree: true });
-                }
+                const resultNodes = this.resultSearch.searchRootNode(node);
+                observer.disconnect();
+                this.highlight(resultNodes);
+                observer.observe(document.body, { childList: true, subtree: true });
               }
             });
           }
@@ -159,10 +61,6 @@ function ClickAndRoll(players) {
     const observer = new MutationObserver(observerCallback);
     observer.observe(document.body, { childList: true, subtree: true });
   };
-
-  /*
-  Functions handling display of stat overlay.
-   */
 
   this.handleHover = (mouseEnterEvent) => {
     // prevent repeat hovers on current target, restore hover event to previous target

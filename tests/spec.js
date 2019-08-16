@@ -190,7 +190,7 @@ describe('Content Scripts', () => {
         before(() => {
           createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
           createTreeWalkerStub.returns(mockTreeWalker);
-          nextResultStub = sinon.stub(testClickAndRoll, 'getNextResult');
+          nextResultStub = sinon.stub(testClickAndRoll, 'getNextHit');
         });
 
         beforeEach(() => {
