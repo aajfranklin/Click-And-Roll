@@ -6,7 +6,7 @@ function ResultSearch() {
 
   this.searchRootNode = (rootNode) => {
     const hits = this.searchText(rootNode.textContent);
-    const filteredHits = this.filterSubStrings(hits);
+    const filteredHits = this.filterOverlappingStrings(hits);
     return this.mapHitsToResultNodes(rootNode, filteredHits);
   };
 
@@ -16,55 +16,43 @@ function ResultSearch() {
       return {
         start: rawHit[0] - rawHit[1][0].length + 1,
         end: rawHit[0],
-        name: rawHit[1][0]
+        text: rawHit[1][0]
       }
     });
   };
 
-  this.filterSubStrings = (hits) => {
+  this.filterOverlappingStrings = (hits) => {
     return hits.filter((hit, i) => {
       const nextHit = hits[i + 1];
       if (nextHit) {
-        const hitEnd = this.getHitBounds(hit).end;
-        const nextHitStart = this.getHitBounds(nextHit).start;
-
-        return (hitEnd < nextHitStart);
+        return (hit.end < nextHit.start);
       }
       return true;
     });
   };
 
-  this.getHitBounds = (hit) => {
-    const end = hit[0];
-    const start = end - hit[1][0].length + 1;
-    return {
-      start,
-      end
-    }
-  };
-
   this.mapHitsToResultNodes = (rootNode, hits) => {
     const treeWalker = document.createTreeWalker(rootNode, 4);
     let currentTextIndex = 0;
-    let nextHit = this.getNextHit(hits);
-    let currentNode = rootNode;
+    let nextHit = hits.shift();
+    let currentNode = treeWalker.currentNode;
     const resultNodes = [];
 
-    while (nextHit !== null && currentNode !== null) {
+    while (nextHit !== undefined && currentNode !== null) {
       // traverse node tree and locate text node containing next hit
-      if (treeWalker.currentNode.nodeName !== '#text') {
+      if (currentNode.nodeName !== '#text') {
         currentNode = treeWalker.nextNode();
         continue;
       }
       const nodeTextLength = currentNode.textContent.length;
-      const nodeIncludesNextHit = currentTextIndex + nodeTextLength >= nextHit.index;
+      const nodeIncludesNextHit = currentTextIndex + nodeTextLength >= nextHit.end;
 
       if (nodeIncludesNextHit) {
         if (this.parentNodeIsValid(currentNode)) {
           const resultNode = this.createResultNode(nextHit, currentNode, currentTextIndex);
           if (resultNode !== null) resultNodes.push(resultNode);
         }
-        nextHit = this.getNextHit(hits);
+        nextHit = hits.shift();
       } else {
         currentTextIndex += nodeTextLength;
         currentNode = treeWalker.nextNode();
@@ -72,17 +60,6 @@ function ResultSearch() {
     }
 
     return resultNodes;
-  };
-
-  this.getNextHit = (hits) => {
-    const rawHit = hits.shift();
-    if (rawHit !== undefined) {
-      return {
-        index: rawHit[0],
-        name: rawHit[1][0]
-      }
-    }
-    return null;
   };
 
   this.parentNodeIsValid = (currentNode) => {
@@ -94,24 +71,14 @@ function ResultSearch() {
   };
 
   this.createResultNode = (hit, hitNode, currentTextIndex) => {
-    const hitEndOffset = hit.index - currentTextIndex + 1;
-    const hitStartOffset = hitEndOffset - hit.name.length;
-
-    if (hitStartOffset < 0) {
-      /*
-      Hit is not contained wholly by a single node:
-
-      -  <div>LeBron</div><div>James</div>
-      -  <div>LeBron <b>James</b></div>
-
-      Or similar
-       */
+    // ignore hits split across multiple nodes
+    if (hit.start < currentTextIndex) {
       return null;
     }
 
     const range = document.createRange();
-    range.setStart(hitNode, hitStartOffset);
-    range.setEnd(hitNode, hitEndOffset);
+    range.setStart(hitNode, hit.start - currentTextIndex);
+    range.setEnd(hitNode, hit.end - currentTextIndex + 1);
 
     const wrapper = document.createElement('span');
     range.surroundContents(wrapper);
