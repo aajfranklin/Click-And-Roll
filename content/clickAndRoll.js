@@ -47,8 +47,8 @@ function ClickAndRoll(players) {
           if (mutations[i].addedNodes) {
             mutations[i].addedNodes.forEach(node => {
               if (node.innerText && node.innerText.trim().length >= 4) {
-                const resultNodes = this.resultSearch.searchRootNode(node);
                 observer.disconnect();
+                const resultNodes = this.resultSearch.searchRootNode(node);
                 this.highlight(resultNodes);
                 observer.observe(document.body, { childList: true, subtree: true });
               }
