@@ -46,7 +46,7 @@ function ClickAndRoll(players) {
 
   this.getResultBounds = (result) => {
     const end = result[0];
-    const start = end - result[1][0].length;
+    const start = end - result[1][0].length + 1;
     return {
       start,
       end
