@@ -1114,6 +1114,28 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('formatTeam', () => {
+
+      describe('if team name and city are available', () => {
+
+        it('should return formatted team', () => {
+          expect(testFetchRequestHandler.formatTeam('Londons', 'London')).to.equal('London Londons');
+        });
+
+      });
+
+      describe('if team name or city is unavailable', () => {
+
+        it('should return \'n/a\'', () => {
+          expect(testFetchRequestHandler.formatTeam(null)).to.equal('n/a');
+          expect(testFetchRequestHandler.formatTeam('test', null)).to.equal('n/a');
+        });
+
+      });
+
+    });
+
+
   });
 
 });
