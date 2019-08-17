@@ -23,6 +23,7 @@
   "background": {
     "scripts": [
       "./jquery-3.4.1.js",
+      "./background/playerImageRefMap.js",
       "./background/background.js"
     ]
   },

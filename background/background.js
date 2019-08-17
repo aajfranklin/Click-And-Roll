@@ -1,117 +1,54 @@
-chrome.runtime.onMessage.addListener(onFetchPlayers);
-chrome.runtime.onMessage.addListener(onFetchStats);
+const addListeners = () => {
+  chrome.runtime.onMessage.addListener(onFetchPlayers);
+  chrome.runtime.onMessage.addListener(onFetchStats);
+};
 
-function onFetchPlayers(request, sender, sendResponse) {
+const onFetchPlayers = (request, sender, sendResponse) => {
   if (request.message === 'fetchPlayers') {
-    $.ajax('https://stats.nba.com/stats/commonallplayers',
-      {
-        method: 'GET',
-        data: {
-          LeagueID: '00',
-          Season: '2018-19',
-          IsOnlyCurrentSeason: '0'
-        }
-      })
+    fetchPlayers()
       .then(response => {
-        const players = response.resultSets[0].rowSet.map((player) => {
-          return {
-            id: player[0],
-            name: player[2]
-          }
-        });
-        sendResponse([null, players]);
+        sendResponse([null, formatPlayers(response)]);
       })
       .catch(err => {
         sendResponse([err, null]);
       });
   }
   return true;
-}
+};
 
-function onFetchStats(request, sender, sendResponse) {
+const fetchPlayers = () => {
+  return $.ajax('https://stats.nba.com/stats/commonallplayers',
+    {
+      method: 'GET',
+      data: {
+        LeagueID: '00',
+        Season: '2018-19',
+        IsOnlyCurrentSeason: '0'
+      }
+    })
+};
+
+const formatPlayers = (response) => {
+  return response.resultSets[0].rowSet.map((player) => {
+    return {
+      id: player[0],
+      name: player[2]
+    }
+  });
+};
+
+const onFetchStats = (request, sender, sendResponse) => {
   if (request.message === 'fetchStats') {
 
-    const stats = {
-      career: null,
-      id: request.playerId,
-      profile: null
-    };
+    const stats = {id: request.playerId};
 
-    $.ajax('https://stats.nba.com/stats/playercareerstats',
-      {
-        method: 'GET',
-        data: {
-          LeagueID: '00',
-          PerMode: 'PerGame',
-          PlayerID: request.playerId
-        }
+    fetchCareerStats(request.playerId)
+      .then(response => {
+        stats.career = formatCareerStats(response);
+        return fetchCommonPlayerInfo(request.playerId);
       })
       .then(response => {
-        const seasons = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsRegularSeason')[0];
-        const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
-        const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
-        const allStarSeasons = allStar.rowSet.map(row => row[allStar.headers.indexOf('SEASON_ID')]);
-        stats.career = {seasons, career, allStarSeasons};
-        return $.ajax('https://stats.nba.com/stats/commonplayerinfo',
-          {
-            method: 'GET',
-            data: {
-              LeagueID: '00',
-              PlayerID: request.playerId
-            }
-          })
-      })
-      .then(response => {
-        const headers = response.resultSets[0].headers;
-        const profileData = response.resultSets[0].rowSet[0];
-
-        const teamName = profileData[headers.indexOf('TEAM_NAME')];
-        const city = profileData[headers.indexOf('TEAM_CITY')];
-        const birthday = profileData[headers.indexOf('BIRTHDATE')];
-        const weight = profileData[headers.indexOf('WEIGHT')];
-
-        const draftYear = profileData[headers.indexOf('DRAFT_YEAR')];
-        let draft;
-        if (draftYear) {
-          draft = (draftYear === 'Undrafted')
-            ? draftYear
-            : draftYear + ', Round ' + profileData[headers.indexOf('DRAFT_ROUND')]
-                        + ', Pick ' + profileData[headers.indexOf('DRAFT_NUMBER')];
-        } else {
-          draft = 'n/a';
-        }
-
-        const fullName = profileData[headers.indexOf('DISPLAY_FIRST_LAST')].replace('-', '').replace('\'', '');
-        const names = fullName.split(' ');
-        const surNameAbb = names[names.length - 1].slice(0, 5).toLowerCase();
-        const firstNameAbb = names[0].slice(0, 2).toLowerCase();
-        const imageRef = Object.getOwnPropertyNames(playerImageRefMap).includes(fullName)
-          ? playerImageRefMap[fullName]
-          : '01';
-
-        const date = new Date();
-        const year = date.getFullYear().toString();
-        const month = (date.getMonth() + 1 < 10)
-          ? '0' + (date.getMonth() + 1)
-          : date.getMonth().toString();
-        const day = date.getDate().toString();
-        const dateStr = year + month + day + '1';
-
-        const imageUrl = 'https://d2cwpp38twqe55.cloudfront.net/req/'+ dateStr + '/images/players/' + surNameAbb + firstNameAbb + imageRef + '.jpg';
-
-        stats.profile = {
-          draft,
-          birthday: birthday ? birthday.split('T')[0] : 'n/a',
-          weight:   weight ? weight + ' lb' : 'n/a',
-          team:     (teamName && city) ? city.charAt(0).toUpperCase() + city.slice(1) + ' ' + teamName: 'n/a',
-          number:   profileData[headers.indexOf('JERSEY')] || 'n/a',
-          position: profileData[headers.indexOf('POSITION')] || 'n/a',
-          height:   profileData[headers.indexOf('HEIGHT')] || 'n/a',
-          country:  profileData[headers.indexOf('COUNTRY')] || 'n/a',
-          college:  profileData[headers.indexOf('SCHOOL')] || 'n/a',
-          imageUrl
-        };
-
+        stats.profile = formatPlayerProfile(response);
         sendResponse([null, stats]);
       })
       .catch(err => {
@@ -119,55 +56,101 @@ function onFetchStats(request, sender, sendResponse) {
       });
   }
   return true
-}
-
-const playerImageRefMap = {
-  "Dairis Bertans": "02",
-  "Bojan Bogdanovic": "02",
-  "Miles Bridges": "02",
-  "Anthony Brown": "02",
-  "Jaylen Brown": "02",
-  "Daequan Cook": "02",
-  "Anthony Davis": "02",
-  "Jacob Evans": "02",
-  "Jerian Grant": "02",
-  "Danny Green": "02",
-  "Jaxson Hayes": "02",
-  "Marc Jackson": "02",
-  "Alize Johnson": "02",
-  "Armon Johnson": "02",
-  "Cameron Johnson": "02",
-  "JaJuan Johnson": "02",
-  "Magic Johnson": "02",
-  "Dahntay Jones": "02",
-  "Damian Jones": "03",
-  "Derrick Jones Jr.": "02",
-  "Dominique Jones": "02",
-  "Donny Marshall": "02",
-  "Kevin Martin": "02",
-  "Patty Mills": "02",
-  "Cherokee Parks": "02",
-  "Marshall Plumlee": "02",
-  "Taurean Prince": "02",
-  "Willie Reed": "02",
-  "Clifford Robinson": "02",
-  "Isaiah Thomas": "02",
-  "Trey Thompkins": "02",
-  "Mychel Thompson": "02",
-  "Mario West": "02",
-  "Derrick Williams": "02",
-  "Jason Williams": "02",
-  "Jay Williams": "03",
-  "Jawad Williams": "04",
-  "John Williams": "02",
-  "Jordan Williams": "03",
-  "Johnathan Williams": "04",
-  "Kevin Willis": "02",
-  "Kenny Williams": "03",
-  "Kenrich Williams": "04",
-  "Marvin Williams": "02",
-  "Marcus Williams": "02",
-  "Shelden Williams": "02",
-  "Shawne Williams": "03",
-  "Justin Wright-Foreman": "02",
 };
+
+const fetchCareerStats = (playerId) => {
+  return $.ajax('https://stats.nba.com/stats/playercareerstats',
+    {
+      method: 'GET',
+      data: {
+        LeagueID: '00',
+        PerMode: 'PerGame',
+        PlayerID: playerId
+      }
+    })
+};
+
+const formatCareerStats = (response) => {
+  const seasons = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsRegularSeason')[0];
+  const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
+  const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
+  const allStarSeasons = allStar.rowSet.map(row => row[allStar.headers.indexOf('SEASON_ID')]);
+  return {seasons, career, allStarSeasons};
+};
+
+const fetchCommonPlayerInfo = (playerId) => {
+  return $.ajax('https://stats.nba.com/stats/commonplayerinfo',
+    {
+      method: 'GET',
+      data: {
+        LeagueID: '00',
+        PlayerID: playerId
+      }
+    })
+};
+
+const formatPlayerProfile = (response) => {
+  const headers = response.resultSets[0].headers;
+  const profileData = response.resultSets[0].rowSet[0];
+
+  const getProfileValue = (key) => {
+    return profileData[headers.indexOf(key)];
+  };
+
+  return {
+    draft:    formatDraft(getProfileValue('DRAFT_YEAR'), getProfileValue('DRAFT_ROUND'), getProfileValue('DRAFT_NUMBER')),
+    birthday: formatBirthday(getProfileValue('BIRTHDATE')),
+    weight:   formatWeight(getProfileValue('WEIGHT')),
+    team:     formatTeam(getProfileValue('TEAM_NAME'), getProfileValue('TEAM_CITY')),
+    number:   getProfileValue('JERSEY') || 'n/a',
+    position: getProfileValue('POSITION') || 'n/a',
+    height:   getProfileValue('HEIGHT') || 'n/a',
+    country:  getProfileValue('COUNTRY') || 'n/a',
+    college:  getProfileValue('SCHOOL') || 'n/a',
+    imageUrl: getPlayerImageUrl(getProfileValue('DISPLAY_FIRST_LAST'))
+  };
+};
+
+const formatDraft = (draftYear, draftRound, draftNumber) => {
+  if (draftYear) {
+    return (draftYear === 'Undrafted')
+      ? draftYear
+      : draftYear + ', Round ' + draftRound
+      + ', Pick ' + draftNumber;
+  } else {
+    return 'n/a';
+  }
+};
+
+const formatBirthday = (birthday) => {
+  return birthday ? birthday.split('T')[0] : 'n/a'
+};
+
+const formatWeight = (weight) => {
+  return weight ? weight + ' lb' : 'n/a';
+};
+
+const formatTeam = (teamName, city) => {
+  return (teamName && city) ? city.charAt(0).toUpperCase() + city.slice(1) + ' ' + teamName: 'n/a';
+};
+
+const getPlayerImageUrl = (fullName) => {
+  const names = fullName.replace('-', '').replace('\'', '').split(' ');
+  const surNameAbb = names[names.length - 1].slice(0, 5).toLowerCase();
+  const firstNameAbb = names[0].slice(0, 2).toLowerCase();
+  const imageRef = Object.getOwnPropertyNames(playerImageRefMap).includes(fullName)
+    ? playerImageRefMap[fullName]
+    : '01';
+
+  const date = new Date();
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1 < 10)
+    ? '0' + (date.getMonth() + 1)
+    : date.getMonth().toString();
+  const day = date.getDate().toString();
+  const dateStr = year + month + day + '1';
+
+  return 'https://d2cwpp38twqe55.cloudfront.net/req/'+ dateStr + '/images/players/' + surNameAbb + firstNameAbb + imageRef + '.jpg';
+};
+
+addListeners();
