@@ -483,38 +483,24 @@ describe('Background Scripts', () => {
   describe('FetchRequestHandler', () => {
 
     const testFetchRequestHandler = new FetchRequestHandler();
-    let addListenerStub;
-    let fetchPlayersStub;
-    let formatPlayersStub;
-    let sendResponseSpy;
-
-    before(() => {
-      chrome.runtime.onMessage = {addListener: () => {}};
-
-      addListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
-      fetchPlayersStub = sinon.stub(testFetchRequestHandler, 'fetchPlayers');
-      formatPlayersStub = sinon.stub(testFetchRequestHandler, 'formatPlayers');
-      sendResponseSpy = sinon.spy();
-
-      addListenerStub.returns(null);
-      fetchPlayersStub.resolves(null);
-      formatPlayersStub.returns(null);
-    });
-
-    afterEach(() => {
-      addListenerStub.resetHistory();
-      fetchPlayersStub.resetHistory();
-      formatPlayersStub.resetHistory();
-      sendResponseSpy.resetHistory();
-    });
-
-    after(() => {
-      addListenerStub.restore();
-      fetchPlayersStub.restore();
-      formatPlayersStub.restore();
-    });
 
     describe('addListeners', () => {
+
+      let addListenerStub;
+
+      before(() => {
+        chrome.runtime.onMessage = {addListener: () => {}};
+        addListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
+        addListenerStub.returns(null);
+      });
+
+      afterEach(() => {
+        addListenerStub.resetHistory();
+      });
+
+      after(() => {
+        addListenerStub.restore();
+      });
 
       it('should call chrome runtime on message add listener twice with correct listeners', () => {
         testFetchRequestHandler.addListeners();
@@ -527,6 +513,34 @@ describe('Background Scripts', () => {
 
     describe('onFetchPlayers', () => {
 
+      let fetchPlayersStub;
+      let formatPlayersStub;
+      let sendResponseSpy;
+
+      before(() => {
+        fetchPlayersStub = sinon.stub(testFetchRequestHandler, 'fetchPlayers');
+        formatPlayersStub = sinon.stub(testFetchRequestHandler, 'formatPlayers');
+
+        fetchPlayersStub.resolves(null);
+        formatPlayersStub.returns(null);
+
+        sendResponseSpy = sinon.spy();
+      });
+
+      afterEach(() => {
+        fetchPlayersStub.resolves(null);
+
+        fetchPlayersStub.resetHistory();
+        formatPlayersStub.resetHistory();
+
+        sendResponseSpy.resetHistory();
+      });
+
+      after(() => {
+        fetchPlayersStub.restore();
+        formatPlayersStub.restore();
+      });
+
       it('should return true, to indicate that response should be sent asynchronously', () => {
         expect(testFetchRequestHandler.onFetchPlayers('', null, null)).to.equal(true);
       });
@@ -534,15 +548,17 @@ describe('Background Scripts', () => {
       describe('if request message is fetchPlayers', () => {
 
         it('should call fetchPlayers', () => {
-          testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy);
-          expect(fetchPlayersStub.calledOnce).to.equal(true);
+          return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+            .then(() => {
+              expect(fetchPlayersStub.calledOnce).to.equal(true);
+            });
         });
 
         describe('if fetchPlayers resolves', () => {
 
           it('should pass fetchPlayers response to formatPlayers', () => {
             fetchPlayersStub.resolves('response');
-            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
               .then(() => {
                 expect(formatPlayersStub.calledOnce).to.equal(true);
                 expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
@@ -552,7 +568,7 @@ describe('Background Scripts', () => {
           it('should send the response', () => {
             fetchPlayersStub.resolves('response');
             formatPlayersStub.returns('players');
-            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
               .then(() => {
                 expect(sendResponseSpy.calledOnce).to.equal(true);
                 expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
@@ -565,8 +581,8 @@ describe('Background Scripts', () => {
 
           it('should send the err', () => {
             fetchPlayersStub.rejects('err');
-            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
-              .then(() => {
+            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+              .catch(() => {
                 expect(sendResponseSpy.calledOnce).to.equal(true);
                 expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
               });
@@ -583,6 +599,42 @@ describe('Background Scripts', () => {
           expect(fetchPlayersStub.notCalled).to.equal(true);
         });
 
+      });
+
+    });
+
+    describe('fetchPlayers', () => {
+
+      let ajaxStub;
+
+      before(() => {
+        ajaxStub = sinon.stub($, 'ajax');
+        ajaxStub.resolves(null);
+      });
+
+      afterEach(() => {
+        ajaxStub.resetHistory();
+      });
+
+      after(() => {
+        ajaxStub.restore();
+      });
+
+      it('should make an ajax request with the correct params', () => {
+        return testFetchRequestHandler.fetchPlayers()
+          .then(() => {
+            expect(ajaxStub.withArgs(
+              'https://stats.nba.com/stats/commonallplayers',
+              {
+                method: 'GET',
+                data: {
+                  LeagueID: '00',
+                  Season: '2018-19',
+                  IsOnlyCurrentSeason: '0'
+                }
+              }
+            ).calledOnce).to.equal(true);
+          });
       });
 
     });
