@@ -480,8 +480,36 @@ describe('Content Scripts', () => {
 
 describe('Background Scripts', () => {
 
-  describe('')
+  describe('FetchRequestHandler', () => {
 
-  describe('onFetchPlayers')
+    const testFetchRequestHandler = new FetchRequestHandler();
+    let addListenerStub;
+
+    before(() => {
+      chrome.runtime.onMessage = {addListener: () => {}};
+      addListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
+      addListenerStub.returns(null);
+    });
+
+    afterEach(() => {
+      addListenerStub.resetHistory();
+    });
+
+    after(() => {
+      addListenerStub.restore();
+    });
+
+    describe('addListeners', () => {
+
+      it('should call chrome runtime on message add listener twice with correct listeners', () => {
+        testFetchRequestHandler.addListeners();
+        expect(addListenerStub.calledTwice).to.equal(true);
+        expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchPlayers).calledOnce).to.equal(true);
+        expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchStats).calledOnce).to.equal(true);
+      });
+
+    });
+
+  });
 
 });
