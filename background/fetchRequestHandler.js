@@ -7,7 +7,7 @@ function FetchRequestHandler() {
 
   this.onFetchPlayers = (request, sender, sendResponse) => {
     if (request.message === 'fetchPlayers') {
-      this.fetchPlayers()
+      return this.fetchPlayers()
         .then(response => {
           sendResponse([null, this.formatPlayers(response)]);
         })

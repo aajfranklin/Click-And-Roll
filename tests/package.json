@@ -4,6 +4,9 @@
   "description": "Unit tests for click and roll chrome extension",
   "main": "index.js",
   "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "@types/sinon": "^7.0.13",
     "chai": "^4.2.0",
     "mocha": "^6.2.0",
     "sinon": "^7.4.1"

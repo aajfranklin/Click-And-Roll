@@ -484,19 +484,34 @@ describe('Background Scripts', () => {
 
     const testFetchRequestHandler = new FetchRequestHandler();
     let addListenerStub;
+    let fetchPlayersStub;
+    let formatPlayersStub;
+    let sendResponseSpy;
 
     before(() => {
       chrome.runtime.onMessage = {addListener: () => {}};
+
       addListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
+      fetchPlayersStub = sinon.stub(testFetchRequestHandler, 'fetchPlayers');
+      formatPlayersStub = sinon.stub(testFetchRequestHandler, 'formatPlayers');
+      sendResponseSpy = sinon.spy();
+
       addListenerStub.returns(null);
+      fetchPlayersStub.resolves(null);
+      formatPlayersStub.returns(null);
     });
 
     afterEach(() => {
       addListenerStub.resetHistory();
+      fetchPlayersStub.resetHistory();
+      formatPlayersStub.resetHistory();
+      sendResponseSpy.resetHistory();
     });
 
     after(() => {
       addListenerStub.restore();
+      fetchPlayersStub.restore();
+      formatPlayersStub.restore();
     });
 
     describe('addListeners', () => {
@@ -506,6 +521,68 @@ describe('Background Scripts', () => {
         expect(addListenerStub.calledTwice).to.equal(true);
         expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchPlayers).calledOnce).to.equal(true);
         expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchStats).calledOnce).to.equal(true);
+      });
+
+    });
+
+    describe('onFetchPlayers', () => {
+
+      it('should return true, to indicate that response should be sent asynchronously', () => {
+        expect(testFetchRequestHandler.onFetchPlayers('', null, null)).to.equal(true);
+      });
+
+      describe('if request message is fetchPlayers', () => {
+
+        it('should call fetchPlayers', () => {
+          testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy);
+          expect(fetchPlayersStub.calledOnce).to.equal(true);
+        });
+
+        describe('if fetchPlayers resolves', () => {
+
+          it('should pass fetchPlayers response to formatPlayers', () => {
+            fetchPlayersStub.resolves('response');
+            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+              .then(() => {
+                expect(formatPlayersStub.calledOnce).to.equal(true);
+                expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
+              });
+          });
+
+          it('should send the response', () => {
+            fetchPlayersStub.resolves('response');
+            formatPlayersStub.returns('players');
+            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+              .then(() => {
+                expect(sendResponseSpy.calledOnce).to.equal(true);
+                expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
+              });
+          });
+
+        });
+
+        describe('if fetchPlayers rejects', () => {
+
+          it('should send the err', () => {
+            fetchPlayersStub.rejects('err');
+            testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+              .then(() => {
+                expect(sendResponseSpy.calledOnce).to.equal(true);
+                expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+              });
+          });
+
+        });
+
+      });
+
+      describe('if request message is not fetchPlayers', () => {
+
+        it('should not call any methods', () => {
+          testFetchRequestHandler.onFetchPlayers({message: 'wrongMessage'}, null, null);
+          expect(fetchPlayersStub.notCalled).to.equal(true);
+        });
+
       });
 
     });
