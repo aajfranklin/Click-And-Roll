@@ -820,7 +820,41 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('fetchCommonPlayerInfro', () => {
+    describe('formatCareerStats', () => {
+
+      const response = {
+        resultSets: [
+          {name: 'SeasonTotalsRegularSeason'},
+          {name: 'CareerTotalsRegularSeason'},
+          {name: 'SeasonTotalsAllStarSeason',
+            headers: [
+              'SEASON_ID'
+            ],
+            rowSet: [
+              ['2000'],
+              ['2001']
+            ]
+          },
+          {name: 'Other'},
+        ]
+      };
+
+      it('should return correctly formatted results', () => {
+        const expected = {
+          seasons: {name: 'SeasonTotalsRegularSeason'},
+          career: {name: 'CareerTotalsRegularSeason'},
+          allStarSeasons: ['2000', '2001']
+        };
+
+        console.log(expected);
+        console.log(testFetchRequestHandler.formatCareerStats(response));
+
+        expect(testFetchRequestHandler.formatCareerStats(response)).to.deep.equal(expected);
+      });
+
+    });
+
+    describe('fetchCommonPlayerInfo', () => {
 
       let ajaxStub;
 
