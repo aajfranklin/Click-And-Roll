@@ -784,6 +784,77 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('fetchCareerStats', () => {
+
+      let ajaxStub;
+
+      before(() => {
+        ajaxStub = sinon.stub($, 'ajax');
+        ajaxStub.resolves(null);
+      });
+
+      afterEach(() => {
+        ajaxStub.resetHistory();
+      });
+
+      after(() => {
+        ajaxStub.restore();
+      });
+
+      it('should make an ajax request with the correct params', () => {
+        return testFetchRequestHandler.fetchCareerStats(1)
+          .then(() => {
+            expect(ajaxStub.withArgs(
+            'https://stats.nba.com/stats/playercareerstats',
+              {
+                method: 'GET',
+                data: {
+                  LeagueID: '00',
+                  PerMode: 'PerGame',
+                  PlayerID: 1
+                }
+              }
+            ).calledOnce).to.equal(true);
+          });
+      });
+
+    });
+
+    describe('fetchCommonPlayerInfro', () => {
+
+      let ajaxStub;
+
+      before(() => {
+        ajaxStub = sinon.stub($, 'ajax');
+        ajaxStub.resolves(null);
+      });
+
+      afterEach(() => {
+        ajaxStub.resetHistory();
+      });
+
+      after(() => {
+        ajaxStub.restore();
+      });
+
+      it('should make an ajax request with the correct params', () => {
+        return testFetchRequestHandler.fetchCommonPlayerInfo(1)
+          .then(() => {
+            expect(ajaxStub.withArgs(
+              'https://stats.nba.com/stats/commonplayerinfo',
+              {
+                method: 'GET',
+                data: {
+                  LeagueID: '00',
+                  PlayerID: 1
+                }
+              }
+            ).calledOnce).to.equal(true);
+          });
+      });
+
+    });
+
   });
 
 });
