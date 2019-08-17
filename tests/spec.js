@@ -845,10 +845,6 @@ describe('Background Scripts', () => {
           career: {name: 'CareerTotalsRegularSeason'},
           allStarSeasons: ['2000', '2001']
         };
-
-        console.log(expected);
-        console.log(testFetchRequestHandler.formatCareerStats(response));
-
         expect(testFetchRequestHandler.formatCareerStats(response)).to.deep.equal(expected);
       });
 
@@ -886,6 +882,165 @@ describe('Background Scripts', () => {
             ).calledOnce).to.equal(true);
           });
       });
+
+    });
+
+    describe('formatPlayerProfile', () => {
+
+      const response = {
+        resultSets: [
+          {
+            headers: [
+              'DRAFT_YEAR',
+              'DRAFT_ROUND',
+              'DRAFT_NUMBER',
+              'BIRTHDATE',
+              'WEIGHT',
+              'TEAM_NAME',
+              'TEAM_CITY',
+              'JERSEY',
+              'POSITION',
+              'HEIGHT',
+              'COUNTRY',
+              'SCHOOL',
+              'DISPLAY_FIRST_LAST'
+            ],
+            rowSet: [
+              ['draftYear',
+              'draftRound',
+              'draftNumber',
+              'birthDate',
+              'weight',
+              'teamName',
+              'teamCity',
+              'jersey',
+              'position',
+              'height',
+              'country',
+              'school',
+              'displayName']
+            ]
+          }
+        ]
+      };
+
+      let formatDraftStub;
+      let formatBirthdayStub;
+      let formatWeightStub;
+      let formatTeamStub;
+      let getPlayerImageUrlStub;
+
+      before(() => {
+        formatDraftStub = sinon.stub(testFetchRequestHandler, 'formatDraft');
+        formatBirthdayStub = sinon.stub(testFetchRequestHandler, 'formatBirthday');
+        formatWeightStub = sinon.stub(testFetchRequestHandler, 'formatWeight');
+        formatTeamStub = sinon.stub(testFetchRequestHandler, 'formatTeam');
+        getPlayerImageUrlStub = sinon.stub(testFetchRequestHandler, 'getPlayerImageUrl');
+
+        formatDraftStub.returns('formattedDraft');
+        formatBirthdayStub.returns('formattedBirthday');
+        formatWeightStub.returns('formattedWeight');
+        formatTeamStub.returns('formattedTeam');
+        getPlayerImageUrlStub.returns('imageUrl');
+      });
+
+      afterEach(() => {
+        formatDraftStub.resetHistory();
+        formatBirthdayStub.resetHistory();
+        formatWeightStub.resetHistory();
+        formatTeamStub.resetHistory();
+        getPlayerImageUrlStub.resetHistory();
+      });
+
+      after(() => {
+        formatDraftStub.restore();
+        formatBirthdayStub.restore();
+        formatWeightStub.restore();
+        formatTeamStub.restore();
+        getPlayerImageUrlStub.restore();
+      });
+
+      it('should return correctly formatted player info', () => {
+        const expected = {
+          draft: 'formattedDraft',
+          birthday: 'formattedBirthday',
+          weight: 'formattedWeight',
+          team: 'formattedTeam',
+          number: 'jersey',
+          position: 'position',
+          height: 'height',
+          country: 'country',
+          college: 'school',
+          imageUrl: 'imageUrl'
+        };
+        expect(testFetchRequestHandler.formatPlayerProfile(response)).to.deep.equal(expected);
+      });
+
+      it('should call formatting functions with correct values', () => {
+        testFetchRequestHandler.formatPlayerProfile(response);
+        expect(formatDraftStub.calledOnce).to.equal(true);
+        expect(formatDraftStub.withArgs('draftYear', 'draftRound', 'draftNumber').calledOnce).to.equal(true);
+        expect(formatBirthdayStub.calledOnce).to.equal(true);
+        expect(formatBirthdayStub.withArgs('birthDate').calledOnce).to.equal(true);
+        expect(formatWeightStub.calledOnce).to.equal(true);
+        expect(formatWeightStub.withArgs('weight').calledOnce).to.equal(true);
+        expect(formatTeamStub.calledOnce).to.equal(true);
+        expect(formatTeamStub.withArgs('teamName', 'teamCity').calledOnce).to.equal(true);
+        expect(getPlayerImageUrlStub.calledOnce).to.equal(true);
+        expect(getPlayerImageUrlStub.withArgs('displayName').calledOnce).to.equal(true);
+      });
+
+      it('should return \'n/a\' for unavailable values', () => {
+        const responseWithNullValues = {
+          resultSets: [
+            {
+              headers: [
+                'DRAFT_YEAR',
+                'DRAFT_ROUND',
+                'DRAFT_NUMBER',
+                'BIRTHDATE',
+                'WEIGHT',
+                'TEAM_NAME',
+                'TEAM_CITY',
+                'JERSEY',
+                'POSITION',
+                'HEIGHT',
+                'COUNTRY',
+                'SCHOOL',
+                'DISPLAY_FIRST_LAST'
+              ],
+              rowSet: [
+                ['draftYear',
+                  'draftRound',
+                  'draftNumber',
+                  'birthDate',
+                  'weight',
+                  'teamName',
+                  'teamCity',
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  'displayName']
+              ]
+            }
+          ]
+        };
+        const expected = {
+          draft: 'formattedDraft',
+          birthday: 'formattedBirthday',
+          weight: 'formattedWeight',
+          team: 'formattedTeam',
+          number: 'n/a',
+          position: 'n/a',
+          height: 'n/a',
+          country: 'n/a',
+          college: 'n/a',
+          imageUrl: 'imageUrl'
+        };
+        expect(testFetchRequestHandler.formatPlayerProfile(responseWithNullValues)).to.deep.equal(expected);
+      })
 
     });
 
