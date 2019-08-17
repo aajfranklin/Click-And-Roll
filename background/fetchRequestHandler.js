@@ -44,7 +44,7 @@ function FetchRequestHandler() {
 
       const stats = {id: request.playerId};
 
-      this.fetchCareerStats(request.playerId)
+      return this.fetchCareerStats(request.playerId)
         .then(response => {
           stats.career = this.formatCareerStats(response);
           return this.fetchCommonPlayerInfo(request.playerId);

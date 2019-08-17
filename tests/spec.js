@@ -639,6 +639,151 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('onFetchStats', () => {
+
+      let fetchCareerStatsStub;
+      let fetchCommonPlayerInfoStub;
+      let formatCareerStatsStub;
+      let formatPlayerProfileStub;
+      let sendResponseSpy;
+
+      before(() => {
+        fetchCareerStatsStub = sinon.stub(testFetchRequestHandler, 'fetchCareerStats');
+        fetchCommonPlayerInfoStub = sinon.stub(testFetchRequestHandler, 'fetchCommonPlayerInfo');
+        formatCareerStatsStub = sinon.stub(testFetchRequestHandler, 'formatCareerStats');
+        formatPlayerProfileStub = sinon.stub(testFetchRequestHandler, 'formatPlayerProfile');
+
+        sendResponseSpy = sinon.spy();
+
+        fetchCareerStatsStub.resolves(null);
+        fetchCommonPlayerInfoStub.resolves(null);
+        formatCareerStatsStub.returns(null);
+        formatPlayerProfileStub.returns(null);
+      });
+
+      afterEach(() => {
+        fetchCareerStatsStub.resetHistory();
+        fetchCommonPlayerInfoStub.resetHistory();
+        formatCareerStatsStub.resetHistory();
+        formatPlayerProfileStub.resetHistory();
+
+        sendResponseSpy.resetHistory();
+
+        fetchCareerStatsStub.resolves(null);
+        fetchCommonPlayerInfoStub.resolves(null);
+        formatCareerStatsStub.returns(null);
+        formatPlayerProfileStub.returns(null);
+      });
+
+      after(() => {
+        fetchCareerStatsStub.restore();
+        fetchCommonPlayerInfoStub.restore();
+        formatCareerStatsStub.restore();
+        formatPlayerProfileStub.restore();
+      });
+
+
+      it('should return true, to indicate that response should be sent asynchronously', () => {
+        expect(testFetchRequestHandler.onFetchStats({message: ''}, null, sendResponseSpy)).to.equal(true);
+      });
+
+      describe('if request message is fetchStats', () => {
+
+        it('should call fetchCareerStats with request playerId', () => {
+          return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            .then(() => {
+              expect(fetchCareerStatsStub.calledOnce).to.equal(true);
+              expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+            })
+        });
+
+        describe('if fetchCareerStats resolves', () => {
+
+          it('should call formatCareerStats with fetchCareerStats response', () => {
+            fetchCareerStatsStub.resolves('careerStats');
+            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+              .then(() => {
+                expect(formatCareerStatsStub.calledOnce).to.equal(true);
+                expect(formatCareerStatsStub.withArgs('careerStats').calledOnce).to.equal(true);
+              })
+          });
+
+          it('should call fetchCommonPlayerInfo with request playerId', () => {
+            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+              .then(() => {
+                expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
+                expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
+              })
+          });
+
+          describe('if fetchCommonPlayerInfo resolves', () => {
+
+            it('should call formatPlayerProfile with fetchCommonPlayerInfo response', () => {
+              fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
+              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+                .then(() => {
+                  expect(formatPlayerProfileStub.calledOnce).to.equal(true);
+                  expect(formatPlayerProfileStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
+                })
+            });
+
+            it('should send the response', () => {
+              formatCareerStatsStub.returns('careerStats');
+              formatPlayerProfileStub.returns('profileStats');
+              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+                .then(() => {
+                  expect(sendResponseSpy.calledOnce).to.equal(true);
+                  expect(sendResponseSpy.withArgs([null, {
+                    id: 1,
+                    career: 'careerStats',
+                    profile: 'profileStats'
+                  }]).calledOnce).to.equal(true);
+                })
+            });
+
+          });
+
+          describe('if fetchCommonPlayerInfo rejects', () => {
+
+            it('should send the err', () => {
+              fetchCommonPlayerInfoStub.rejects('err');
+              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+                .catch(() => {
+                  expect(sendResponseSpy.calledOnce).to.equal(true);
+                  expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+                })
+            });
+
+          })
+
+        });
+
+        describe('if fetchCareerStats rejects', () => {
+
+          it('should send the err', () => {
+            fetchCareerStatsStub.rejects('err');
+            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+              .catch(() => {
+                expect(sendResponseSpy.calledOnce).to.equal(true);
+                expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+              })
+          });
+
+        });
+
+      });
+
+      describe('if request message is not fetchStats', () => {
+
+        it('should not call any methods', () => {
+          testFetchRequestHandler.onFetchStats({message: 'wrongMessage'}, null, sendResponseSpy);
+          expect(fetchCareerStatsStub.notCalled).to.equal(true);
+        });
+
+      })
+
+    });
+
   });
 
 });
