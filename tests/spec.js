@@ -1074,6 +1074,26 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('format Birthday', () => {
+
+      describe('if birthday is available', () => {
+
+        it('should return formatted birthday', () => {
+          expect(testFetchRequestHandler.formatBirthday('2000-01-01T00:00:00')).to.equal('2000-01-01');
+        });
+
+      });
+
+      describe('if birthday is unavailable', () => {
+
+        it('should return \'n/a\'', () => {
+          expect(testFetchRequestHandler.formatBirthday(null)).to.equal('n/a');
+        });
+
+      });
+
+    });
+
   });
 
 });
