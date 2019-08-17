@@ -1074,7 +1074,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('format Birthday', () => {
+    describe('formatBirthday', () => {
 
       describe('if birthday is available', () => {
 
@@ -1088,6 +1088,26 @@ describe('Background Scripts', () => {
 
         it('should return \'n/a\'', () => {
           expect(testFetchRequestHandler.formatBirthday(null)).to.equal('n/a');
+        });
+
+      });
+
+    });
+
+    describe('formatWeight', () => {
+
+      describe('if weight is available', () => {
+
+        it('should return formatted weight', () => {
+          expect(testFetchRequestHandler.formatWeight('200')).to.equal('200 lb');
+        });
+
+      });
+
+      describe('if weight is unavailable', () => {
+
+        it('should return \'n/a\'', () => {
+          expect(testFetchRequestHandler.formatWeight(null)).to.equal('n/a');
         });
 
       });
