@@ -1044,6 +1044,36 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('formatDraft', () => {
+
+      describe('if draftYear is available', () => {
+
+        it('should return formatted draft info', () => {
+          expect(testFetchRequestHandler.formatDraft('2000', '1', '1')).to.equal(
+            '2000, Round 1, Pick 1'
+          );
+        });
+
+        describe('if player went undrafted', () => {
+
+          it('should return undrafted', () => {
+            expect(testFetchRequestHandler.formatDraft('Undrafted')).to.equal('Undrafted');
+          });
+
+        })
+
+      });
+
+      describe('if draftYear is unavailable', () => {
+
+        it('should return \'n/a\'', () => {
+          expect(testFetchRequestHandler.formatDraft(null)).to.equal('n/a');
+        });
+
+      });
+
+    });
+
   });
 
 });
