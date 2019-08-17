@@ -2,7 +2,7 @@ function Utils() {
 
   this.checkPlayers = (cachedPlayers) => {
     if (!cachedPlayers || $.isEmptyObject(cachedPlayers)) {
-      return this.backgroundScriptRequest({message: 'fetchPlayers'})
+      return this.fetchRequest({message: 'fetchPlayers'})
         .then(fetchedPlayers => {
           this.saveToChromeStorage('players', fetchedPlayers);
           return fetchedPlayers;
@@ -15,7 +15,7 @@ function Utils() {
     return Promise.resolve(cachedPlayers.players);
   };
 
-  this.backgroundScriptRequest = (request) => {
+  this.fetchRequest = (request) => {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(request, (response => {
         const [err, res] = response;

@@ -97,7 +97,7 @@ function ClickAndRoll(players) {
       this.currentPlayerId = newPlayerId;
       this.dataReceived = false;
 
-      this.utils.backgroundScriptRequest({message: 'fetchStats', playerId: this.currentPlayerId})
+      this.utils.fetchRequest({message: 'fetchStats', playerId: this.currentPlayerId})
         .then(stats => {
           // current player id may have been reassigned by a later hover, making these stats out of date
           if (newPlayerId === this.currentPlayerId) {

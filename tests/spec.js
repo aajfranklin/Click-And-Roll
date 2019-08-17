@@ -14,7 +14,7 @@ describe('Content Scripts', () => {
 
       before(() => {
         saveToChromeStorageStub = sinon.stub(testUtils, 'saveToChromeStorage');
-        backgroundScriptRequestStub = sinon.stub(testUtils, 'backgroundScriptRequest');
+        backgroundScriptRequestStub = sinon.stub(testUtils, 'fetchRequest');
         backgroundScriptRequestStub.resolves(fetchedPlayers);
       });
 
@@ -48,7 +48,7 @@ describe('Content Scripts', () => {
 
     });
 
-    describe('backgroundScriptRequest', () => {
+    describe('fetchRequest', () => {
 
       let sendMessageStub;
       let request = {message: 'testRequest'};
@@ -69,7 +69,7 @@ describe('Content Scripts', () => {
       });
 
       it('should send a message to chrome runtime with passed in request', () => {
-        return testUtils.backgroundScriptRequest(request)
+        return testUtils.fetchRequest(request)
           .then(() => {
             expect(sendMessageStub.calledOnce).to.equal(true);
             expect(sendMessageStub.withArgs(request).calledOnce).to.equal(true);
@@ -77,7 +77,7 @@ describe('Content Scripts', () => {
       });
 
       it('should resolve response if chrome returns no error', () => {
-        return testUtils.backgroundScriptRequest(request)
+        return testUtils.fetchRequest(request)
           .then((res) => {
             expect(res).to.equal('res');
           });
@@ -87,7 +87,7 @@ describe('Content Scripts', () => {
         response = ['err', null];
         sendMessageStub.callsArgWith(1, response);
 
-        return testUtils.backgroundScriptRequest(request)
+        return testUtils.fetchRequest(request)
           .catch((err) => {
             expect(err).to.equal('err');
           })
@@ -479,5 +479,9 @@ describe('Content Scripts', () => {
 });
 
 describe('Background Scripts', () => {
+
+  describe('')
+
+  describe('onFetchPlayers')
 
 });
