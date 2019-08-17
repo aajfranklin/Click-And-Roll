@@ -1135,6 +1135,44 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('getPlayerImageUrl', () => {
+
+      let getDateStringStub;
+
+      before(() => {
+        getDateStringStub = sinon.stub(testFetchRequestHandler, 'getDateString');
+        getDateStringStub.returns('dateString');
+      });
+
+      afterEach(() => {
+        getDateStringStub.resetHistory();
+      });
+
+      after(() => {
+        getDateStringStub.restore();
+      });
+
+      describe('if player name is not in image reference map', () => {
+
+        it('should return url with default player reference number', () => {
+          expect(testFetchRequestHandler.getPlayerImageUrl('LeBron James')).to.equal(
+            'https://d2cwpp38twqe55.cloudfront.net/req/dateString1/images/players/jamesle01.jpg'
+          );
+        })
+
+      });
+
+      describe('if player name is in image reference map', () => {
+
+        it('should return url with player reference number in map', () => {
+          expect(testFetchRequestHandler.getPlayerImageUrl('Anthony Davis')).to.equal(
+            'https://d2cwpp38twqe55.cloudfront.net/req/dateString1/images/players/davisan02.jpg'
+          );
+        })
+
+      });
+
+    });
 
   });
 

@@ -144,15 +144,17 @@ function FetchRequestHandler() {
       ? playerImageRefMap[fullName]
       : '01';
 
+    return 'https://d2cwpp38twqe55.cloudfront.net/req/' + this.getDateString() + '1/images/players/' + surNameAbb + firstNameAbb + imageRef + '.jpg';
+  };
+
+  this.getDateString = () => {
     const date = new Date();
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1 < 10)
       ? '0' + (date.getMonth() + 1)
       : date.getMonth().toString();
     const day = date.getDate().toString();
-    const dateStr = year + month + day + '1';
-
-    return 'https://d2cwpp38twqe55.cloudfront.net/req/' + dateStr + '/images/players/' + surNameAbb + firstNameAbb + imageRef + '.jpg';
-  };
+    return year + month + day;
+  }
 
 }
