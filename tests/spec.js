@@ -1174,6 +1174,55 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('getDateString', () => {
+
+      const date = new Date();
+      let getFullYearStub;
+      let getMonthStub;
+      let getDateStub;
+
+      before(() => {
+        getFullYearStub = sinon.stub(date, 'getFullYear');
+        getMonthStub = sinon.stub(date, 'getMonth');
+        getDateStub = sinon.stub(date, 'getDate');
+
+        getFullYearStub.returns(null);
+        getFullYearStub.returns(null);
+        getFullYearStub.returns(null);
+      });
+
+      afterEach(() => {
+        getFullYearStub.returns(null);
+        getFullYearStub.returns(null);
+        getFullYearStub.returns(null);
+
+        getFullYearStub.resetHistory();
+        getMonthStub.resetHistory();
+        getDateStub.resetHistory();
+      });
+
+      after(() => {
+        getFullYearStub.restore();
+        getMonthStub.restore();
+        getDateStub.restore();
+      });
+
+      it('should return full date as formatted string with month incremented by 1', () => {
+        getFullYearStub.returns(2000);
+        getMonthStub.returns(10);
+        getDateStub.returns(10);
+        expect(testFetchRequestHandler.getDateString(date)).to.equal('20001110');
+      });
+
+      it('should 0 pad months and dates below 10', () => {
+        getFullYearStub.returns(2000);
+        getMonthStub.returns(8);
+        getDateStub.returns(9);
+        expect(testFetchRequestHandler.getDateString(date)).to.equal('20000909');
+      });
+
+    });
+
   });
 
 });
