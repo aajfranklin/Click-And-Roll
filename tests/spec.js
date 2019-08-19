@@ -8,30 +8,30 @@ describe('Content Scripts', () => {
     describe('checkPlayers', () => {
 
       let saveToChromeStorageStub;
-      let backgroundScriptRequestStub;
+      let sendRunTimeMessageStub;
       const fetchedPlayers = 'mockFetchedPlayers';
       const cachedPlayers = {players: 'mockCachedPlayers'};
 
       before(() => {
         saveToChromeStorageStub = sinon.stub(testUtils, 'saveToChromeStorage');
-        backgroundScriptRequestStub = sinon.stub(testUtils, 'fetchRequest');
-        backgroundScriptRequestStub.resolves(fetchedPlayers);
+        sendRunTimeMessageStub = sinon.stub(testUtils, 'sendRuntimeMessage');
+        sendRunTimeMessageStub.resolves(fetchedPlayers);
       });
 
       afterEach(() => {
         saveToChromeStorageStub.resetHistory();
-        backgroundScriptRequestStub.resetHistory();
+        sendRunTimeMessageStub.resetHistory();
       });
 
       after(() => {
         saveToChromeStorageStub.restore();
-        backgroundScriptRequestStub.restore();
+        sendRunTimeMessageStub.restore();
       });
 
       it('should return players fetched from storage if they are present', () => {
         return testUtils.checkPlayers(cachedPlayers)
           .then((response) => {
-            expect(backgroundScriptRequestStub.notCalled).to.equal(true);
+            expect(sendRunTimeMessageStub.notCalled).to.equal(true);
             expect(saveToChromeStorageStub.notCalled).to.equal(true);
             expect(response).to.equal('mockCachedPlayers')
           })
@@ -40,7 +40,7 @@ describe('Content Scripts', () => {
       it('should fetch and store players if they are not in local chrome storage', () => {
         return testUtils.checkPlayers(undefined)
           .then((response) => {
-            expect(backgroundScriptRequestStub.withArgs({message: 'fetchPlayers'}).calledOnce).to.equal(true);
+            expect(sendRunTimeMessageStub.withArgs({message: 'fetchPlayers'}).calledOnce).to.equal(true);
             expect(saveToChromeStorageStub.withArgs('players', fetchedPlayers).calledOnce).to.equal(true);
             expect(response).to.equal(fetchedPlayers);
           })
@@ -48,36 +48,36 @@ describe('Content Scripts', () => {
 
     });
 
-    describe('fetchRequest', () => {
+    describe('sendRuntimeMessage', () => {
 
-      let sendMessageStub;
+      let chromeSendMessageStub;
       let request = {message: 'testRequest'};
       let response;
 
       before(() => {
         response = [null, 'res'];
-        sendMessageStub = sinon.stub(chrome.runtime, 'sendMessage');
-        sendMessageStub.callsArgWith(1, response);
+        chromeSendMessageStub = sinon.stub(chrome.runtime, 'sendMessage');
+        chromeSendMessageStub.callsArgWith(1, response);
       });
 
       afterEach(() => {
-        sendMessageStub.resetHistory();
+        chromeSendMessageStub.resetHistory();
       });
 
       after(() => {
-        sendMessageStub.restore();
+        chromeSendMessageStub.restore();
       });
 
       it('should send a message to chrome runtime with passed in request', () => {
-        return testUtils.fetchRequest(request)
+        return testUtils.sendRuntimeMessage(request)
           .then(() => {
-            expect(sendMessageStub.calledOnce).to.equal(true);
-            expect(sendMessageStub.withArgs(request).calledOnce).to.equal(true);
+            expect(chromeSendMessageStub.calledOnce).to.equal(true);
+            expect(chromeSendMessageStub.withArgs(request).calledOnce).to.equal(true);
           });
       });
 
       it('should resolve response if chrome returns no error', () => {
-        return testUtils.fetchRequest(request)
+        return testUtils.sendRuntimeMessage(request)
           .then((res) => {
             expect(res).to.equal('res');
           });
@@ -85,9 +85,9 @@ describe('Content Scripts', () => {
 
       it('should reject if chrome returns an error', () => {
         response = ['err', null];
-        sendMessageStub.callsArgWith(1, response);
+        chromeSendMessageStub.callsArgWith(1, response);
 
-        return testUtils.fetchRequest(request)
+        return testUtils.sendRuntimeMessage(request)
           .catch((err) => {
             expect(err).to.equal('err');
           })
@@ -480,46 +480,110 @@ describe('Content Scripts', () => {
 
 describe('Background Scripts', () => {
 
-  describe('FetchRequestHandler', () => {
+  describe('MessageHandler', () => {
 
-    const testFetchRequestHandler = new FetchRequestHandler();
+    const messageHandler = new MessageHandler();
 
-    describe('addListeners', () => {
+    describe('addListener', () => {
 
-      let addListenerStub;
+      let chromeAddListenerStub;
 
       before(() => {
         chrome.runtime.onMessage = {addListener: () => {}};
-        addListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
-        addListenerStub.returns(null);
+        chromeAddListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
+        chromeAddListenerStub.returns(null);
       });
 
       afterEach(() => {
-        addListenerStub.resetHistory();
+        chromeAddListenerStub.resetHistory();
       });
 
       after(() => {
-        addListenerStub.restore();
+        chromeAddListenerStub.restore();
       });
 
-      it('should call chrome runtime on message add listener twice with correct listeners', () => {
-        testFetchRequestHandler.addListeners();
-        expect(addListenerStub.calledTwice).to.equal(true);
-        expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchPlayers).calledOnce).to.equal(true);
-        expect(addListenerStub.withArgs(testFetchRequestHandler.onFetchStats).calledOnce).to.equal(true);
+      it('should call chrome runtime on message add listener with correct listener', () => {
+        messageHandler.addListener();
+        expect(chromeAddListenerStub.calledOnce).to.equal(true);
+        expect(chromeAddListenerStub.withArgs(messageHandler.handleMessage).calledOnce).to.equal(true);
       });
 
     });
 
-    describe('onFetchPlayers', () => {
+    describe('handleMessage', () => {
+
+      let handleFetchPlayersStub;
+      let handleFetchStatsStub;
+
+      before(() => {
+        handleFetchPlayersStub = sinon.stub(messageHandler, 'handleFetchPlayers');
+        handleFetchStatsStub = sinon.stub(messageHandler, 'handleFetchStats');
+
+        handleFetchPlayersStub.resolves(null);
+        handleFetchStatsStub.resolves(null);
+      });
+
+      afterEach(() => {
+        handleFetchPlayersStub.resetHistory();
+        handleFetchStatsStub.resetHistory();
+      });
+
+      after(() => {
+        handleFetchPlayersStub.restore();
+        handleFetchStatsStub.restore();
+      });
+
+      describe('if request message is fetchPlayers', () => {
+
+        it('should delegate to handleFetchPlayers', () => {
+          messageHandler.handleMessage({message:'fetchPlayers'}, null, null);
+          expect(handleFetchPlayersStub.calledOnce).to.equal(true);
+        });
+
+        it('should return true, to indicate that response should be sent asynchronously', () => {
+          expect(messageHandler.handleMessage({message:'fetchPlayers'}, null, null)).to.equal(true);
+        });
+
+      });
+
+      describe('if request message is fetchStats', () => {
+
+        it('should delegate to handleFetchStats', () => {
+          messageHandler.handleMessage({message:'fetchStats'}, null, null);
+          expect(handleFetchStatsStub.calledOnce).to.equal(true);
+        });
+
+        it('should return true, to indicate that response should be sent asynchronously', () => {
+          expect(messageHandler.handleMessage({message:'fetchStats'}, null, null)).to.equal(true);
+        });
+
+      });
+
+      describe('if request message is invalid', () => {
+
+        it('should return false', () => {
+          expect(messageHandler.handleMessage({message:''}, null, null)).to.equal(false);
+        });
+
+        it('should not delegate to another handler', () => {
+          messageHandler.handleMessage({message:''}, null, null);
+          expect(handleFetchPlayersStub.notCalled).to.equal(true);
+          expect(handleFetchStatsStub.notCalled).to.equal(true);
+        });
+
+      });
+
+    });
+
+    describe('handleFetchPlayers', () => {
 
       let fetchPlayersStub;
       let formatPlayersStub;
       let sendResponseSpy;
 
       before(() => {
-        fetchPlayersStub = sinon.stub(testFetchRequestHandler, 'fetchPlayers');
-        formatPlayersStub = sinon.stub(testFetchRequestHandler, 'formatPlayers');
+        fetchPlayersStub = sinon.stub(messageHandler, 'fetchPlayers');
+        formatPlayersStub = sinon.stub(messageHandler, 'formatPlayers');
 
         fetchPlayersStub.resolves(null);
         formatPlayersStub.returns(null);
@@ -541,62 +605,45 @@ describe('Background Scripts', () => {
         formatPlayersStub.restore();
       });
 
-      it('should return true, to indicate that response should be sent asynchronously', () => {
-        expect(testFetchRequestHandler.onFetchPlayers('', null, null)).to.equal(true);
+      it('should call fetchPlayers', () => {
+        return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+          .then(() => {
+            expect(fetchPlayersStub.calledOnce).to.equal(true);
+          });
       });
 
-      describe('if request message is fetchPlayers', () => {
+      describe('if fetchPlayers resolves', () => {
 
-        it('should call fetchPlayers', () => {
-          return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+        it('should pass fetchPlayers response to formatPlayers', () => {
+          fetchPlayersStub.resolves('response');
+          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
             .then(() => {
-              expect(fetchPlayersStub.calledOnce).to.equal(true);
+              expect(formatPlayersStub.calledOnce).to.equal(true);
+              expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
             });
         });
 
-        describe('if fetchPlayers resolves', () => {
-
-          it('should pass fetchPlayers response to formatPlayers', () => {
-            fetchPlayersStub.resolves('response');
-            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
-              .then(() => {
-                expect(formatPlayersStub.calledOnce).to.equal(true);
-                expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
-              });
-          });
-
-          it('should send the response', () => {
-            fetchPlayersStub.resolves('response');
-            formatPlayersStub.returns('players');
-            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
-              .then(() => {
-                expect(sendResponseSpy.calledOnce).to.equal(true);
-                expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
-              });
-          });
-
-        });
-
-        describe('if fetchPlayers rejects', () => {
-
-          it('should send the err', () => {
-            fetchPlayersStub.rejects('err');
-            return testFetchRequestHandler.onFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
-              .catch(() => {
-                expect(sendResponseSpy.calledOnce).to.equal(true);
-                expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
-              });
-          });
-
+        it('should send the response', () => {
+          fetchPlayersStub.resolves('response');
+          formatPlayersStub.returns('players');
+          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+            .then(() => {
+              expect(sendResponseSpy.calledOnce).to.equal(true);
+              expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
+            });
         });
 
       });
 
-      describe('if request message is not fetchPlayers', () => {
+      describe('if fetchPlayers rejects', () => {
 
-        it('should not call any methods', () => {
-          testFetchRequestHandler.onFetchPlayers({message: 'wrongMessage'}, null, null);
-          expect(fetchPlayersStub.notCalled).to.equal(true);
+        it('should send the err', () => {
+          fetchPlayersStub.rejects('err');
+          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+            .catch(() => {
+              expect(sendResponseSpy.calledOnce).to.equal(true);
+              expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+            });
         });
 
       });
@@ -621,7 +668,7 @@ describe('Background Scripts', () => {
       });
 
       it('should make an ajax request with the correct params', () => {
-        return testFetchRequestHandler.fetchPlayers()
+        return messageHandler.fetchPlayers()
           .then(() => {
             expect(ajaxStub.withArgs(
               'https://stats.nba.com/stats/commonallplayers',
@@ -639,7 +686,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('onFetchStats', () => {
+    describe('handleFetchStats', () => {
 
       let fetchCareerStatsStub;
       let fetchCommonPlayerInfoStub;
@@ -648,10 +695,10 @@ describe('Background Scripts', () => {
       let sendResponseSpy;
 
       before(() => {
-        fetchCareerStatsStub = sinon.stub(testFetchRequestHandler, 'fetchCareerStats');
-        fetchCommonPlayerInfoStub = sinon.stub(testFetchRequestHandler, 'fetchCommonPlayerInfo');
-        formatCareerStatsStub = sinon.stub(testFetchRequestHandler, 'formatCareerStats');
-        formatPlayerProfileStub = sinon.stub(testFetchRequestHandler, 'formatPlayerProfile');
+        fetchCareerStatsStub = sinon.stub(messageHandler, 'fetchCareerStats');
+        fetchCommonPlayerInfoStub = sinon.stub(messageHandler, 'fetchCommonPlayerInfo');
+        formatCareerStatsStub = sinon.stub(messageHandler, 'formatCareerStats');
+        formatPlayerProfileStub = sinon.stub(messageHandler, 'formatPlayerProfile');
 
         sendResponseSpy = sinon.spy();
 
@@ -682,87 +729,65 @@ describe('Background Scripts', () => {
         formatPlayerProfileStub.restore();
       });
 
-
-      it('should return true, to indicate that response should be sent asynchronously', () => {
-        expect(testFetchRequestHandler.onFetchStats({message: ''}, null, sendResponseSpy)).to.equal(true);
+      it('should call fetchCareerStats with request playerId', () => {
+        return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+          .then(() => {
+            expect(fetchCareerStatsStub.calledOnce).to.equal(true);
+            expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+          })
       });
 
-      describe('if request message is fetchStats', () => {
+      describe('if fetchCareerStats resolves', () => {
 
-        it('should call fetchCareerStats with request playerId', () => {
-          return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+        it('should call formatCareerStats with fetchCareerStats response', () => {
+          fetchCareerStatsStub.resolves('careerStats');
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
             .then(() => {
-              expect(fetchCareerStatsStub.calledOnce).to.equal(true);
-              expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+              expect(formatCareerStatsStub.calledOnce).to.equal(true);
+              expect(formatCareerStatsStub.withArgs('careerStats').calledOnce).to.equal(true);
             })
         });
 
-        describe('if fetchCareerStats resolves', () => {
+        it('should call fetchCommonPlayerInfo with request playerId', () => {
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            .then(() => {
+              expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
+              expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
+            })
+        });
 
-          it('should call formatCareerStats with fetchCareerStats response', () => {
-            fetchCareerStatsStub.resolves('careerStats');
-            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+        describe('if fetchCommonPlayerInfo resolves', () => {
+
+          it('should call formatPlayerProfile with fetchCommonPlayerInfo response', () => {
+            fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
+            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
               .then(() => {
-                expect(formatCareerStatsStub.calledOnce).to.equal(true);
-                expect(formatCareerStatsStub.withArgs('careerStats').calledOnce).to.equal(true);
+                expect(formatPlayerProfileStub.calledOnce).to.equal(true);
+                expect(formatPlayerProfileStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
               })
           });
 
-          it('should call fetchCommonPlayerInfo with request playerId', () => {
-            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+          it('should send the response', () => {
+            formatCareerStatsStub.returns('careerStats');
+            formatPlayerProfileStub.returns('profileStats');
+            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
               .then(() => {
-                expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
-                expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
+                expect(sendResponseSpy.calledOnce).to.equal(true);
+                expect(sendResponseSpy.withArgs([null, {
+                  id: 1,
+                  career: 'careerStats',
+                  profile: 'profileStats'
+                }]).calledOnce).to.equal(true);
               })
           });
-
-          describe('if fetchCommonPlayerInfo resolves', () => {
-
-            it('should call formatPlayerProfile with fetchCommonPlayerInfo response', () => {
-              fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
-              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-                .then(() => {
-                  expect(formatPlayerProfileStub.calledOnce).to.equal(true);
-                  expect(formatPlayerProfileStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
-                })
-            });
-
-            it('should send the response', () => {
-              formatCareerStatsStub.returns('careerStats');
-              formatPlayerProfileStub.returns('profileStats');
-              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-                .then(() => {
-                  expect(sendResponseSpy.calledOnce).to.equal(true);
-                  expect(sendResponseSpy.withArgs([null, {
-                    id: 1,
-                    career: 'careerStats',
-                    profile: 'profileStats'
-                  }]).calledOnce).to.equal(true);
-                })
-            });
-
-          });
-
-          describe('if fetchCommonPlayerInfo rejects', () => {
-
-            it('should send the err', () => {
-              fetchCommonPlayerInfoStub.rejects('err');
-              return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-                .catch(() => {
-                  expect(sendResponseSpy.calledOnce).to.equal(true);
-                  expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
-                })
-            });
-
-          })
 
         });
 
-        describe('if fetchCareerStats rejects', () => {
+        describe('if fetchCommonPlayerInfo rejects', () => {
 
           it('should send the err', () => {
-            fetchCareerStatsStub.rejects('err');
-            return testFetchRequestHandler.onFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            fetchCommonPlayerInfoStub.rejects('err');
+            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
               .catch(() => {
                 expect(sendResponseSpy.calledOnce).to.equal(true);
                 expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
@@ -773,14 +798,18 @@ describe('Background Scripts', () => {
 
       });
 
-      describe('if request message is not fetchStats', () => {
+      describe('if fetchCareerStats rejects', () => {
 
-        it('should not call any methods', () => {
-          testFetchRequestHandler.onFetchStats({message: 'wrongMessage'}, null, sendResponseSpy);
-          expect(fetchCareerStatsStub.notCalled).to.equal(true);
+        it('should send the err', () => {
+          fetchCareerStatsStub.rejects('err');
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            .catch(() => {
+              expect(sendResponseSpy.calledOnce).to.equal(true);
+              expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+            })
         });
 
-      })
+      });
 
     });
 
@@ -802,7 +831,7 @@ describe('Background Scripts', () => {
       });
 
       it('should make an ajax request with the correct params', () => {
-        return testFetchRequestHandler.fetchCareerStats(1)
+        return messageHandler.fetchCareerStats(1)
           .then(() => {
             expect(ajaxStub.withArgs(
             'https://stats.nba.com/stats/playercareerstats',
@@ -845,7 +874,7 @@ describe('Background Scripts', () => {
           career: {name: 'CareerTotalsRegularSeason'},
           allStarSeasons: ['2000', '2001']
         };
-        expect(testFetchRequestHandler.formatCareerStats(response)).to.deep.equal(expected);
+        expect(messageHandler.formatCareerStats(response)).to.deep.equal(expected);
       });
 
     });
@@ -868,7 +897,7 @@ describe('Background Scripts', () => {
       });
 
       it('should make an ajax request with the correct params', () => {
-        return testFetchRequestHandler.fetchCommonPlayerInfo(1)
+        return messageHandler.fetchCommonPlayerInfo(1)
           .then(() => {
             expect(ajaxStub.withArgs(
               'https://stats.nba.com/stats/commonplayerinfo',
@@ -931,11 +960,11 @@ describe('Background Scripts', () => {
       let getPlayerImageUrlStub;
 
       before(() => {
-        formatDraftStub = sinon.stub(testFetchRequestHandler, 'formatDraft');
-        formatBirthdayStub = sinon.stub(testFetchRequestHandler, 'formatBirthday');
-        formatWeightStub = sinon.stub(testFetchRequestHandler, 'formatWeight');
-        formatTeamStub = sinon.stub(testFetchRequestHandler, 'formatTeam');
-        getPlayerImageUrlStub = sinon.stub(testFetchRequestHandler, 'getPlayerImageUrl');
+        formatDraftStub = sinon.stub(messageHandler, 'formatDraft');
+        formatBirthdayStub = sinon.stub(messageHandler, 'formatBirthday');
+        formatWeightStub = sinon.stub(messageHandler, 'formatWeight');
+        formatTeamStub = sinon.stub(messageHandler, 'formatTeam');
+        getPlayerImageUrlStub = sinon.stub(messageHandler, 'getPlayerImageUrl');
 
         formatDraftStub.returns('formattedDraft');
         formatBirthdayStub.returns('formattedBirthday');
@@ -973,11 +1002,11 @@ describe('Background Scripts', () => {
           college: 'school',
           imageUrl: 'imageUrl'
         };
-        expect(testFetchRequestHandler.formatPlayerProfile(response)).to.deep.equal(expected);
+        expect(messageHandler.formatPlayerProfile(response)).to.deep.equal(expected);
       });
 
       it('should call formatting functions with correct values', () => {
-        testFetchRequestHandler.formatPlayerProfile(response);
+        messageHandler.formatPlayerProfile(response);
         expect(formatDraftStub.calledOnce).to.equal(true);
         expect(formatDraftStub.withArgs('draftYear', 'draftRound', 'draftNumber').calledOnce).to.equal(true);
         expect(formatBirthdayStub.calledOnce).to.equal(true);
@@ -1039,7 +1068,7 @@ describe('Background Scripts', () => {
           college: 'n/a',
           imageUrl: 'imageUrl'
         };
-        expect(testFetchRequestHandler.formatPlayerProfile(responseWithNullValues)).to.deep.equal(expected);
+        expect(messageHandler.formatPlayerProfile(responseWithNullValues)).to.deep.equal(expected);
       })
 
     });
@@ -1049,7 +1078,7 @@ describe('Background Scripts', () => {
       describe('if draftYear is available', () => {
 
         it('should return formatted draft info', () => {
-          expect(testFetchRequestHandler.formatDraft('2000', '1', '1')).to.equal(
+          expect(messageHandler.formatDraft('2000', '1', '1')).to.equal(
             '2000, Round 1, Pick 1'
           );
         });
@@ -1057,7 +1086,7 @@ describe('Background Scripts', () => {
         describe('if player went undrafted', () => {
 
           it('should return undrafted', () => {
-            expect(testFetchRequestHandler.formatDraft('Undrafted')).to.equal('Undrafted');
+            expect(messageHandler.formatDraft('Undrafted')).to.equal('Undrafted');
           });
 
         })
@@ -1067,7 +1096,7 @@ describe('Background Scripts', () => {
       describe('if draftYear is unavailable', () => {
 
         it('should return \'n/a\'', () => {
-          expect(testFetchRequestHandler.formatDraft(null)).to.equal('n/a');
+          expect(messageHandler.formatDraft(null)).to.equal('n/a');
         });
 
       });
@@ -1079,7 +1108,7 @@ describe('Background Scripts', () => {
       describe('if birthday is available', () => {
 
         it('should return formatted birthday', () => {
-          expect(testFetchRequestHandler.formatBirthday('2000-01-01T00:00:00')).to.equal('2000-01-01');
+          expect(messageHandler.formatBirthday('2000-01-01T00:00:00')).to.equal('2000-01-01');
         });
 
       });
@@ -1087,7 +1116,7 @@ describe('Background Scripts', () => {
       describe('if birthday is unavailable', () => {
 
         it('should return \'n/a\'', () => {
-          expect(testFetchRequestHandler.formatBirthday(null)).to.equal('n/a');
+          expect(messageHandler.formatBirthday(null)).to.equal('n/a');
         });
 
       });
@@ -1099,7 +1128,7 @@ describe('Background Scripts', () => {
       describe('if weight is available', () => {
 
         it('should return formatted weight', () => {
-          expect(testFetchRequestHandler.formatWeight('200')).to.equal('200 lb');
+          expect(messageHandler.formatWeight('200')).to.equal('200 lb');
         });
 
       });
@@ -1107,7 +1136,7 @@ describe('Background Scripts', () => {
       describe('if weight is unavailable', () => {
 
         it('should return \'n/a\'', () => {
-          expect(testFetchRequestHandler.formatWeight(null)).to.equal('n/a');
+          expect(messageHandler.formatWeight(null)).to.equal('n/a');
         });
 
       });
@@ -1119,7 +1148,7 @@ describe('Background Scripts', () => {
       describe('if team name and city are available', () => {
 
         it('should return formatted team', () => {
-          expect(testFetchRequestHandler.formatTeam('Londons', 'London')).to.equal('London Londons');
+          expect(messageHandler.formatTeam('Londons', 'London')).to.equal('London Londons');
         });
 
       });
@@ -1127,8 +1156,8 @@ describe('Background Scripts', () => {
       describe('if team name or city is unavailable', () => {
 
         it('should return \'n/a\'', () => {
-          expect(testFetchRequestHandler.formatTeam(null)).to.equal('n/a');
-          expect(testFetchRequestHandler.formatTeam('test', null)).to.equal('n/a');
+          expect(messageHandler.formatTeam(null)).to.equal('n/a');
+          expect(messageHandler.formatTeam('test', null)).to.equal('n/a');
         });
 
       });
@@ -1140,7 +1169,7 @@ describe('Background Scripts', () => {
       let getDateStringStub;
 
       before(() => {
-        getDateStringStub = sinon.stub(testFetchRequestHandler, 'getDateString');
+        getDateStringStub = sinon.stub(messageHandler, 'getDateString');
         getDateStringStub.returns('dateString');
       });
 
@@ -1155,7 +1184,7 @@ describe('Background Scripts', () => {
       describe('if player name is not in image reference map', () => {
 
         it('should return url with default player reference number', () => {
-          expect(testFetchRequestHandler.getPlayerImageUrl('LeBron James')).to.equal(
+          expect(messageHandler.getPlayerImageUrl('LeBron James')).to.equal(
             'https://d2cwpp38twqe55.cloudfront.net/req/dateString1/images/players/jamesle01.jpg'
           );
         })
@@ -1165,7 +1194,7 @@ describe('Background Scripts', () => {
       describe('if player name is in image reference map', () => {
 
         it('should return url with player reference number in map', () => {
-          expect(testFetchRequestHandler.getPlayerImageUrl('Anthony Davis')).to.equal(
+          expect(messageHandler.getPlayerImageUrl('Anthony Davis')).to.equal(
             'https://d2cwpp38twqe55.cloudfront.net/req/dateString1/images/players/davisan02.jpg'
           );
         })
@@ -1211,14 +1240,14 @@ describe('Background Scripts', () => {
         getFullYearStub.returns(2000);
         getMonthStub.returns(10);
         getDateStub.returns(10);
-        expect(testFetchRequestHandler.getDateString(date)).to.equal('20001110');
+        expect(messageHandler.getDateString(date)).to.equal('20001110');
       });
 
       it('should 0 pad months and dates below 10', () => {
         getFullYearStub.returns(2000);
         getMonthStub.returns(8);
         getDateStub.returns(9);
-        expect(testFetchRequestHandler.getDateString(date)).to.equal('20000909');
+        expect(messageHandler.getDateString(date)).to.equal('20000909');
       });
 
     });

@@ -24,7 +24,7 @@
     "scripts": [
       "./jquery-3.4.1.js",
       "./background/playerImageRefMap.js",
-      "./background/fetchRequestHandler.js",
+      "./background/messageHandler.js",
       "./background/index.js"
     ]
   },

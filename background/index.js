@@ -1,2 +1,2 @@
-const fetchRequestHandler = new FetchRequestHandler();
-fetchRequestHandler.addListeners();
+const messageHandler = new MessageHandler();
+messageHandler.addListener();

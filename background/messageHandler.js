@@ -1,21 +1,30 @@
-function FetchRequestHandler() {
+function MessageHandler() {
 
-  this.addListeners = () => {
-    chrome.runtime.onMessage.addListener(this.onFetchPlayers);
-    chrome.runtime.onMessage.addListener(this.onFetchStats);
+  this.addListener = () => {
+    chrome.runtime.onMessage.addListener(this.handleMessage);
   };
 
-  this.onFetchPlayers = (request, sender, sendResponse) => {
-    if (request.message === 'fetchPlayers') {
-      return this.fetchPlayers()
-        .then(response => {
-          sendResponse([null, this.formatPlayers(response)]);
-        })
-        .catch(err => {
-          sendResponse([err, null]);
-        });
+  this.handleMessage = (request, sender, sendResponse) => {
+    switch (request.message) {
+      case 'fetchPlayers':
+        this.handleFetchPlayers(request, sender, sendResponse);
+        return true;
+      case 'fetchStats':
+        this.handleFetchStats(request, sender, sendResponse);
+        return true;
+      default:
+        return false;
     }
-    return true;
+  };
+
+  this.handleFetchPlayers = (request, sender, sendResponse) => {
+    return this.fetchPlayers()
+      .then(response => {
+        sendResponse([null, this.formatPlayers(response)]);
+      })
+      .catch(err => {
+        sendResponse([err, null]);
+      });
   };
 
   this.fetchPlayers = () => {
@@ -39,25 +48,21 @@ function FetchRequestHandler() {
     });
   };
 
-  this.onFetchStats = (request, sender, sendResponse) => {
-    if (request.message === 'fetchStats') {
+  this.handleFetchStats = (request, sender, sendResponse) => {
+    const stats = {id: request.playerId};
 
-      const stats = {id: request.playerId};
-
-      return this.fetchCareerStats(request.playerId)
-        .then(response => {
-          stats.career = this.formatCareerStats(response);
-          return this.fetchCommonPlayerInfo(request.playerId);
-        })
-        .then(response => {
-          stats.profile = this.formatPlayerProfile(response);
-          sendResponse([null, stats]);
-        })
-        .catch(err => {
-          sendResponse([err, null]);
-        });
-    }
-    return true
+    return this.fetchCareerStats(request.playerId)
+      .then(response => {
+        stats.career = this.formatCareerStats(response);
+        return this.fetchCommonPlayerInfo(request.playerId);
+      })
+      .then(response => {
+        stats.profile = this.formatPlayerProfile(response);
+        sendResponse([null, stats]);
+      })
+      .catch(err => {
+        sendResponse([err, null]);
+      });
   };
 
   this.fetchCareerStats = (playerId) => {
