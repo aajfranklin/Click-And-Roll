@@ -98,7 +98,7 @@ describe('Content Scripts', () => {
     describe('saveToChromeStorage', () => {
 
       let chromeStorageLocalSetSpy;
-      let consoleLogSpy;
+      let consoleLogStub;
 
       before(() => {
         chrome.storage = {
@@ -108,17 +108,17 @@ describe('Content Scripts', () => {
         };
 
         chromeStorageLocalSetSpy = sinon.spy(chrome.storage.local, 'set');
-        consoleLogSpy = sinon.spy(console, 'log');
+        consoleLogStub = sinon.stub(console, 'log');
       });
 
       afterEach(() => {
         chromeStorageLocalSetSpy.resetHistory();
-        consoleLogSpy.resetHistory();
+        consoleLogStub.resetHistory();
       });
 
       after(() => {
         chromeStorageLocalSetSpy.restore();
-        consoleLogSpy.restore();
+        consoleLogStub.restore();
         delete chrome.storage;
       });
 
@@ -130,8 +130,8 @@ describe('Content Scripts', () => {
 
       it('should log that players have been saved', () => {
         testUtils.saveToChromeStorage('testName', ['testValues']);
-        expect(consoleLogSpy.calledOnce).to.equal(true);
-        expect(consoleLogSpy.withArgs('testName saved').calledOnce).to.equal(true);
+        expect(consoleLogStub.calledOnce).to.equal(true);
+        expect(consoleLogStub.withArgs('testName saved').calledOnce).to.equal(true);
       });
 
     });
