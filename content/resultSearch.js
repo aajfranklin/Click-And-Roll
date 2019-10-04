@@ -65,7 +65,8 @@ function ResultSearch() {
   this.parentNodeIsValid = (currentNode) => {
     if (currentNode.parentNode) {
       const parentNodeName = currentNode.parentNode.nodeName;
-      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE';
+      const isAlreadyWrapped = currentNode.parentNode.classList.contains('click-and-roll-wrapper');
+      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE' && !isAlreadyWrapped;
     }
     return true;
   };
@@ -81,6 +82,7 @@ function ResultSearch() {
     range.setEnd(hitNode, hit.end - currentTextIndex + 1);
 
     const wrapper = document.createElement('span');
+    wrapper.classList.add('click-and-roll-wrapper');
     range.surroundContents(wrapper);
     return wrapper;
   };

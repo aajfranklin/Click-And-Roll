@@ -408,7 +408,10 @@ describe('Content Scripts', () => {
       it('should return false if parent node is script', () => {
         const currentNode = {
           parentNode: {
-            nodeName: 'SCRIPT'
+            nodeName: 'SCRIPT',
+            classList: {
+              contains: () => false
+            }
           }
         };
         expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(false);
@@ -417,13 +420,24 @@ describe('Content Scripts', () => {
       it('should return false if parent node is style', () => {
         const currentNode = {
           parentNode: {
-            nodeName: 'STYLE'
+            nodeName: 'STYLE',
+            classList: {
+              contains: () => false
+            }
           }
         };
         expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(false);
       });
 
-      it('should return true for other parent node types', () => {
+      it('should return false if parent node is a click and roll wrapper', () => {
+        const currentNode = {
+          parentNode: document.createElement('span')
+        };
+        currentNode.parentNode.classList.add('click-and-roll-wrapper');
+        expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(false);
+      });
+
+      it('should return true for other parent node types without wrapper class', () => {
         const currentNode = {
           parrentNode: {
             nodeName: 'SPAN'
@@ -463,7 +477,7 @@ describe('Content Scripts', () => {
           const textNode = document.createTextNode('LeBron James');
           parent.appendChild(textNode);
           const resultNode = testResultSearch.createResultNode(hit, textNode, 0);
-          expect(resultNode.outerHTML).to.equal('<span>LeBron James</span>');
+          expect(resultNode.outerHTML).to.equal('<span class="click-and-roll-wrapper">LeBron James</span>');
         });
 
       });

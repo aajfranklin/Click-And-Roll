@@ -42,26 +42,17 @@ function ClickAndRoll(players) {
 
   this.observeMutations = () => {
 
-    const observerCallback = (function(mutations) {
+    const observer = new MutationObserver(() => {
       if (this.bodyText !== document.body.textContent) {
         this.bodyText = document.body.textContent;
+        const resultNodes = this.resultSearch.searchRootNode(document.body);
 
-        for (let i = 0; i < mutations.length; i++) {
-          if (mutations[i].addedNodes) {
-            mutations[i].addedNodes.forEach(node => {
-              if (node.innerText && node.innerText.trim().length >= 4) {
-                observer.disconnect();
-                const resultNodes = this.resultSearch.searchRootNode(node);
-                this.highlight(resultNodes);
-                observer.observe(document.body, { childList: true, subtree: true });
-              }
-            });
-          }
-        }
+        observer.disconnect();
+        this.highlight(resultNodes);
+        observer.observe(document.body, { childList: true, subtree: true });
       }
-    }).bind(this);
+    });
 
-    const observer = new MutationObserver(observerCallback);
     observer.observe(document.body, { childList: true, subtree: true });
   };
 
