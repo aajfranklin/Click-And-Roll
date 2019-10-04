@@ -560,8 +560,4 @@ describe('Content Scripts', () => {
 
   });
 
-  describe('ClickAndRoll', () => {
-
-  });
-
 });

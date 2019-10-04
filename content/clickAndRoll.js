@@ -1,5 +1,11 @@
 function ClickAndRoll(players) {
+  this.activeName = {
+    element: null,
+    isInTopHalf: null,
+    isInLeftHalf: null,
+  };
   this.bodyText = document.body.textContent;
+  this.currentPlayerId = null;
   this.dataReceived = false;
   this.frame = document.createElement('iframe');
   this.frame.id ='click-and-roll-frame';
@@ -7,7 +13,6 @@ function ClickAndRoll(players) {
   this.frameContainer.id = 'click-and-roll-frame-container';
   this.frameContent = document.createElement('div');
   this.frameContent.id = 'frame-content';
-  this.namePosition = {};
   this.players = players;
   this.resultSearch = new ResultSearch();
 
@@ -57,53 +62,49 @@ function ClickAndRoll(players) {
   };
 
   this.handleHover = (mouseEnterEvent) => {
-    // prevent repeat hovers on current target, restore hover event to previous target
-    if (this.currentNameElement) {
-      this.currentNameElement.onmouseenter = this.handleHover
-    }
-    const targetElement = mouseEnterEvent.target;
-    targetElement.onmouseenter = null;
-    this.currentNameElement = targetElement;
+    this.updateActiveName(mouseEnterEvent.target);
+    this.resetFrame();
 
-    const name = targetElement.textContent;
-    const newPlayerId = this.players.filter(player => player.name === name)[0].id;
-
-    const oldContainerParent = this.frameContainer.parentNode;
-    const newContainerParent = this.getContainerParentFromElement(targetElement);
-
-    if (newContainerParent !== oldContainerParent) {
-      this.updateContainerParent(oldContainerParent, newContainerParent);
-    }
-
-    this.frameContainer.style.height = 'calc(50vh + 2px)';
-    this.getFrameDocument().body.innerHTML = '';
-    this.positionFrameContainer(targetElement, newContainerParent);
-    this.getFrameDocument().body.appendChild(this.frameContent);
+    const newPlayerId = this.players.filter(player => player.name === this.activeName.element.textContent)[0].id;
 
     if (newPlayerId !== this.currentPlayerId) {
-      this.frameContent.classList.remove('loaded');
-      this.frameContent.classList.add('loading');
-      this.frameContent.innerHTML = this.statTemplate;
+      this.setFrameLoading(newPlayerId);
       this.addCloseOverlayListeners();
-      this.currentPlayerId = newPlayerId;
-      this.dataReceived = false;
-
       this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
         .then(stats => {
           // current player id may have been reassigned by a later hover, making these stats out of date
           if (newPlayerId === this.currentPlayerId) {
             this.dataReceived = true;
-            this.displayStats(stats, name)
+            this.displayStats(stats, this.activeName.element.textContent)
           }
-        });
-    } else {
+        });    } else {
       this.addCloseOverlayListeners();
       this.displayStats();
     }
   };
 
-  this.getContainerParentFromElement = (element) => {
-    let rootOffsetParent = element;
+  this.updateActiveName = (target) => {
+    // reapply handle hover to previous element
+    if (this.activeName.element) {
+      this.activeName.element.onmouseenter = this.handleHover
+    }
+    this.activeName.element = target;
+    this.activeName.element.onmouseenter = null;
+  };
+
+  this.resetFrame = () => {
+    if (this.frameContainer.parentNode !== this.getNewContainerParent()) {
+      this.assignContainerToNewParent();
+    }
+
+    this.frameContainer.style.height = 'calc(50vh + 2px)';
+    this.getFrameDocument().body.innerHTML = '';
+    this.positionFrameContainer();
+    this.getFrameDocument().body.appendChild(this.frameContent);
+  };
+
+  this.getNewContainerParent = () => {
+    let rootOffsetParent = this.activeName.element;
     let rootScrollParent = null;
 
     while (rootOffsetParent.offsetParent) {
@@ -118,12 +119,12 @@ function ClickAndRoll(players) {
       : rootScrollParent || rootOffsetParent;
   };
 
-  this.updateContainerParent = (oldParent, newParent) => {
-    if (oldParent) {
+  this.assignContainerToNewParent = () => {
+    if (this.frameContainer.parentNode) {
       this.frameContainer.parentNode.removeChild(this.frameContainer);
     }
 
-    newParent.appendChild(this.frameContainer);
+    this.getNewContainerParent().appendChild(this.frameContainer);
     this.frameContainer.appendChild(this.frame);
 
     this.getFrameDocument().body.id = 'frame-body';
@@ -135,47 +136,47 @@ function ClickAndRoll(players) {
     this.getFrameDocument().head.appendChild(style);
   };
 
-  this.positionFrameContainer = (targetElement, containerParent) => {
-    const rect = targetElement.getBoundingClientRect();
-    this.namePosition.isLeft = rect.left < this.getHalfViewWidth();
-    this.namePosition.isTop = rect.top < this.getHalfViewHeight();
+  this.positionFrameContainer = () => {
+    const rect = this.activeName.element.getBoundingClientRect();
+    this.activeName.isInLeftHalf= rect.left < this.getHalfViewWidth();
+    this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
 
-    this.frameContainer.style.marginLeft = this.namePosition.isLeft ? '0' : '4px';
+    this.frameContainer.style.marginLeft = this.activeName.isInLeftHalf ? '0' : '4px';
 
     // remove existing animation class
     this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
 
-    if (this.namePosition.isTop) {
+    if (this.activeName.isInTopHalf) {
       this.frameContent.classList.add('reveal-from-top');
     } else {
       this.frameContent.classList.add('reveal-from-bottom');
     }
 
-    const offset = this.getOffsetFromParent(rect, containerParent);
+    const offset = this.getOffsetFromParent(rect);
     this.frameContainer.style.top = offset.top + 'px';
     this.frameContainer.style.left = offset.left + 'px';
     this.frameContainer.hidden = false;
   };
 
-  this.getOffsetFromParent = (rect, containerParent) => {
-    const scrollX = (containerParent === document.body)
+  this.getOffsetFromParent = (rect) => {
+    const scrollX = (this.frameContainer.parentNode === document.body)
       ? (window.scrollX ? window.scrollX : window.pageXOffset)
-      : containerParent.scrollLeft;
-    const scrollY = (containerParent === document.body)
+      : this.frameContainer.parentNode.scrollLeft;
+    const scrollY = (this.frameContainer.parentNode === document.body)
       ? (window.scrollY ? window.scrollY : window.pageYOffset)
-      : containerParent.scrollTop;
+      : this.frameContainer.parentNode.scrollTop;
 
     const parentOffset = {
-      x: (containerParent === document.body) ? 0 : containerParent.getBoundingClientRect().left,
-      y: (containerParent === document.body) ? 0 : containerParent.getBoundingClientRect().top
+      x: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().left,
+      y: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().top
     };
 
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
-    const overlayLeft = this.namePosition.isLeft
+    const overlayLeft = this.activeName.isInLeftHalf
       ? rect.left + scrollX - parentOffset.x - 2
       : rect.left + scrollX - parentOffset.x - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
 
-    const overlayTop = this.namePosition.isTop
+    const overlayTop = this.activeName.isInTopHalf
       ? rect.top + scrollY - parentOffset.y + rect.height
       : rect.top + scrollY - parentOffset.y - this.getHalfViewHeight();
 
@@ -185,13 +186,21 @@ function ClickAndRoll(players) {
     }
   };
 
+  this.setFrameLoading = (newPlayerId) => {
+    this.frameContent.classList.remove('loaded');
+    this.frameContent.classList.add('loading');
+    this.frameContent.innerHTML = this.statTemplate;
+    this.currentPlayerId = newPlayerId;
+    this.dataReceived = false;
+  };
+
   this.addCloseOverlayListeners = () => {
     this.getFrameDocument().getElementById('dismiss').onclick = this.closeOverlay;
     document.addEventListener('click', this.closeOverlay);
   };
 
   this.closeOverlay = () => {
-    this.currentNameElement.onmouseenter = this.handleHover;
+    this.activeName.element.onmouseenter = this.handleHover;
     this.frameContainer.hidden = true;
     document.removeEventListener('click', this.closeOverlay);
   };
@@ -302,7 +311,7 @@ function ClickAndRoll(players) {
       this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
       const newHeight = (frameContent.scrollHeight + playerHeaderHeight) + 'px';
 
-      const rule = this.namePosition.isTop
+      const rule = this.activeName.isInTopHalf
         ? '@keyframes resize{from{height:calc(100vh - 2px);}'
           + 'to{height:' + newHeight + ';}}'
         : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}'
@@ -326,7 +335,7 @@ function ClickAndRoll(players) {
 
       const frameContentHeight = this.frameContent.scrollHeight + 2;
       this.frameContainer.style.height = frameContentHeight + 'px';
-      this.frameContainer.style.top = this.namePosition.isTop
+      this.frameContainer.style.top = this.activeName.isInTopHalf
         ? this.frameContainer.style.top
         : this.frameContainer.offsetTop + this.getHalfViewHeight() - frameContentHeight + 'px';
     }
