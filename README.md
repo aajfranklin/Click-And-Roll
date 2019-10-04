@@ -46,7 +46,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fetch player names from api and store locally on first use
 - [x] Store most recently viewed player id and do not repeat API call if user scrolls over same player
 - [x] Explore possible time-savings for mutation observer implementation
-- [ ] Tests
+- [x] Tests
 
 #### Other
 
