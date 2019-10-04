@@ -313,9 +313,9 @@ function ClickAndRoll(players) {
 
       const rule = this.namePosition.isTop
         ? '@keyframes resize{from{height:calc(100vh - 2px);}'
-        + 'to{height:' + newHeight + ';}}'
+          + 'to{height:' + newHeight + ';}}'
         : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}'
-        + 'to{height:' + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
+          + 'to{height:' + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
 
       // if user has scrolled over multiple names in quick succession, existing resize rule and event listeners should be removed
       this.removeResizeAnimation();
