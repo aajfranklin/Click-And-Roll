@@ -23,7 +23,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Add career figures
 - [x] Add all star marker
 - [ ] User choice of sites to include/exclude
-- [ ] User-friendly error messages
+- [ ] User-friendly network error messages
 - [ ] Extension icon
 - [ ] Expand ReadMe with features, credits
 
