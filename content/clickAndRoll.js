@@ -77,7 +77,8 @@ function ClickAndRoll(players) {
             this.dataReceived = true;
             this.displayStats(stats, this.activeName.element.textContent)
           }
-        });    } else {
+        });
+    } else {
       this.addCloseOverlayListeners();
       this.displayStats();
     }
