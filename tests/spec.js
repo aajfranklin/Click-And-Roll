@@ -250,6 +250,7 @@ describe('Content Scripts', () => {
 
       let createResultNodeStub;
       let createTreeWalkerStub;
+      let isEditableStub;
       let nextHitStub;
       let nextNodeStub;
       let parentNodeIsValidStub;
@@ -269,6 +270,7 @@ describe('Content Scripts', () => {
         createResultNodeStub = sinon.stub(testResultSearch, 'createResultNode');
         createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
         createTreeWalkerStub.returns(mockTreeWalker);
+        isEditableStub = sinon.stub(testResultSearch, 'isEditable');
         nextHitStub = sinon.stub(hits, 'shift');
         nextNodeStub = sinon.stub(mockTreeWalker, 'nextNode');
         parentNodeIsValidStub = sinon.stub(testResultSearch, 'parentNodeIsValid');
@@ -282,11 +284,13 @@ describe('Content Scripts', () => {
 
         createResultNodeStub.resetHistory();
         createTreeWalkerStub.resetHistory();
+        isEditableStub.resetHistory();
         nextHitStub.resetHistory();
         nextNodeStub.resetHistory();
         parentNodeIsValidStub.resetHistory();
 
         createResultNodeStub.returns(null);
+        isEditableStub.returns(null);
         nextHitStub.returns(null);
         nextNodeStub.returns(null);
         parentNodeIsValidStub.returns(null);
@@ -295,6 +299,7 @@ describe('Content Scripts', () => {
       after(() => {
         createResultNodeStub.restore();
         createTreeWalkerStub.restore();
+        isEditableStub.restore();
         nextHitStub.restore();
         nextNodeStub.restore();
         parentNodeIsValidStub.restore();
@@ -372,13 +377,21 @@ describe('Content Scripts', () => {
           expect(parentNodeIsValidStub.withArgs(mockTreeWalker.currentNode).calledOnce).to.equal(true);
         });
 
+        it('should check if node is editable', () => {
+          parentNodeIsValidStub.returns(true);
+          isEditableStub.returns(true);
+          testResultSearch.mapHitsToResultNodes('', hits);
+          expect(isEditableStub.calledOnce).to.equal(true);
+          expect(isEditableStub.withArgs(mockTreeWalker.currentNode).calledOnce).to.equal(true);
+        });
+
         it('should get the next result', () => {
           parentNodeIsValidStub.returns(false);
           testResultSearch.mapHitsToResultNodes('', hits);
           expect(nextHitStub.calledTwice).to.equal(true);
         });
 
-        describe('if the parent node is valid', () => {
+        describe('if the parent node is valid and node is not editable', () => {
 
           it('should highlight the result', () => {
             parentNodeIsValidStub.returns(true);
@@ -399,11 +412,37 @@ describe('Content Scripts', () => {
 
         });
 
+        describe('if the node is editable', () => {
+
+          it('should not highlight the result', () => {
+            parentNodeIsValidStub.returns(true);
+            isEditableStub.returns(true);
+            testResultSearch.mapHitsToResultNodes('', hits);
+            expect(createResultNodeStub.notCalled).to.equal(true);
+          });
+
+        })
+
       });
 
     });
 
     describe('parentNodeIsValid', () => {
+
+      let isEditableStub;
+
+      before(() => {
+        isEditableStub = sinon.stub(testResultSearch, 'isEditable');
+      });
+
+      afterEach(() => {
+        isEditableStub.resetHistory();
+        isEditableStub.returns(null);
+      });
+
+      after(() => {
+        isEditableStub.restore();
+      });
 
       it('should return false if parent node is script', () => {
         const currentNode = {
@@ -429,6 +468,19 @@ describe('Content Scripts', () => {
         expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(false);
       });
 
+      it('should return false if parent node is editable', () => {
+        const currentNode = {
+          parentNode: {
+            nodeName: 'SPAN',
+            classList: {
+              contains: () => false
+            }
+          }
+        };
+        isEditableStub.returns(true);
+        expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(false);
+      });
+
       it('should return false if parent node is a click and roll wrapper', () => {
         const currentNode = {
           parentNode: document.createElement('span')
@@ -440,7 +492,10 @@ describe('Content Scripts', () => {
       it('should return true for other parent node types without wrapper class', () => {
         const currentNode = {
           parrentNode: {
-            nodeName: 'SPAN'
+            nodeName: 'SPAN',
+            classList: {
+              contains: () => false
+            }
           }
         };
         expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(true);
@@ -451,6 +506,26 @@ describe('Content Scripts', () => {
           parentNode: null
         };
         expect(testResultSearch.parentNodeIsValid(currentNode)).to.equal(true);
+      });
+
+    });
+
+    describe('isEditable', () => {
+
+      it('should return true if node is an input element', () => {
+        const currentNode = document.createElement('input');
+        expect(testResultSearch.isEditable(currentNode)).to.equal(true);
+      });
+
+      it('should return true if node is content editable', () => {
+        const currentNode = document.createElement('div');
+        currentNode.contentEditable = "true";
+        expect(testResultSearch.isEditable(currentNode)).to.equal(true);
+      });
+
+      it('should return false for other node types', () => {
+        const currentNode = document.createElement('div');
+        expect(testResultSearch.isEditable(currentNode)).to.equal(false);
       });
 
     });

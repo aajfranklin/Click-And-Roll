@@ -48,7 +48,7 @@ function ResultSearch() {
       const nodeIncludesNextHit = currentTextIndex + nodeTextLength >= nextHit.end;
 
       if (nodeIncludesNextHit) {
-        if (this.parentNodeIsValid(currentNode)) {
+        if (this.parentNodeIsValid(currentNode) && !this.isEditable(currentNode)) {
           const resultNode = this.createResultNode(nextHit, currentNode, currentTextIndex);
           if (resultNode !== null) resultNodes.push(resultNode);
         }
@@ -64,11 +64,16 @@ function ResultSearch() {
 
   this.parentNodeIsValid = (currentNode) => {
     if (currentNode.parentNode) {
-      const parentNodeName = currentNode.parentNode.nodeName;
-      const isAlreadyWrapped = currentNode.parentNode.classList.contains('click-and-roll-wrapper');
-      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE' && !isAlreadyWrapped;
+      const parentNode = currentNode.parentNode;
+      const parentNodeName = parentNode.nodeName;
+      const isAlreadyWrapped = parentNode.classList.contains('click-and-roll-wrapper');
+      return parentNodeName !== 'SCRIPT' && parentNodeName !== 'STYLE' && !isAlreadyWrapped && !this.isEditable(parentNode);
     }
     return true;
+  };
+
+  this.isEditable = (node) => {
+    return node instanceof HTMLInputElement || node.isContentEditable;
   };
 
   this.createResultNode = (hit, hitNode, currentTextIndex) => {
