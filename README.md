@@ -101,7 +101,7 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fix overlay can't be closed while loading
 - [x] Handle names that contain other names as a sub-string
 - [x] Fix ignore changes from content editable divs - should not add nodes in editable field anyway?
-- [ ] Fix toggle animating on open popup if extension is active
+- [x] Fix toggle animating on open popup if extension is active
 
 #### Other
 
