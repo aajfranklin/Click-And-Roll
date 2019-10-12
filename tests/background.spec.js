@@ -160,9 +160,10 @@ describe('Background Scripts', () => {
         it('should send the err', () => {
           fetchPlayersStub.rejects('err');
           return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
-            .catch(() => {
+            .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
-              expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+              expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
+              expect(sendResponseSpy.firstCall.args[0][1]).to.equal(null);
             });
         });
 
@@ -202,6 +203,27 @@ describe('Background Scripts', () => {
               }
             ).calledOnce).to.equal(true);
           });
+      });
+
+    });
+
+    describe('formatPlayers', () => {
+
+      it('should return only array of objects with id and name', () => {
+        const fetchedPlayers = {
+          resultSets: [
+            {
+              rowSet: [
+                ['id1', 'otherValue', 'player1'],
+                ['id2', 'otherValue', 'player2']
+              ]
+            }
+          ]
+        };
+        const result = messageHandler.formatPlayers(fetchedPlayers);
+        expect(result.length).to.equal(2);
+        expect(result[0]).to.deep.equal({id:'id1', name:'player1'});
+        expect(result[1]).to.deep.equal({id:'id2', name:'player2'});
       });
 
     });
@@ -308,9 +330,10 @@ describe('Background Scripts', () => {
           it('should send the err', () => {
             fetchCommonPlayerInfoStub.rejects('err');
             return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-              .catch(() => {
+              .then(() => {
                 expect(sendResponseSpy.calledOnce).to.equal(true);
-                expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+                expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
+                expect(sendResponseSpy.firstCall.args[0][1]).to.equal(null);
               })
           });
 
@@ -323,9 +346,10 @@ describe('Background Scripts', () => {
         it('should send the err', () => {
           fetchCareerStatsStub.rejects('err');
           return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-            .catch(() => {
+            .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
-              expect(sendResponseSpy.withArgs(['err', null]).calledOnce).to.equal(true);
+              expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
+              expect(sendResponseSpy.firstCall.args[0][1]).to.equal(null);
             })
         });
 

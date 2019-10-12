@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Click And Roll",
+  "name": "Click and Roll",
   "version": "0.1",
   "content_scripts": [
     {
@@ -8,12 +8,12 @@
         "<all_urls>"
       ],
       "js": [
-        "./jquery-3.4.1.js",
-        "./content/ahoCorasick.js",
-        "./content/utils.js",
-        "./content/resultSearch.js",
-        "./content/clickAndRoll.js",
-        "./content/index.js"
+        "./scripts/utils/jquery-3.4.1.js",
+        "./scripts/utils/utils.js",
+        "./scripts/content/ahoCorasick.js",
+        "./scripts/content/resultSearch.js",
+        "./scripts/content/clickAndRoll.js",
+        "./scripts/content/index.js"
       ],
       "css": [
         "./view/page.css"
@@ -22,14 +22,21 @@
   ],
   "background": {
     "scripts": [
-      "./jquery-3.4.1.js",
-      "./background/playerImageRefMap.js",
-      "./background/messageHandler.js",
-      "./background/index.js"
+      "./scripts/utils/jquery-3.4.1.js",
+      "./scripts/utils/utils.js",
+      "./scripts/background/playerImageRefMap.js",
+      "./scripts/background/messageHandler.js",
+      "./scripts/background/index.js"
     ]
   },
+  "browser_action": {
+    "default_icon": "./assets/clickAndRoll.png",
+    "default_popup": "./view/popup.html",
+    "default_title": "Click and Roll"
+  },
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "web_accessible_resources": [
     "view/frame.html",

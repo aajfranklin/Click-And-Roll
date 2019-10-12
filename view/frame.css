@@ -55,14 +55,16 @@
   border-radius: 5px 5px 0 0;
   color: whitesmoke;
   display: flex;
+  font-weight: normal;
   justify-content: space-between;
   position: fixed;
   width: calc(100vw - 4px);
   z-index: 3;
 }
 
-#player-name {
+h1#player-name {
   font-size: 18px;
+  font-weight: normal;
   margin: 8px 0 8px 8px;
 }
 
@@ -124,9 +126,11 @@
   overflow-x: scroll;
 }
 
-.sub-heading {
+h2.sub-heading {
   color: teal;
   font-size: 14px;
+  font-weight: normal;
+  margin: 0;
   padding: 0 0 8px 8px;
 }
 

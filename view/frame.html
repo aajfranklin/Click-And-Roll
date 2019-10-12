@@ -1,17 +1,17 @@
-<div class="player-header">
-    <div id="player-name"></div>
+<header class="player-header">
+    <h1 id="player-name"></h1>
     <button id="dismiss">
-        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle" class="svg-inline--fa fa-times-circle fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <svg data-prefix="fas" data-icon="times-circle" class="svg-inline--fa fa-times-circle fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
         </svg>
     </button>
-</div>
+</header>
 <div id="loading-container">
     <div id="loading-graphic"></div>
 </div>
-<div id="content">
-    <div id="player-profile" class="stick-left">
-        <div class="sub-heading">Player Profile:</div>
+<main id="content">
+    <section id="player-profile" class="stick-left">
+        <h2 class="sub-heading">Player Profile:</h2>
         <div id="player-profile-content">
             <img src ="https://cdn.clipart.email/3cd6f4d8f61a5da065d31bc13bbd4d5b_generic-silhouette-at-getdrawingscom-free-for-personal-use-_600-600.jpeg" alt="Generic Silhouette" id="player-profile-image"/>
             <div id="player-profile-info">
@@ -53,9 +53,9 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div id="career-heading" class="sub-heading stick-left">Career Stats:</div>
-    <div id="table-container">
+    </section>
+    <h2 id="career-heading" class="sub-heading stick-left">Career Stats:</h2>
+    <section id="career-stats">
         <table>
             <tbody id="season-averages-body">
             <tr id="stat-headings">
@@ -86,5 +86,5 @@
             </tr>
             </tbody>
         </table>
-    </div>
-</div>
+    </section>
+</main>

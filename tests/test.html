@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Click And Roll Test Suite</title>
+    <title>Click and Roll Test Suite</title>
     <link rel="stylesheet" href="./node_modules/mocha/mocha.css">
 </head>
 <body>
     <div id="mocha"></div>
-    <script src="../jquery-3.4.1.js"></script>
-    <script src="../content/ahoCorasick.js"></script>
-    <script src="../content/utils.js"></script>
-    <script src="../content/resultSearch.js"></script>
-    <script src="../content/clickAndRoll.js"></script>
-    <script src="../background/playerImageRefMap.js"></script>
-    <script src="../background/messageHandler.js"></script>
+    <script src="../scripts/utils/jquery-3.4.1.js"></script>
+    <script src="../scripts/content/ahoCorasick.js"></script>
+    <script src="../scripts/utils/utils.js"></script>
+    <script src="../scripts/content/resultSearch.js"></script>
+    <script src="../scripts/content/clickAndRoll.js"></script>
+    <script src="../scripts/background/playerImageRefMap.js"></script>
+    <script src="../scripts/background/messageHandler.js"></script>
     <script src="./node_modules/mocha/mocha.js"></script>
     <script src="./node_modules/chai/chai.js"></script>
     <script src="./node_modules/sinon/pkg/sinon.js"></script>
@@ -22,6 +22,7 @@
       mocha.reporter('html');
       const expect = chai.expect;
     </script>
+    <script src="utils.spec.js"></script>
     <script src="content.spec.js"></script>
     <script src="background.spec.js"></script>
     <script>

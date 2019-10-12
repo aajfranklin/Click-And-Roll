@@ -1,4 +1,4 @@
-function ClickAndRoll(players) {
+function ClickAndRoll() {
   this.activeName = {
     element: null,
     isInTopHalf: null,
@@ -13,12 +13,19 @@ function ClickAndRoll(players) {
   this.frameContainer.id = 'click-and-roll-frame-container';
   this.frameContent = document.createElement('div');
   this.frameContent.id = 'frame-content';
-  this.players = players;
+  this.isRunning = false;
+  this.observer = null;
+  this.players = [];
   this.resultSearch = new ResultSearch();
 
   this.utils = new Utils();
 
+  this.setPlayers = (players) => {
+    this.players = players;
+  };
+
   this.run = () => {
+    this.isRunning = true;
     $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
       .then(response => {
         this.statTemplate = response;
@@ -46,19 +53,20 @@ function ClickAndRoll(players) {
   };
 
   this.observeMutations = () => {
+    if (this.observer === null) {
+      this.observer = new MutationObserver(() => {
+        if (this.bodyText !== document.body.textContent) {
+          this.bodyText = document.body.textContent;
+          const resultNodes = this.resultSearch.searchRootNode(document.body);
 
-    const observer = new MutationObserver(() => {
-      if (this.bodyText !== document.body.textContent) {
-        this.bodyText = document.body.textContent;
-        const resultNodes = this.resultSearch.searchRootNode(document.body);
+          this.observer.disconnect();
+          this.highlight(resultNodes);
+          this.observer.observe(document.body, { childList: true, subtree: true });
+        }
+      });
+    }
 
-        observer.disconnect();
-        this.highlight(resultNodes);
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
+    this.observer.observe(document.body, { childList: true, subtree: true });
   };
 
   this.handleHover = (mouseEnterEvent) => {
@@ -204,6 +212,7 @@ function ClickAndRoll(players) {
     this.activeName.element.onmouseenter = this.handleHover;
     this.frameContainer.hidden = true;
     document.removeEventListener('click', this.closeOverlay);
+    this.getFrameDocument().getElementById('dismiss').onclick = null;
   };
 
   this.displayStats = (stats, name) => {
@@ -232,9 +241,8 @@ function ClickAndRoll(players) {
         profileImageElement.src = profile.imageUrl;
         profileImageElement.alt = name;
       })
-      .catch(err => {
-        console.log(err);
-      });
+      // suppress error if image not found, as default is already in place
+      .catch(() => {});
 
     const profileInfoDetails = [
       'team',
@@ -257,7 +265,7 @@ function ClickAndRoll(players) {
   this.mapStatsToRows = (stats) => {
     if (stats.seasons.rowSet.length === 0) {
       this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
-      this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('table-container'));
+      this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
     }
 
     for (let i = 0; i < stats.seasons.rowSet.length; i++) {
@@ -368,5 +376,24 @@ function ClickAndRoll(players) {
   this.getFrameDocument = () => {
     return this.frame.contentDocument;
   };
+
+  this.teardown = () => {
+    this.isRunning = false;
+
+    if (this.observer !== null) {
+      this.observer.disconnect();
+    }
+
+    if (this.getFrameDocument() && this.getFrameDocument().getElementById('dismiss').onclick !== null) {
+      this.closeOverlay();
+    }
+
+    const resultNodes = document.getElementsByClassName('click-and-roll-wrapper');
+
+    while (resultNodes.length) {
+      const wrapper = resultNodes[0];
+      wrapper.replaceWith(wrapper.firstChild);
+    }
+  }
 
 }
