@@ -39,51 +39,57 @@ main {
 }
 
 .toggle {
-  position: relative;
   display: inline-block;
-  width: 44px;
   height: 28px;
+  position: relative;
+  width: 44px;
 }
 
 .toggle input {
+  height: 0;
   opacity: 0;
   width: 0;
-  height: 0;
 }
 
-.slider {
-  border-radius: 28px;
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.slider, .slider-initial {
   background-color: #ccc;
-  transition: .4s;
+  border-radius: 28px;
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
-.slider:before {
+.slider:before, .slider-initial:before {
+  background-color: whitesmoke;
   border-radius: 50%;
-  position: absolute;
+  bottom: 5px;
   content: "";
   height: 18px;
-  width: 18px;
   left: 4px;
-  bottom: 5px;
-  background-color: whitesmoke;
-  transition: .4s;
+  position: absolute;
+  width: 18px;
 }
 
-input:checked + .slider {
+.slider, .slider:before {
+  transition: 0.4s;
+}
+
+.slider-initial, .slider-initial:before {
+  transition: 0s;
+}
+
+input:checked + .slider, input:checked + .slider-initial {
   background-color: teal;
 }
 
-input:focus + .slider {
+input:focus + .slider, input:focus + .slider-initial {
   box-shadow: 0 0 2px 3px lightskyblue;
 }
 
-input:checked + .slider:before {
+input:checked + .slider:before, input:checked + .slider-initial:before {
   transform: translateX(18px);
 }
 

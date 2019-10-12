@@ -1,11 +1,11 @@
 const utils = new Utils();
 
 const toggleCheckbox = (id) => {
-  const checkedAttribute = document.getElementById(id).getAttribute('checked');
-  if (checkedAttribute === 'checked') {
-    document.getElementById(id).removeAttribute('checked');
+  const checkbox = document.getElementById(id);
+  if (checkbox.getAttribute('checked') === 'checked') {
+    checkbox.removeAttribute('checked');
   } else {
-    document.getElementById(id).setAttribute('checked', 'checked');
+    checkbox.setAttribute('checked', 'checked');
   }
 };
 
@@ -29,21 +29,21 @@ const toggleSetting = (setting, activeTabDomain) => {
     })
 };
 
-utils.isSettingOn('clickAndRoll')
-  .then(isOn => {
-    if (isOn) {
-      toggleCheckbox('extension-toggle');
-    }
-  });
+const addToggleAnimation = (slider) => {
+  slider.classList.add('slider');
+  slider.classList.remove('slider-initial');
+};
 
 utils.getActiveTab()
   .then(tab => {
     return utils.isSettingOn((new URL(tab.url)).hostname);
   })
   .then(isOn => {
-    if (isOn) {
-      toggleCheckbox('domain-toggle');
-    }
+    if (isOn) toggleCheckbox('domain-toggle');
+    return utils.isSettingOn('clickAndRoll');
+  })
+  .then(isOn => {
+    if (isOn) toggleCheckbox('extension-toggle');
   });
 
 window.addEventListener('click',function(e){
@@ -52,6 +52,9 @@ window.addEventListener('click',function(e){
   }
 
   if (e.target.id === 'extension-toggle') {
+    const slider = e.target.nextElementSibling;
+    if (slider.classList.contains('slider-initial')) addToggleAnimation(slider);
+
     toggleCheckbox('extension-toggle');
     utils.getActiveTab()
       .then(tab => {
@@ -60,6 +63,9 @@ window.addEventListener('click',function(e){
   }
 
   if (e.target.id === 'domain-toggle') {
+    const slider = e.target.nextElementSibling;
+    if (slider.classList.contains('slider-initial')) addToggleAnimation(slider);
+
     toggleCheckbox('domain-toggle');
     utils.getActiveTab()
       .then(tab => {
