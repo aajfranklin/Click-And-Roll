@@ -64,3 +64,7 @@ Not all 4487 players have photos available through the basketball-reference imag
 ### Who designed the Click and Roll icon?
 
 Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the Click and Roll icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
+
+## Support
+
+Click and Roll is a hobby project developed in my free time. If you enjoy Click and Roll and want to support its ongoing development, consider donating via this [donate link](https://paypal.me/clickandroll).
