@@ -20,13 +20,27 @@ function ClickAndRoll() {
 
   this.utils = new Utils();
 
-  this.setPlayers = (players) => {
-    this.players = players;
+  this.handleMessage = (request) => {
+    switch (request.message) {
+      case 'start':
+        if (!this.isRunning) this.run();
+        break;
+      case 'stop':
+        if (this.isRunning) this.teardown();
+        break;
+      default:
+        return;
+    }
   };
 
   this.run = () => {
     this.isRunning = true;
-    $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'})
+
+    return this.getPlayers()
+      .then(players => {
+        this.players = players;
+        return $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'});
+      })
       .then(response => {
         this.statTemplate = response;
         return $.ajax(chrome.extension.getURL('view/frame.css'), {method: 'GET'})
@@ -42,6 +56,22 @@ function ClickAndRoll() {
         this.highlight(resultNodes);
         this.observeMutations();
       });
+  };
+
+  this.getPlayers = () => {
+    return new Promise(resolve => {
+      chrome.storage.local.get(['players'], (result) => {
+        if (!result || $.isEmptyObject(result)) {
+          return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
+            .then(fetchedPlayers => {
+              this.utils.saveToLocalStorage('players', fetchedPlayers);
+              resolve(fetchedPlayers);
+            })
+        } else {
+          resolve(result.players);
+        }
+      });
+    });
   };
 
   this.highlight = (nodes) => {
@@ -78,7 +108,7 @@ function ClickAndRoll() {
     if (newPlayerId !== this.currentPlayerId) {
       this.setFrameLoading(newPlayerId);
       this.addCloseOverlayListeners();
-      this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
+      return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
         .then(stats => {
           // current player id may have been reassigned by a later hover, making these stats out of date
           if (newPlayerId === this.currentPlayerId) {
@@ -147,7 +177,7 @@ function ClickAndRoll() {
 
   this.positionFrameContainer = () => {
     const rect = this.activeName.element.getBoundingClientRect();
-    this.activeName.isInLeftHalf= rect.left < this.getHalfViewWidth();
+    this.activeName.isInLeftHalf = rect.left < this.getHalfViewWidth();
     this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
 
     this.frameContainer.style.marginLeft = this.activeName.isInLeftHalf ? '0' : '4px';
@@ -394,6 +424,6 @@ function ClickAndRoll() {
       const wrapper = resultNodes[0];
       wrapper.replaceWith(wrapper.firstChild);
     }
-  }
+  };
 
 }

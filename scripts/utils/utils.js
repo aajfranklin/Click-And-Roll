@@ -1,20 +1,5 @@
 function Utils() {
 
-  this.checkPlayers = (cachedPlayers) => {
-    if (!cachedPlayers || $.isEmptyObject(cachedPlayers)) {
-      return this.sendRuntimeMessage({message: 'fetchPlayers'})
-        .then(fetchedPlayers => {
-          this.saveToLocalStorage('players', fetchedPlayers);
-          return fetchedPlayers;
-        })
-        .catch(err => {
-          console.log(err);
-        })
-    }
-
-    return Promise.resolve(cachedPlayers.players);
-  };
-
   this.sendRuntimeMessage = (request) => {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(request, (response => {

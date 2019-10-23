@@ -2,49 +2,6 @@ describe('Utils', () => {
 
   const testUtils = new Utils();
 
-  describe('checkPlayers', () => {
-
-    let saveToLocalStorageStub;
-    let sendRunTimeMessageStub;
-    const fetchedPlayers = 'mockFetchedPlayers';
-    const cachedPlayers = {players: 'mockCachedPlayers'};
-
-    before(() => {
-      saveToLocalStorageStub = sinon.stub(testUtils, 'saveToLocalStorage');
-      sendRunTimeMessageStub = sinon.stub(testUtils, 'sendRuntimeMessage');
-      sendRunTimeMessageStub.resolves(fetchedPlayers);
-    });
-
-    afterEach(() => {
-      saveToLocalStorageStub.resetHistory();
-      sendRunTimeMessageStub.resetHistory();
-    });
-
-    after(() => {
-      saveToLocalStorageStub.restore();
-      sendRunTimeMessageStub.restore();
-    });
-
-    it('should resolve players fetched from storage if they are present', () => {
-      return testUtils.checkPlayers(cachedPlayers)
-        .then((response) => {
-          expect(sendRunTimeMessageStub.notCalled).to.equal(true);
-          expect(saveToLocalStorageStub.notCalled).to.equal(true);
-          expect(response).to.equal('mockCachedPlayers')
-        })
-    });
-
-    it('should fetch and store players if they are not in local chrome storage', () => {
-      return testUtils.checkPlayers(undefined)
-        .then((response) => {
-          expect(sendRunTimeMessageStub.withArgs({message: 'fetchPlayers'}).calledOnce).to.equal(true);
-          expect(saveToLocalStorageStub.withArgs('players', fetchedPlayers).calledOnce).to.equal(true);
-          expect(response).to.equal(fetchedPlayers);
-        })
-    });
-
-  });
-
   describe('sendRuntimeMessage', () => {
 
     let chromeSendMessageStub;
@@ -273,7 +230,6 @@ describe('Utils', () => {
       isSettingOnStub.resolves(true);
       return testUtils.isExtensionOn('testDomain')
         .then(result => {
-          console.log(result);
           expect(result).to.equal(true);
         })
     });
@@ -282,7 +238,6 @@ describe('Utils', () => {
       isSettingOnStub.resolves(false);
       return testUtils.isExtensionOn('testDomain')
         .then(result => {
-          console.log(result);
           expect(result).to.equal(false);
         })
     });
@@ -292,7 +247,6 @@ describe('Utils', () => {
       isSettingOnStub.onCall(1).resolves(false);
       return testUtils.isExtensionOn('testDomain')
         .then(result => {
-          console.log(result);
           expect(result).to.equal(false);
         })
     });

@@ -51,8 +51,8 @@ A chrome extension that lets you hover on an NBA player's name on any web page t
 - [x] Fetch player names from api and store locally on first use
 - [x] Store most recently viewed player id and do not repeat API call if user scrolls over same player
 - [x] Explore possible time-savings for mutation observer implementation
-- [ ] Light refactor to make index files as minimal as possible
-- [ ] Test coverage for ClickAndRoll, PopUp object prototypes
+- [x] Light refactor to make index files as minimal as possible
+- [ ] Test coverage for ClickAndRoll
 - [x] Introduce isRunning variable to ClickAndRoll to prevent duplicate starts/stops
 
 #### Other
