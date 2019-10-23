@@ -1,14 +1,20 @@
 # Click and Roll
 
-A chrome extension that lets you hover over an NBA player's name on any web page to quickly view their stats.
+Click and Roll is a chrome extension that lets you hover over an NBA player's name on any web page to quickly view their stats. You can [get Click and Roll here]().
 
-The player's stats will appear in an overlay that looks like this:
+## Features
 
-To view the overlay, hover over any player's name. Dismiss the overlay by clicking the close button, hovering over a different player's name, or clicking anywhere outside the overlay.
+### Hover over any player's name to view their stats in an overlay
 
-Here is what it looks like in action:
+Here's how it looks in action:
 
-Click and Roll can be toggled on and off, both globally and for individual sites:
+![Click and Roll demo](assets/demo1.gif)
+
+Dismiss the overlay by clicking the close button, hovering over a different player's name, or clicking anywhere outside the overlay:
+
+### Toggle Click and Roll globally or for individual websites
+
+Use the Click and Roll options menu to toggle it on or off, globally or for individual sites:
 
 ## Future Features
 
@@ -37,7 +43,7 @@ Click and Roll covers 4487 current and former NBA players.
 
 Click and Roll's data stretches back all the way to the founding of the Basketball Association of America in 1946. Whether you're interested in George Mikan or Zion Williamson, Click and Roll has you covered.
 
-### How do you fine the players' names in each web page?
+### How do you find the players' names in each web page?
 
 Click and Roll uses the [Aho-Corasick algorithm](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm) to quickly locate player's names in a website's text content. Version used is [GitHub user BrunoRB's Aho-Corasick implementation for javascript](https://github.com/BrunoRB/ahocorasick), lightly edited with ES6 syntax.
 
@@ -47,6 +53,10 @@ Click and Roll should not noticeably affect performance during normal usage of m
 
 If you do experience serious performance issues on any site, please toggle Click and Roll off for that site and report the problem on this repository's issues page.
 
-### Who designed the extension's icon?
+### Why is the player's photo sometimes a placeholder silhouette?
 
-Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the extension's icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
+Not all 4487 players have photos available through the basketball-reference image API. The placeholder is just a fallback for players without photos.
+
+### Who designed the Click and Roll icon?
+
+Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the Click and Roll icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
