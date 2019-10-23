@@ -10,7 +10,7 @@
   box-shadow: darkslategrey 0 1px 2px;
   flex-direction: column;
   display: flex;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Helvetica, Arial, sans-serif;
   left: 2px;
   overflow: hidden;
   position: absolute;
@@ -64,7 +64,6 @@
 
 h1#player-name {
   font-size: 18px;
-  font-weight: normal;
   margin: 8px 0 8px 8px;
 }
 
@@ -129,9 +128,8 @@ h1#player-name {
 h2.sub-heading {
   color: teal;
   font-size: 14px;
-  font-weight: normal;
   margin: 0;
-  padding: 0 0 8px 8px;
+  padding: 4px 0 12px 8px;
 }
 
 .stick-left {
@@ -160,16 +158,11 @@ h2.sub-heading {
 #player-profile-info {
   align-self: center;
   display: grid;
-  grid-column-gap: 8px;
-  grid-template-columns: auto auto auto;
-  height: 120px;
+  grid-column-gap: 4px;
+  grid-row-gap: 24px;
+  grid-template-columns: auto auto auto auto auto auto;
   margin-left: 16px;
-}
-
-.player-profile-info-item {
-  align-items: center;
-  align-self: center;
-  display: flex;
+  width: 95%;
 }
 
 .info-label, .info-data {
@@ -183,7 +176,7 @@ h2.sub-heading {
 
 .info-data {
   color: black;
-  margin-left: 8px;
+  margin-right: 8px;
 }
 
 /* Table styles */
