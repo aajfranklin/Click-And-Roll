@@ -668,8 +668,11 @@ describe('Content Scripts', () => {
       let resetFrameStub;
       let addCloseOverlayListenersStub;
       let displayStatsStub;
+      let getFrameDocumentStub;
       let sendRuntimeMessageStub;
       let setFrameLoadingSpy;
+
+      let networkErrorElement;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
@@ -686,8 +689,15 @@ describe('Content Scripts', () => {
         resetFrameStub = sinon.stub(testClickAndRoll, 'resetFrame');
         addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
         displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         setFrameLoadingSpy = sinon.spy(testClickAndRoll, 'setFrameLoading');
+
+        networkErrorElement = document.createElement('div');
+        networkErrorElement.id = 'network-error';
+        networkErrorElement.hidden = true;
+        document.body.appendChild(networkErrorElement);
+        getFrameDocumentStub.returns(document);
       });
 
       afterEach(() => {
@@ -695,6 +705,7 @@ describe('Content Scripts', () => {
         resetFrameStub.resetHistory();
         addCloseOverlayListenersStub.resetHistory();
         displayStatsStub.resetHistory();
+        getFrameDocumentStub.resetHistory();
         sendRuntimeMessageStub.resetHistory();
         setFrameLoadingSpy.resetHistory();
       });
@@ -704,8 +715,11 @@ describe('Content Scripts', () => {
         resetFrameStub.restore();
         addCloseOverlayListenersStub.restore();
         displayStatsStub.restore();
+        getFrameDocumentStub.restore();
         sendRuntimeMessageStub.restore();
         setFrameLoadingSpy.restore();
+
+        document.body.removeChild(networkErrorElement);
       });
 
       it('should update active name and reset frame', () => {
@@ -716,7 +730,7 @@ describe('Content Scripts', () => {
         expect(resetFrameStub.calledOnce).to.equal(true);
       });
 
-      it('should add close overlay listeners and display stats if player id is unchanged', () => {
+      it('should add close overlay listeners and display stats if player id is unchanged and network error is not showing', () => {
         testClickAndRoll.currentPlayerId = '0';
         testClickAndRoll.handleHover({target: 'test'});
         expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
@@ -725,6 +739,23 @@ describe('Content Scripts', () => {
 
       it('should set frame to loading, fetch stats, update player id, and display stats if new id', () => {
         testClickAndRoll.currentPlayerId = '1';
+        sendRuntimeMessageStub.resolves('stats');
+        return testClickAndRoll.handleHover({target: 'test'})
+          .then(() => {
+            expect(setFrameLoadingSpy.calledOnce).to.equal(true);
+            expect(setFrameLoadingSpy.firstCall.args[0]).to.equal('0');
+            expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
+            expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
+            expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
+            expect(testClickAndRoll.dataReceived).to.equal(true);
+            expect(displayStatsStub.calledOnce).to.equal(true);
+            expect(displayStatsStub.firstCall.args).to.deep.equal(['stats', 'testName']);
+          });
+      });
+
+      it('should set frame to loading, fetch stats, update player id, and display stats if network error is showing', () => {
+        testClickAndRoll.currentPlayerId = '0';
+        networkErrorElement.hidden = false;
         sendRuntimeMessageStub.resolves('stats');
         return testClickAndRoll.handleHover({target: 'test'})
           .then(() => {
@@ -1432,6 +1463,40 @@ describe('Content Scripts', () => {
         expect(testClickAndRoll.getFrameDocument()).to.equal(testClickAndRoll.frame.contentDocument);
       });
 
+    });
+
+    describe('displayNetworkError', () => {
+      let getFrameDocumentStub;
+
+      let networkErrorElement;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+
+        networkErrorElement = document.createElement('div');
+        networkErrorElement.id = 'network-error';
+        networkErrorElement.hidden = true;
+        document.body.appendChild(networkErrorElement);
+        getFrameDocumentStub.returns(document);
+      });
+
+      afterEach(() => {
+        getFrameDocumentStub.resetHistory();
+      });
+
+      after(() => {
+        getFrameDocumentStub.restore();
+        document.body.removeChild(networkErrorElement);
+      });
+
+      it('should apply loading and loaded styles to frame content and unhide network error', () => {
+        testClickAndRoll.displayNetworkError();
+        expect(testClickAndRoll.frameContent.classList.contains('loading')).to.equal(true);
+        expect(testClickAndRoll.frameContent.classList.contains('loaded')).to.equal(true);
+        expect(networkErrorElement.hidden).to.equal(false);
+      });
     });
 
     describe('teardown', () => {

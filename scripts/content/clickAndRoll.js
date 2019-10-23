@@ -104,8 +104,10 @@ function ClickAndRoll() {
     this.resetFrame();
 
     const newPlayerId = this.players.filter(player => player.name === this.activeName.element.textContent)[0].id;
+    const isNetworkErrorShowing = this.getFrameDocument().getElementById('network-error')
+      && !this.getFrameDocument().getElementById('network-error').hidden;
 
-    if (newPlayerId !== this.currentPlayerId) {
+    if (newPlayerId !== this.currentPlayerId || isNetworkErrorShowing) {
       this.setFrameLoading(newPlayerId);
       this.addCloseOverlayListeners();
       return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
@@ -115,6 +117,9 @@ function ClickAndRoll() {
             this.dataReceived = true;
             this.displayStats(stats, this.activeName.element.textContent)
           }
+        })
+        .catch(() => {
+          this.displayNetworkError();
         });
     } else {
       this.addCloseOverlayListeners();
@@ -405,6 +410,13 @@ function ClickAndRoll() {
 
   this.getFrameDocument = () => {
     return this.frame.contentDocument;
+  };
+
+  this.displayNetworkError = () => {
+    // hide both loading graphic and content
+    this.frameContent.classList.add('loading');
+    this.frameContent.classList.add('loaded');
+    this.getFrameDocument().getElementById('network-error').hidden = false;
   };
 
   this.teardown = () => {
