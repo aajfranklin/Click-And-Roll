@@ -108,7 +108,7 @@ function MessageHandler() {
       draft: this.formatDraft(getProfileValue('DRAFT_YEAR'), getProfileValue('DRAFT_ROUND'), getProfileValue('DRAFT_NUMBER')),
       birthday: this.formatBirthday(getProfileValue('BIRTHDATE')),
       weight: this.formatWeight(getProfileValue('WEIGHT')),
-      team: this.formatTeam(getProfileValue('TEAM_NAME'), getProfileValue('TEAM_CITY')),
+      team: getProfileValue('TEAM_ABBREVIATION') || 'n/a',
       number: getProfileValue('JERSEY') || 'n/a',
       position: getProfileValue('POSITION') || 'n/a',
       height: getProfileValue('HEIGHT') || 'n/a',
@@ -135,10 +135,6 @@ function MessageHandler() {
 
   this.formatWeight = (weight) => {
     return weight ? weight + ' lb' : 'n/a';
-  };
-
-  this.formatTeam = (teamName, city) => {
-    return (teamName && city) ? city.charAt(0).toUpperCase() + city.slice(1) + ' ' + teamName : 'n/a';
   };
 
   this.getPlayerImageUrl = (fullName) => {

@@ -469,8 +469,7 @@ describe('Background Scripts', () => {
               'DRAFT_NUMBER',
               'BIRTHDATE',
               'WEIGHT',
-              'TEAM_NAME',
-              'TEAM_CITY',
+              'TEAM_ABBREVIATION',
               'JERSEY',
               'POSITION',
               'HEIGHT',
@@ -484,8 +483,7 @@ describe('Background Scripts', () => {
               'draftNumber',
               'birthDate',
               'weight',
-              'teamName',
-              'teamCity',
+              'teamAbbreviation',
               'jersey',
               'position',
               'height',
@@ -500,20 +498,17 @@ describe('Background Scripts', () => {
       let formatDraftStub;
       let formatBirthdayStub;
       let formatWeightStub;
-      let formatTeamStub;
       let getPlayerImageUrlStub;
 
       before(() => {
         formatDraftStub = sinon.stub(messageHandler, 'formatDraft');
         formatBirthdayStub = sinon.stub(messageHandler, 'formatBirthday');
         formatWeightStub = sinon.stub(messageHandler, 'formatWeight');
-        formatTeamStub = sinon.stub(messageHandler, 'formatTeam');
         getPlayerImageUrlStub = sinon.stub(messageHandler, 'getPlayerImageUrl');
 
         formatDraftStub.returns('formattedDraft');
         formatBirthdayStub.returns('formattedBirthday');
         formatWeightStub.returns('formattedWeight');
-        formatTeamStub.returns('formattedTeam');
         getPlayerImageUrlStub.returns('imageUrl');
       });
 
@@ -521,7 +516,6 @@ describe('Background Scripts', () => {
         formatDraftStub.resetHistory();
         formatBirthdayStub.resetHistory();
         formatWeightStub.resetHistory();
-        formatTeamStub.resetHistory();
         getPlayerImageUrlStub.resetHistory();
       });
 
@@ -529,7 +523,6 @@ describe('Background Scripts', () => {
         formatDraftStub.restore();
         formatBirthdayStub.restore();
         formatWeightStub.restore();
-        formatTeamStub.restore();
         getPlayerImageUrlStub.restore();
       });
 
@@ -538,7 +531,7 @@ describe('Background Scripts', () => {
           draft: 'formattedDraft',
           birthday: 'formattedBirthday',
           weight: 'formattedWeight',
-          team: 'formattedTeam',
+          team: 'teamAbbreviation',
           number: 'jersey',
           position: 'position',
           height: 'height',
@@ -557,8 +550,6 @@ describe('Background Scripts', () => {
         expect(formatBirthdayStub.withArgs('birthDate').calledOnce).to.equal(true);
         expect(formatWeightStub.calledOnce).to.equal(true);
         expect(formatWeightStub.withArgs('weight').calledOnce).to.equal(true);
-        expect(formatTeamStub.calledOnce).to.equal(true);
-        expect(formatTeamStub.withArgs('teamName', 'teamCity').calledOnce).to.equal(true);
         expect(getPlayerImageUrlStub.calledOnce).to.equal(true);
         expect(getPlayerImageUrlStub.withArgs('displayName').calledOnce).to.equal(true);
       });
@@ -573,8 +564,7 @@ describe('Background Scripts', () => {
                 'DRAFT_NUMBER',
                 'BIRTHDATE',
                 'WEIGHT',
-                'TEAM_NAME',
-                'TEAM_CITY',
+                'TEAM_ABBREVIATION',
                 'JERSEY',
                 'POSITION',
                 'HEIGHT',
@@ -588,8 +578,7 @@ describe('Background Scripts', () => {
                   'draftNumber',
                   'birthDate',
                   'weight',
-                  'teamName',
-                  'teamCity',
+                  null,
                   null,
                   null,
                   null,
@@ -604,7 +593,7 @@ describe('Background Scripts', () => {
           draft: 'formattedDraft',
           birthday: 'formattedBirthday',
           weight: 'formattedWeight',
-          team: 'formattedTeam',
+          team: 'n/a',
           number: 'n/a',
           position: 'n/a',
           height: 'n/a',
@@ -681,27 +670,6 @@ describe('Background Scripts', () => {
 
         it('should return \'n/a\'', () => {
           expect(messageHandler.formatWeight(null)).to.equal('n/a');
-        });
-
-      });
-
-    });
-
-    describe('formatTeam', () => {
-
-      describe('if team name and city are available', () => {
-
-        it('should return formatted team', () => {
-          expect(messageHandler.formatTeam('Londons', 'London')).to.equal('London Londons');
-        });
-
-      });
-
-      describe('if team name or city is unavailable', () => {
-
-        it('should return \'n/a\'', () => {
-          expect(messageHandler.formatTeam(null)).to.equal('n/a');
-          expect(messageHandler.formatTeam('test', null)).to.equal('n/a');
         });
 
       });
