@@ -73,7 +73,7 @@ Sometimes you will recognise an NBA player's name, but Click and Roll won't. The
 
 - Spelled or capitalised wrong on the web page
 - Punctuated wrong. Click and Roll is picky - it wants JJ Redick, not J.J. Redick. On the flipside, it wants P.J. Tucker, not PJ Tucker. It all comes down to how the NBA records the player's official name.
-- A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry, Magic Johnson. Let me know if you want specific nicknames added!
+- A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry and Magic Johnson. If you want to see a new nickname added, submit a feature request!
 - Split over multiple html elements, which makes it difficult to recognise. You might notice this when a player's name is split across two lines.
 
 ### Who designed the Click and Roll icon?
