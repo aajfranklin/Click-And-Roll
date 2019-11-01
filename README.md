@@ -61,6 +61,21 @@ If you do experience serious performance issues on any site, please toggle Click
 
 Not all 4487 players have photos available through the basketball-reference image API. The placeholder is just a fallback for players without photos.
 
+The placeholder image is [generic person silhouette 16](http://getdrawings.com/generic-person-silhouette#generic-person-silhouette-16.jpg) from [Get Drawings](http://getdrawings.com/).
+
+### What does the star next to some seasons mean?
+
+That means the player was an All-Star that season.
+
+### Why do player names sometimes not highlight?
+
+Sometimes you will recognise an NBA player's name, but Click and Roll won't. The name might be:
+
+- Spelled or capitalised wrong on the web page
+- Punctuated wrong. Click and Roll is picky - it wants JJ Redick, not J.J. Redick. On the flipside, it wants P.J. Tucker, not PJ Tucker. It all comes down to how the NBA records the player's official name.
+- A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry, Magic Johnson. Let me know if you want specific nicknames added!
+- Split over multiple html elements, which makes it difficult to recognise. You might notice this when a player's name is split across two lines.
+
 ### Who designed the Click and Roll icon?
 
 Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the Click and Roll icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
