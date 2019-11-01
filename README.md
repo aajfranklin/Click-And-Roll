@@ -31,6 +31,10 @@ The order and number of features added will depend on user demand. Possible feat
 - Choice of player name highlight colour (including none)
 - 'Performance mode'
 
+## Requirements
+
+Chrome version 57 or above is recommended. Older versions will have formatting issues.
+
 ## FAQs:
 
 ### Where do you get your data?
