@@ -1228,7 +1228,6 @@ describe('Content Scripts', () => {
     describe('displayStats', () => {
       let getFrameDocumentStub;
       let mapPlayerProfileStub;
-      let mapStatsToRowsStub;
       let resizeFrameContentStub;
 
       let nameElement;
@@ -1238,7 +1237,6 @@ describe('Content Scripts', () => {
 
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         mapPlayerProfileStub = sinon.stub(testClickAndRoll, 'mapPlayerProfile');
-        mapStatsToRowsStub = sinon.stub(testClickAndRoll, 'mapStatsToRows');
         resizeFrameContentStub = sinon.stub(testClickAndRoll, 'resizeFrameContent');
 
         getFrameDocumentStub.returns(document);
@@ -1251,14 +1249,12 @@ describe('Content Scripts', () => {
       afterEach(() => {
         getFrameDocumentStub.resetHistory();
         mapPlayerProfileStub.resetHistory();
-        mapStatsToRowsStub.resetHistory();
         resizeFrameContentStub.resetHistory();
       });
 
       after(() => {
         getFrameDocumentStub.restore();
         mapPlayerProfileStub.restore();
-        mapStatsToRowsStub.restore();
         resizeFrameContentStub.restore();
 
         document.body.removeChild(nameElement);
@@ -1269,18 +1265,48 @@ describe('Content Scripts', () => {
         testClickAndRoll.displayStats();
         expect(getFrameDocumentStub.notCalled).to.equal(true);
         expect(mapPlayerProfileStub.notCalled).to.equal(true);
-        expect(mapStatsToRowsStub.notCalled).to.equal(true);
         expect(resizeFrameContentStub.notCalled).to.equal(true);
       });
 
-      it('should set player name text content, map player profile, and map stats to rows if stats are present', () => {
+      it('should set player name text content, player profile, and career stat rows if stats are present', () => {
+        let testTable = document.createElement('table');
+        testTable.innerHTML = '<tbody id="season-averages-body"></tbody>';
+        document.body.appendChild(testTable);
+
         testClickAndRoll.dataReceived = true;
         testClickAndRoll.displayStats({profile: 'testProfile', career: 'testCareer'}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
         expect(mapPlayerProfileStub.calledOnce).to.equal(true);
         expect(mapPlayerProfileStub.firstCall.args).to.deep.equal(['testProfile', 'testName']);
-        expect(mapStatsToRowsStub.calledOnce).to.equal(true);
-        expect(mapStatsToRowsStub.firstCall.args[0]).to.deep.equal('testCareer');
+        expect(testTable.innerHTML).to.equal('<tbody id="season-averages-body">testCareer</tbody>');
+
+        document.body.removeChild(testTable);
+      });
+
+      it('should remove career profile section if player has no stats', () => {
+        let testContent = document.createElement('div');
+        let testCareerHeading = document.createElement('h2');
+        let testCareerSection = document.createElement('section');
+
+        testContent.id = 'content';
+        testContent.appendChild(testCareerHeading);
+        testContent.appendChild(testCareerSection);
+        document.body.appendChild(testContent);
+        testCareerHeading.outerHTML = '<h2 id="career-heading" class="sub-heading stick-left">Career Stats:</h2>';
+        testCareerSection.outerHTML = '<section id="career-stats"><table><tbody id="season-averages-body"></tbody></table></section>';
+
+        testClickAndRoll.dataReceived = true;
+        expect(document.getElementById('career-heading')).to.not.equal(null);
+        expect(document.getElementById('career-stats')).to.not.equal(null);
+
+        testClickAndRoll.displayStats({profile: 'testProfile', career: ''}, 'testName');
+        expect(nameElement.textContent).to.equal('testName');
+        expect(mapPlayerProfileStub.calledOnce).to.equal(true);
+        expect(mapPlayerProfileStub.firstCall.args).to.deep.equal(['testProfile', 'testName']);
+        expect(document.getElementById('career-heading')).to.equal(null);
+        expect(document.getElementById('career-stats')).to.equal(null);
+
+        document.body.removeChild(testContent);
       });
 
       it('should resize frame content if frame container is not hidden', () => {
@@ -1344,14 +1370,6 @@ describe('Content Scripts', () => {
         expect(document.getElementById('info-college').textContent).to.equal('testCollege');
         expect(document.getElementById('info-draft').textContent).to.equal('testDraft');
       });
-
-    });
-
-    describe('mapStatsToRows', () => {
-
-    });
-
-    describe('createRow', () => {
 
     });
 

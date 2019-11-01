@@ -82,7 +82,49 @@ function MessageHandler() {
     const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
     const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
     const allStarSeasons = allStar.rowSet.map(row => row[allStar.headers.indexOf('SEASON_ID')]);
-    return {seasons, career, allStarSeasons};
+
+    let careerStatsHTML = '';
+
+    if (seasons.rowSet.length) {
+      for (let i = 0; i < seasons.rowSet.length; i++) {
+        const season = seasons.rowSet[i];
+        const isAllStarSeason = allStarSeasons.indexOf(season[1]) !== -1;
+        const rowHTML = this.createRow(season, isAllStarSeason, false);
+        careerStatsHTML += rowHTML;
+      }
+
+      const careerRow = this.createRow(career.rowSet[0], false, true);
+      careerStatsHTML += careerRow;
+    }
+
+    return careerStatsHTML;
+  };
+
+  this.createRow = (season, isAllStarSeason, isCareerRow) => {
+    if (isCareerRow) {
+      season[0] = 'Career';
+      season[1] = season[2] = '-';
+    } else {
+      const statsToRemove = [3, 2, 0];
+      for (let i = 0; i < statsToRemove.length; i++) {
+        season.splice(statsToRemove[i], 1);
+      }
+    }
+
+    let tableDataCells = '';
+
+    for (let i = 0; i < season.length; i++) {
+      const statContent = (season[i] === null) ? 'n/a' : season[i];
+      const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
+
+      const statHtml = i === 0
+        ? '<td class="season stick-left">' + statContent + (isAllStarSeason ? allStarSeasonSpan : '') + '</td>'
+        : '<td>' + statContent + '</td>';
+
+      tableDataCells += statHtml;
+    }
+
+    return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
   };
 
   this.fetchCommonPlayerInfo = (playerId) => {

@@ -260,7 +260,13 @@ function ClickAndRoll() {
     if (stats) {
       this.getFrameDocument().getElementById('player-name').textContent = name;
       this.mapPlayerProfile(stats.profile, name);
-      this.mapStatsToRows(stats.career);
+
+      if (stats.career.length) {
+        this.getFrameDocument().getElementById('season-averages-body').innerHTML += stats.career;
+      } else {
+        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
+        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
+      }
     }
 
     if (!this.frameContainer.hidden) {
@@ -295,56 +301,6 @@ function ClickAndRoll() {
       const infoDataElement = this.getFrameDocument().getElementById('info-' + profileInfoDetails[i]);
       infoDataElement.textContent = profile[profileInfoDetails[i]];
     }
-  };
-
-  this.mapStatsToRows = (stats) => {
-    if (stats.seasons.rowSet.length === 0) {
-      this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
-      this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
-    }
-
-    for (let i = 0; i < stats.seasons.rowSet.length; i++) {
-      const season = stats.seasons.rowSet[i];
-      const row = this.createRow(season, stats.allStarSeasons.indexOf(season[1]) !== -1, false);
-      this.getFrameDocument().getElementById('season-averages-body').appendChild(row);
-    }
-
-    if (stats.career.rowSet.length !== 0) {
-      const careerRow = this.createRow(stats.career.rowSet[0], false, true);
-      careerRow.classList.add('career');
-      this.getFrameDocument().getElementById('season-averages-body').appendChild(careerRow);
-    }
-  };
-
-  this.createRow = (season, isAllStarSeason, isCareerRow) => {
-    if (isCareerRow) {
-      season[0] = 'Career';
-      season[1] = season[2] = '-';
-    } else {
-      const statsToRemove = [3, 2, 0];
-      for (let j = 0; j < statsToRemove.length; j++) {
-        season.splice(statsToRemove[j], 1);
-      }
-    }
-
-    const row = this.getFrameDocument().createElement('tr');
-
-    for (let k = 0; k < season.length; k++) {
-      const stat = this.getFrameDocument().createElement('td');
-      stat.textContent = (season[k] === null)
-        ? 'n/a'
-        : season[k];
-      if (k === 0) {
-        stat.classList.add('season');
-        stat.classList.add('stick-left');
-        stat.innerHTML += isAllStarSeason
-          ? '<span style="color:gold; padding-left: 8px">&#9733;</span>'
-          : '';
-      }
-      row.appendChild(stat)
-    }
-
-    return row;
   };
 
   this.resizeFrameContent = () => {

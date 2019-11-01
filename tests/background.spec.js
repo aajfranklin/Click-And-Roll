@@ -395,30 +395,67 @@ describe('Background Scripts', () => {
 
     describe('formatCareerStats', () => {
 
-      const response = {
-        resultSets: [
-          {name: 'SeasonTotalsRegularSeason'},
-          {name: 'CareerTotalsRegularSeason'},
-          {name: 'SeasonTotalsAllStarSeason',
-            headers: [
-              'SEASON_ID'
-            ],
-            rowSet: [
-              ['2000'],
-              ['2001']
-            ]
+      it('should return seasons as HTML string', () => {
+        const response = {
+          "resource": "playercareerstats",
+          "parameters": {
+            "PerMode": "PerGame",
+            "PlayerID": 0,
+            "LeagueID": "00"
           },
-          {name: 'Other'},
-        ]
-      };
-
-      it('should return correctly formatted results', () => {
-        const expected = {
-          seasons: {name: 'SeasonTotalsRegularSeason'},
-          career: {name: 'CareerTotalsRegularSeason'},
-          allStarSeasons: ['2000', '2001']
+          "resultSets": [{
+            "name": "SeasonTotalsRegularSeason",
+            "headers": ["PLAYER_ID", "SEASON_ID", "LEAGUE_ID", "TEAM_ID", "TEAM_ABBREVIATION", "PLAYER_AGE", "GP"],
+            "rowSet": [
+              [0, "2003-04", "00", 1, "TST", 19.0, 82],
+              [0,"2004-05", "00", 1, "TST", 20.0, 82]
+            ]
+          }, {
+            "name": "CareerTotalsRegularSeason",
+            "headers": ["PLAYER_ID", "LEAGUE_ID", "Team_ID", "GP"],
+            "rowSet": [[0, "00", 0, 164]]
+          }, {
+            "name": "SeasonTotalsAllStarSeason",
+            "headers": ["PLAYER_ID", "SEASON_ID"],
+            "rowSet": [[0, "2004-05",]]
+          }, {
+            "name": "other"
+          }]
         };
-        expect(messageHandler.formatCareerStats(response)).to.deep.equal(expected);
+
+        const expected = '<tr><td class="season stick-left">2003-04</td><td>TST</td><td>19</td><td>82</td></tr>'
+          + '<tr><td class="season stick-left">2004-05<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TST</td><td>20</td><td>82</td></tr>'
+          + '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>164</td></tr>';
+
+        expect(messageHandler.formatCareerStats(response)).to.equal(expected);
+      });
+
+      it('should return empty string if player has no seasons', () => {
+        const response = {
+          "resource": "playercareerstats",
+          "parameters": {
+            "PerMode": "PerGame",
+            "PlayerID": 0,
+            "LeagueID": "00"
+          },
+          "resultSets": [{
+            "name": "SeasonTotalsRegularSeason",
+            "headers": [],
+            "rowSet": []
+          }, {
+            "name": "CareerTotalsRegularSeason",
+            "headers": [],
+            "rowSet": []
+          }, {
+            "name": "SeasonTotalsAllStarSeason",
+            "headers": [],
+            "rowSet": []
+          }, {
+            "name": "other"
+          }]
+        };
+
+        expect(messageHandler.formatCareerStats(response)).to.equal('');
       });
 
     });
