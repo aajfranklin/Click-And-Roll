@@ -3,7 +3,7 @@
   max-width: 800px;
   position: absolute;
   width: calc(50vw + 2px);
-  z-index: 1000000;
+  z-index: 2147483647;
 }
 
 #click-and-roll-frame {
