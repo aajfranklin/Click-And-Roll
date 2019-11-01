@@ -540,7 +540,7 @@ describe('Content Scripts', () => {
       it('should set running, players, stat template, frame style to correct values', () => {
         return testClickAndRoll.run()
           .then(() => {
-            expect(testClickAndRoll.players).to.deep.equal([{name: 'name'}]);
+            expect(testClickAndRoll.players).to.deep.equal([{name: 'name'}].concat(nicknameMap));
             expect(testClickAndRoll.statTemplate).to.equal('fetchedTemplate');
             expect(testClickAndRoll.frameStyle).to.equal('fetchedStyle');
           });

@@ -13,6 +13,7 @@
       "js": [
         "./scripts/utils/jquery-3.4.1.js",
         "./scripts/utils/utils.js",
+        "./scripts/content/nicknameMap.js",
         "./scripts/content/ahoCorasick.js",
         "./scripts/content/resultSearch.js",
         "./scripts/content/clickAndRoll.js",

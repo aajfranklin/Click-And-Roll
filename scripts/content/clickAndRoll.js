@@ -38,7 +38,7 @@ function ClickAndRoll() {
 
     return this.getPlayers()
       .then(players => {
-        this.players = players;
+        this.players = players.concat(nicknameMap);
         return $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'});
       })
       .then(response => {
