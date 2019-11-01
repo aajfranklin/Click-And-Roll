@@ -259,10 +259,10 @@ function ClickAndRoll() {
 
     if (stats) {
       this.getFrameDocument().getElementById('player-name').textContent = name;
-      this.mapPlayerProfile(stats.profile, name);
+      this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
-      if (stats.career.length) {
-        this.getFrameDocument().getElementById('season-averages-body').innerHTML += stats.career;
+      if (stats.careerHTML.length) {
+        this.getFrameDocument().getElementById('season-averages-body').innerHTML += stats.careerHTML;
       } else {
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
@@ -271,35 +271,6 @@ function ClickAndRoll() {
 
     if (!this.frameContainer.hidden) {
       this.resizeFrameContent();
-    }
-  };
-
-  this.mapPlayerProfile = (profile, name) => {
-    const profileImageElement = this.getFrameDocument().getElementById('player-profile-image');
-
-    fetch(profile.imageUrl, {cache: 'force-cache', redirect: 'error'})
-      .then(() => {
-        profileImageElement.src = profile.imageUrl;
-        profileImageElement.alt = name;
-      })
-      // suppress error if image not found, as default is already in place
-      .catch(() => {});
-
-    const profileInfoDetails = [
-      'team',
-      'number',
-      'position',
-      'birthday',
-      'height',
-      'weight',
-      'country',
-      'college',
-      'draft'
-    ];
-
-    for (let i = 0; i < profileInfoDetails.length; i++) {
-      const infoDataElement = this.getFrameDocument().getElementById('info-' + profileInfoDetails[i]);
-      infoDataElement.textContent = profile[profileInfoDetails[i]];
     }
   };
 

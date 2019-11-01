@@ -232,43 +232,43 @@ describe('Background Scripts', () => {
 
       let fetchCareerStatsStub;
       let fetchCommonPlayerInfoStub;
-      let formatCareerStatsStub;
-      let formatPlayerProfileStub;
+      let getCareerHTMLStub;
+      let getProfileHTMLStub;
       let sendResponseSpy;
 
       before(() => {
         fetchCareerStatsStub = sinon.stub(messageHandler, 'fetchCareerStats');
         fetchCommonPlayerInfoStub = sinon.stub(messageHandler, 'fetchCommonPlayerInfo');
-        formatCareerStatsStub = sinon.stub(messageHandler, 'formatCareerStats');
-        formatPlayerProfileStub = sinon.stub(messageHandler, 'formatPlayerProfile');
+        getCareerHTMLStub = sinon.stub(messageHandler, 'getCareerHTML');
+        getProfileHTMLStub = sinon.stub(messageHandler, 'getProfileHTML');
 
         sendResponseSpy = sinon.spy();
 
         fetchCareerStatsStub.resolves(null);
         fetchCommonPlayerInfoStub.resolves(null);
-        formatCareerStatsStub.returns(null);
-        formatPlayerProfileStub.returns(null);
+        getCareerHTMLStub.returns(null);
+        getProfileHTMLStub.resolves(null);
       });
 
       afterEach(() => {
         fetchCareerStatsStub.resetHistory();
         fetchCommonPlayerInfoStub.resetHistory();
-        formatCareerStatsStub.resetHistory();
-        formatPlayerProfileStub.resetHistory();
+        getCareerHTMLStub.resetHistory();
+        getProfileHTMLStub.resetHistory();
 
         sendResponseSpy.resetHistory();
 
         fetchCareerStatsStub.resolves(null);
         fetchCommonPlayerInfoStub.resolves(null);
-        formatCareerStatsStub.returns(null);
-        formatPlayerProfileStub.returns(null);
+        getCareerHTMLStub.returns(null);
+        getProfileHTMLStub.resolves(null);
       });
 
       after(() => {
         fetchCareerStatsStub.restore();
         fetchCommonPlayerInfoStub.restore();
-        formatCareerStatsStub.restore();
-        formatPlayerProfileStub.restore();
+        getCareerHTMLStub.restore();
+        getProfileHTMLStub.restore();
       });
 
       it('should call fetchCareerStats with request playerId', () => {
@@ -281,12 +281,12 @@ describe('Background Scripts', () => {
 
       describe('if fetchCareerStats resolves', () => {
 
-        it('should call formatCareerStats with fetchCareerStats response', () => {
+        it('should call getCareerHTML with fetchCareerStats response', () => {
           fetchCareerStatsStub.resolves('careerStats');
           return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
             .then(() => {
-              expect(formatCareerStatsStub.calledOnce).to.equal(true);
-              expect(formatCareerStatsStub.withArgs('careerStats').calledOnce).to.equal(true);
+              expect(getCareerHTMLStub.calledOnce).to.equal(true);
+              expect(getCareerHTMLStub.withArgs('careerStats').calledOnce).to.equal(true);
             })
         });
 
@@ -300,27 +300,31 @@ describe('Background Scripts', () => {
 
         describe('if fetchCommonPlayerInfo resolves', () => {
 
-          it('should call formatPlayerProfile with fetchCommonPlayerInfo response', () => {
+          it('should call getProfileHTML with fetchCommonPlayerInfo response', () => {
             fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
             return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
               .then(() => {
-                expect(formatPlayerProfileStub.calledOnce).to.equal(true);
-                expect(formatPlayerProfileStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
+                expect(getProfileHTMLStub.calledOnce).to.equal(true);
+                expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
               })
           });
 
-          it('should send the response', () => {
-            formatCareerStatsStub.returns('careerStats');
-            formatPlayerProfileStub.returns('profileStats');
-            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
-              .then(() => {
-                expect(sendResponseSpy.calledOnce).to.equal(true);
-                expect(sendResponseSpy.withArgs([null, {
-                  id: 1,
-                  career: 'careerStats',
-                  profile: 'profileStats'
-                }]).calledOnce).to.equal(true);
-              })
+          describe('if getProfileHTML resolves', () => {
+
+            it('should send the response', () => {
+              getCareerHTMLStub.returns('careerStats');
+              getProfileHTMLStub.resolves('profileStats');
+              return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+                .then(() => {
+                  expect(sendResponseSpy.calledOnce).to.equal(true);
+                  expect(sendResponseSpy.withArgs([null, {
+                    id: 1,
+                    careerHTML: 'careerStats',
+                    profileHTML: 'profileStats'
+                  }]).calledOnce).to.equal(true);
+                })
+            });
+
           });
 
         });
@@ -393,7 +397,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('formatCareerStats', () => {
+    describe('getCareerHTML', () => {
 
       it('should return seasons as HTML string', () => {
         const response = {
@@ -427,7 +431,7 @@ describe('Background Scripts', () => {
           + '<tr><td class="season stick-left">2004-05<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TST</td><td>20</td><td>82</td></tr>'
           + '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>164</td></tr>';
 
-        expect(messageHandler.formatCareerStats(response)).to.equal(expected);
+        expect(messageHandler.getCareerHTML(response)).to.equal(expected);
       });
 
       it('should return empty string if player has no seasons', () => {
@@ -455,7 +459,7 @@ describe('Background Scripts', () => {
           }]
         };
 
-        expect(messageHandler.formatCareerStats(response)).to.equal('');
+        expect(messageHandler.getCareerHTML(response)).to.equal('');
       });
 
     });
@@ -495,7 +499,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('formatPlayerProfile', () => {
+    describe('getProfileHTML', () => {
 
       const response = {
         resultSets: [
@@ -564,23 +568,16 @@ describe('Background Scripts', () => {
       });
 
       it('should return correctly formatted player info', () => {
-        const expected = {
-          draft: 'formattedDraft',
-          birthday: 'formattedBirthday',
-          weight: 'formattedWeight',
-          team: 'teamAbbreviation',
-          number: 'jersey',
-          position: 'position',
-          height: 'height',
-          country: 'country',
-          college: 'school',
-          imageUrl: 'imageUrl'
-        };
-        expect(messageHandler.formatPlayerProfile(response)).to.deep.equal(expected);
+        const expected = '<img src ="imageUrl" alt="displayName" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">teamAbbreviation</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">country</div><div class="info-label">Number</div><div class="info-data">jersey</div><div class="info-label">Height</div><div class="info-data">height</div><div class="info-label">College</div><div class="info-data">school</div><div class="info-label">Position</div><div class="info-data">position</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+
+        return(messageHandler.getProfileHTML(response))
+          .then((result) => {
+            expect(result).to.deep.equal(expected);
+          });
       });
 
       it('should call formatting functions with correct values', () => {
-        messageHandler.formatPlayerProfile(response);
+        messageHandler.getProfileHTML(response);
         expect(formatDraftStub.calledOnce).to.equal(true);
         expect(formatDraftStub.withArgs('draftYear', 'draftRound', 'draftNumber').calledOnce).to.equal(true);
         expect(formatBirthdayStub.calledOnce).to.equal(true);
@@ -626,19 +623,11 @@ describe('Background Scripts', () => {
             }
           ]
         };
-        const expected = {
-          draft: 'formattedDraft',
-          birthday: 'formattedBirthday',
-          weight: 'formattedWeight',
-          team: 'n/a',
-          number: 'n/a',
-          position: 'n/a',
-          height: 'n/a',
-          country: 'n/a',
-          college: 'n/a',
-          imageUrl: 'imageUrl'
-        };
-        expect(messageHandler.formatPlayerProfile(responseWithNullValues)).to.deep.equal(expected);
+        const expected = '<img src ="imageUrl" alt="displayName" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">n/a</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">n/a</div><div class="info-label">Number</div><div class="info-data">n/a</div><div class="info-label">Height</div><div class="info-data">n/a</div><div class="info-label">College</div><div class="info-data">n/a</div><div class="info-label">Position</div><div class="info-data">n/a</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+        return(messageHandler.getProfileHTML(responseWithNullValues))
+          .then(result => {
+            expect(result).to.equal(expected);
+          });
       })
 
     });

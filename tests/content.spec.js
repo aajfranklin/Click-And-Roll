@@ -1227,7 +1227,6 @@ describe('Content Scripts', () => {
 
     describe('displayStats', () => {
       let getFrameDocumentStub;
-      let mapPlayerProfileStub;
       let resizeFrameContentStub;
 
       let nameElement;
@@ -1236,7 +1235,6 @@ describe('Content Scripts', () => {
         testClickAndRoll = new ClickAndRoll();
 
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        mapPlayerProfileStub = sinon.stub(testClickAndRoll, 'mapPlayerProfile');
         resizeFrameContentStub = sinon.stub(testClickAndRoll, 'resizeFrameContent');
 
         getFrameDocumentStub.returns(document);
@@ -1248,13 +1246,11 @@ describe('Content Scripts', () => {
 
       afterEach(() => {
         getFrameDocumentStub.resetHistory();
-        mapPlayerProfileStub.resetHistory();
         resizeFrameContentStub.resetHistory();
       });
 
       after(() => {
         getFrameDocumentStub.restore();
-        mapPlayerProfileStub.restore();
         resizeFrameContentStub.restore();
 
         document.body.removeChild(nameElement);
@@ -1264,26 +1260,34 @@ describe('Content Scripts', () => {
         testClickAndRoll.dataReceived = false;
         testClickAndRoll.displayStats();
         expect(getFrameDocumentStub.notCalled).to.equal(true);
-        expect(mapPlayerProfileStub.notCalled).to.equal(true);
         expect(resizeFrameContentStub.notCalled).to.equal(true);
       });
 
       it('should set player name text content, player profile, and career stat rows if stats are present', () => {
+        let testProfile = document.createElement('div');
+        testProfile.id = 'player-profile-content';
+
         let testTable = document.createElement('table');
         testTable.innerHTML = '<tbody id="season-averages-body"></tbody>';
+
+        document.body.appendChild(testProfile);
         document.body.appendChild(testTable);
 
         testClickAndRoll.dataReceived = true;
-        testClickAndRoll.displayStats({profile: 'testProfile', career: 'testCareer'}, 'testName');
+        testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: 'testCareer'}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
-        expect(mapPlayerProfileStub.calledOnce).to.equal(true);
-        expect(mapPlayerProfileStub.firstCall.args).to.deep.equal(['testProfile', 'testName']);
+        expect(testProfile.innerHTML).to.equal('testProfile');
         expect(testTable.innerHTML).to.equal('<tbody id="season-averages-body">testCareer</tbody>');
 
+        document.body.removeChild(testProfile);
         document.body.removeChild(testTable);
       });
 
       it('should remove career profile section if player has no stats', () => {
+        let testProfile = document.createElement('div');
+        testProfile.id = 'player-profile-content';
+        document.body.appendChild(testProfile);
+
         let testContent = document.createElement('div');
         let testCareerHeading = document.createElement('h2');
         let testCareerSection = document.createElement('section');
@@ -1299,13 +1303,12 @@ describe('Content Scripts', () => {
         expect(document.getElementById('career-heading')).to.not.equal(null);
         expect(document.getElementById('career-stats')).to.not.equal(null);
 
-        testClickAndRoll.displayStats({profile: 'testProfile', career: ''}, 'testName');
+        testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: ''}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
-        expect(mapPlayerProfileStub.calledOnce).to.equal(true);
-        expect(mapPlayerProfileStub.firstCall.args).to.deep.equal(['testProfile', 'testName']);
         expect(document.getElementById('career-heading')).to.equal(null);
         expect(document.getElementById('career-stats')).to.equal(null);
 
+        document.body.removeChild(testProfile);
         document.body.removeChild(testContent);
       });
 
@@ -1313,62 +1316,6 @@ describe('Content Scripts', () => {
         testClickAndRoll.frameContainer.hidden = false;
         testClickAndRoll.displayStats();
         expect(resizeFrameContentStub.calledOnce).to.equal(true);
-      });
-
-    });
-
-    describe('mapPlayerProfile', () => {
-
-      let testProfileInfo;
-      let testProfileElement;
-      let getFrameDocumentStub;
-
-      before(() => {
-        testClickAndRoll = new ClickAndRoll();
-
-        testProfileInfo = {
-          team: 'testTeam',
-          number: 'testNumber',
-          position: 'testPosition',
-          birthday: 'testBirthday',
-          height: 'testHeight',
-          weight: 'testWeight',
-          country: 'testCountry',
-          college: 'testCollege',
-          draft: 'testDraft'
-        };
-
-        testProfileElement = document.createElement('div');
-        testProfileElement.innerHTML = '<div id="info-team"></div>' +
-          '<div id="info-number"></div>' +
-          '<div id="info-position"></div>' +
-          '<div id="info-birthday"></div>' +
-          '<div id="info-height"></div>' +
-          '<div id="info-weight"></div>' +
-          '<div id="info-country"></div>' +
-          '<div id="info-college"></div>' +
-          '<div id="info-draft"></div>';
-
-        document.body.appendChild(testProfileElement);
-        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        getFrameDocumentStub.returns(document);
-      });
-
-      after(() => {
-        document.body.removeChild(testProfileElement);
-      });
-
-      it('should map profile info contents to passed in details', () => {
-        testClickAndRoll.mapPlayerProfile(testProfileInfo, 'testName');
-        expect(document.getElementById('info-team').textContent).to.equal('testTeam');
-        expect(document.getElementById('info-number').textContent).to.equal('testNumber');
-        expect(document.getElementById('info-position').textContent).to.equal('testPosition');
-        expect(document.getElementById('info-birthday').textContent).to.equal('testBirthday');
-        expect(document.getElementById('info-height').textContent).to.equal('testHeight');
-        expect(document.getElementById('info-weight').textContent).to.equal('testWeight');
-        expect(document.getElementById('info-country').textContent).to.equal('testCountry');
-        expect(document.getElementById('info-college').textContent).to.equal('testCollege');
-        expect(document.getElementById('info-draft').textContent).to.equal('testDraft');
       });
 
     });

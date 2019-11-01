@@ -53,11 +53,14 @@ function MessageHandler() {
 
     return this.fetchCareerStats(request.playerId)
       .then(response => {
-        stats.career = this.formatCareerStats(response);
+        stats.careerHTML = this.getCareerHTML(response);
         return this.fetchCommonPlayerInfo(request.playerId);
       })
       .then(response => {
-        stats.profile = this.formatPlayerProfile(response);
+        return this.getProfileHTML(response);
+      })
+      .then(profileHTML => {
+        stats.profileHTML = profileHTML;
         sendResponse([null, stats]);
       })
       .catch(err => {
@@ -77,7 +80,7 @@ function MessageHandler() {
       })
   };
 
-  this.formatCareerStats = (response) => {
+  this.getCareerHTML = (response) => {
     const seasons = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsRegularSeason')[0];
     const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
     const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
@@ -138,7 +141,7 @@ function MessageHandler() {
       })
   };
 
-  this.formatPlayerProfile = (response) => {
+  this.getProfileHTML = (response) => {
     const headers = response.resultSets[0].headers;
     const profileData = response.resultSets[0].rowSet[0];
 
@@ -146,18 +149,69 @@ function MessageHandler() {
       return profileData[headers.indexOf(key)];
     };
 
-    return {
-      draft: this.formatDraft(getProfileValue('DRAFT_YEAR'), getProfileValue('DRAFT_ROUND'), getProfileValue('DRAFT_NUMBER')),
-      birthday: this.formatBirthday(getProfileValue('BIRTHDATE')),
-      weight: this.formatWeight(getProfileValue('WEIGHT')),
-      team: getProfileValue('TEAM_ABBREVIATION') || 'n/a',
-      number: getProfileValue('JERSEY') || 'n/a',
-      position: getProfileValue('POSITION') || 'n/a',
-      height: getProfileValue('HEIGHT') || 'n/a',
-      country: getProfileValue('COUNTRY') || 'n/a',
-      college: getProfileValue('SCHOOL') || 'n/a',
-      imageUrl: this.getPlayerImageUrl(getProfileValue('DISPLAY_FIRST_LAST'))
+    const formattedProfile = [{
+        label: 'Team',
+        value: getProfileValue('TEAM_ABBREVIATION') || 'n/a'
+      },
+      {
+        label: 'Birthday',
+        value: this.formatBirthday(getProfileValue('BIRTHDATE'))
+      },
+      {
+        label: 'Country',
+        value: getProfileValue('COUNTRY') || 'n/a'
+      },
+      {
+        label: 'Number',
+        value: getProfileValue('JERSEY') || 'n/a'
+      },
+      {
+        label: 'Height',
+        value: getProfileValue('HEIGHT') || 'n/a'
+      },
+      {
+        label: 'College',
+        value: getProfileValue('SCHOOL') || 'n/a'
+      },
+      {
+        label: 'Position',
+        value: getProfileValue('POSITION') || 'n/a'
+      },
+      {
+        label: 'Weight',
+        value: this.formatWeight(getProfileValue('WEIGHT'))
+      },
+      {
+        label: 'Draft',
+        value: this.formatDraft(getProfileValue('DRAFT_YEAR'), getProfileValue('DRAFT_ROUND'), getProfileValue('DRAFT_NUMBER'))
+    }];
+
+    let profileHTML = '';
+    const fullName = getProfileValue('DISPLAY_FIRST_LAST');
+    const imageUrl = this.getPlayerImageUrl(fullName);
+
+    const mapProfileValues = () => {
+      profileHTML += '<div id="player-profile-info">';
+
+      for (let i = 0; i < formattedProfile.length; i++) {
+        profileHTML += '<div class="info-label">' + formattedProfile[i].label + '</div>';
+        profileHTML += '<div class="info-data">' + formattedProfile[i].value + '</div>';
+      }
+
+      profileHTML += '</div>';
     };
+
+    return fetch(imageUrl, {cache: 'force-cache', redirect: 'error'})
+      .then(() => {
+        profileHTML += '<img src ="' + imageUrl + '" alt="' + fullName + '" id="player-profile-image"/>';
+        mapProfileValues();
+        return profileHTML;
+      })
+      .catch(() => {
+        profileHTML += '<img src ="https://cdn.clipart.email/3cd6f4d8f61a5da065d31bc13bbd4d5b_generic-silhouette-at-getdrawingscom-free-for-personal-use-_600-600.jpeg" alt="Generic Silhouette" id="player-profile-image"/>';
+        mapProfileValues();
+        return profileHTML;
+      });
   };
 
   this.formatDraft = (draftYear, draftRound, draftNumber) => {
@@ -199,6 +253,6 @@ function MessageHandler() {
       ? '0' + (date.getDate())
       : date.getDate();
     return year + month + day;
-  }
+  };
 
 }
