@@ -1,6 +1,6 @@
 # Click and Roll
 
-Click and Roll is a chrome extension that lets you hover over an NBA player's name on any web page to quickly view their stats. You can [get Click and Roll here]().
+Click and Roll is a chrome extension that lets you hover over an NBA player's name on any web page to quickly view their stats. You can [get Click and Roll here](https://chrome.google.com/webstore/detail/click-and-roll/mkindbniefmmhpmcelmkhcpaaieeddml).
 
 ## Features
 
