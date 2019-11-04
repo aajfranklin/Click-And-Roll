@@ -52,4 +52,29 @@ function Popup() {
         if (isOn) this.toggleCheckbox('extension-toggle');
       });
   };
+
+  this.handleClick = (e) => {
+    const id = e.target.id;
+    const targetIsToggle = id.indexOf('-toggle') !== -1;
+    const targetIsLink = e.target.href !== undefined;
+
+    if (targetIsToggle) {
+      const slider = e.target.nextElementSibling;
+
+      if (slider.classList.contains('slider-initial')) {
+        this.addToggleAnimation(slider);
+      }
+
+      this.toggleCheckbox(id);
+      return this.utils.getActiveTab()
+        .then(tab => {
+          const setting = id === 'extension-toggle'
+            ? 'clickAndRoll'
+            : (new URL(tab.url)).hostname;
+          this.toggleSetting(setting, tab);
+        });
+    }
+
+    if (targetIsLink) chrome.tabs.create({url: e.target.href});
+  };
 }

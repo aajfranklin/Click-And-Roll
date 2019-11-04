@@ -241,4 +241,130 @@ describe('Popup', () => {
 
   });
 
+  describe('handleClick', () => {
+
+    let addToggleAnimationStub;
+    let toggleCheckboxStub;
+    let getActiveTabStub;
+    let toggleSettingStub;
+    let chromeCreateTabStub;
+
+    let testTab;
+
+    before(() => {
+      chrome.tabs = {
+        create: () => {}
+      };
+
+      testTab = {
+        url: 'https://www.testurl.com/test',
+        id: 'test'
+      };
+
+      addToggleAnimationStub = sinon.stub(testPopup, 'addToggleAnimation');
+      toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
+      getActiveTabStub = sinon.stub (testPopup.utils, 'getActiveTab');
+      toggleSettingStub = sinon.stub(testPopup, 'toggleSetting');
+      chromeCreateTabStub = sinon.stub(chrome.tabs, 'create');
+
+      getActiveTabStub.resolves(testTab);
+    });
+
+    afterEach(() => {
+      addToggleAnimationStub.resetHistory();
+      toggleCheckboxStub.resetHistory();
+      getActiveTabStub.resetHistory();
+      toggleSettingStub.resetHistory();
+      chromeCreateTabStub.resetHistory();
+    });
+
+    after(() => {
+      addToggleAnimationStub.restore();
+      toggleCheckboxStub.restore();
+      getActiveTabStub.restore();
+      toggleSettingStub.restore();
+      chromeCreateTabStub.restore();
+    });
+
+    it('should add the toggle animation if target id contains toggle and animation not present', () => {
+      const e = {
+        target: {
+          id: '-toggle',
+          nextElementSibling: {
+            classList: {
+              contains: () => true
+            }
+          }
+        }
+      };
+
+      return testPopup.handleClick(e)
+        .then(() => {
+          expect(addToggleAnimationStub.calledOnce).to.equal(true);
+        });
+    });
+
+    it('should toggle extension slider and setting if target is extension toggle', () => {
+      const e = {
+        target: {
+          id: 'extension-toggle',
+          nextElementSibling: {
+            classList: {
+              contains: () => false
+            }
+          }
+        }
+      };
+
+      return testPopup.handleClick(e)
+        .then(() => {
+          expect(toggleCheckboxStub.calledOnce).to.equal(true);
+          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['extension-toggle']);
+          expect(getActiveTabStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['clickAndRoll', testTab]);
+        });
+    });
+
+    it('should toggle domain slider and setting if target is domain toggle', () => {
+      const e = {
+        target: {
+          id: 'domain-toggle',
+          nextElementSibling: {
+            classList: {
+              contains: () => false
+            }
+          }
+        }
+      };
+
+      return testPopup.handleClick(e)
+        .then(() => {
+          expect(toggleCheckboxStub.calledOnce).to.equal(true);
+          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-toggle']);
+          expect(getActiveTabStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['www.testurl.com', testTab]);
+        });
+    });
+
+    it('should open target href in new tab if target is not a toggle and has an href', () => {
+      const e = {
+        target: {
+          id: 'other',
+          href: 'https://www.testurl.com/test'
+        }
+      };
+
+      testPopup.handleClick(e);
+      expect(addToggleAnimationStub.notCalled).to.equal(true);
+      expect(toggleCheckboxStub.notCalled).to.equal(true);
+      expect(getActiveTabStub.notCalled).to.equal(true);
+      expect(toggleSettingStub.notCalled).to.equal(true);
+      expect(chromeCreateTabStub.calledOnce).to.equal(true);
+      expect(chromeCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.testurl.com/test'}]);
+    });
+
+  });
+
 });
