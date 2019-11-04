@@ -220,7 +220,7 @@ describe('Background Scripts', () => {
       });
 
       it('should call fetchPlayers', () => {
-        return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+        return messageHandler.handleFetchPlayers(sendResponseSpy)
           .then(() => {
             expect(fetchPlayersStub.calledOnce).to.equal(true);
           });
@@ -230,7 +230,7 @@ describe('Background Scripts', () => {
 
         it('should pass fetchPlayers response to formatPlayers', () => {
           fetchPlayersStub.resolves('response');
-          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+          return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(formatPlayersStub.calledOnce).to.equal(true);
               expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
@@ -240,7 +240,7 @@ describe('Background Scripts', () => {
         it('should send the response', () => {
           fetchPlayersStub.resolves('response');
           formatPlayersStub.returns('players');
-          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+          return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
               expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
@@ -253,7 +253,7 @@ describe('Background Scripts', () => {
 
         it('should send the err', () => {
           fetchPlayersStub.rejects('err');
-          return messageHandler.handleFetchPlayers({message: 'fetchPlayers'}, null, sendResponseSpy)
+          return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
               expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
@@ -366,7 +366,7 @@ describe('Background Scripts', () => {
       });
 
       it('should call fetchCareerStats with request playerId', () => {
-        return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+        return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
           .then(() => {
             expect(fetchCareerStatsStub.calledOnce).to.equal(true);
             expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
@@ -377,7 +377,7 @@ describe('Background Scripts', () => {
 
         it('should call getCareerHTML with fetchCareerStats response', () => {
           fetchCareerStatsStub.resolves('careerStats');
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
             .then(() => {
               expect(getCareerHTMLStub.calledOnce).to.equal(true);
               expect(getCareerHTMLStub.withArgs('careerStats').calledOnce).to.equal(true);
@@ -385,7 +385,7 @@ describe('Background Scripts', () => {
         });
 
         it('should call fetchCommonPlayerInfo with request playerId', () => {
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
             .then(() => {
               expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
               expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
@@ -396,7 +396,7 @@ describe('Background Scripts', () => {
 
           it('should call getProfileHTML with fetchCommonPlayerInfo response', () => {
             fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
-            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
               .then(() => {
                 expect(getProfileHTMLStub.calledOnce).to.equal(true);
                 expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
@@ -408,7 +408,7 @@ describe('Background Scripts', () => {
             it('should send the response', () => {
               getCareerHTMLStub.returns('careerStats');
               getProfileHTMLStub.resolves('profileStats');
-              return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+              return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
                 .then(() => {
                   expect(sendResponseSpy.calledOnce).to.equal(true);
                   expect(sendResponseSpy.withArgs([null, {
@@ -427,7 +427,7 @@ describe('Background Scripts', () => {
 
           it('should send the err', () => {
             fetchCommonPlayerInfoStub.rejects('err');
-            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
               .then(() => {
                 expect(sendResponseSpy.calledOnce).to.equal(true);
                 expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
@@ -443,7 +443,7 @@ describe('Background Scripts', () => {
 
         it('should send the err', () => {
           fetchCareerStatsStub.rejects('err');
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, null, sendResponseSpy)
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
             .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
               expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');

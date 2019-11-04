@@ -12,10 +12,10 @@ function MessageHandler() {
         this.handleLoad(sendResponse);
         return true;
       case 'fetchPlayers':
-        this.handleFetchPlayers(request, sender, sendResponse);
+        this.handleFetchPlayers(sendResponse);
         return true;
       case 'fetchStats':
-        this.handleFetchStats(request, sender, sendResponse);
+        this.handleFetchStats(request, sendResponse);
         return true;
       default:
         return false;
@@ -41,7 +41,7 @@ function MessageHandler() {
       });
   };
 
-  this.handleFetchPlayers = (request, sender, sendResponse) => {
+  this.handleFetchPlayers = (sendResponse) => {
     return this.fetchPlayers()
       .then(response => {
         sendResponse([null, this.formatPlayers(response)]);
@@ -72,7 +72,7 @@ function MessageHandler() {
     });
   };
 
-  this.handleFetchStats = (request, sender, sendResponse) => {
+  this.handleFetchStats = (request, sendResponse) => {
     const stats = {id: request.playerId};
 
     return this.fetchCareerStats(request.playerId)
