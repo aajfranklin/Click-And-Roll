@@ -1,5 +1,7 @@
 function MessageHandler() {
 
+  this.utils = new Utils();
+
   this.addListener = () => {
     chrome.runtime.onMessage.addListener(this.handleMessage);
   };
@@ -22,18 +24,17 @@ function MessageHandler() {
 
   this.handleLoad = () => {
     let activeTab;
-    const utils = new Utils();
-    utils.getActiveTab()
+    return this.utils.getActiveTab()
       .then(tab => {
         activeTab = tab;
-        return utils.isExtensionOn((new URL(activeTab.url)).hostname);
+        return this.utils.isExtensionOn((new URL(activeTab.url)).hostname);
       })
       .then(isExtensionOnForDomain => {
         if (isExtensionOnForDomain) {
-          utils.messageActiveTab({message: 'start'});
+          this.utils.messageActiveTab({message: 'start'});
           chrome.browserAction.setIcon({path: '../assets/active32.png', tabId: activeTab.id});
         } else {
-          utils.messageActiveTab({message: 'stop'});
+          this.utils.messageActiveTab({message: 'stop'});
           chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: activeTab.id});
         }
       });

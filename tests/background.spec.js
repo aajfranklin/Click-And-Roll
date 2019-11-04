@@ -34,10 +34,12 @@ describe('Background Scripts', () => {
 
       let handleFetchPlayersStub;
       let handleFetchStatsStub;
+      let handleLoadStub;
 
       before(() => {
         handleFetchPlayersStub = sinon.stub(messageHandler, 'handleFetchPlayers');
         handleFetchStatsStub = sinon.stub(messageHandler, 'handleFetchStats');
+        handleLoadStub = sinon.stub(messageHandler, 'handleLoad');
 
         handleFetchPlayersStub.resolves(null);
         handleFetchStatsStub.resolves(null);
@@ -46,11 +48,22 @@ describe('Background Scripts', () => {
       afterEach(() => {
         handleFetchPlayersStub.resetHistory();
         handleFetchStatsStub.resetHistory();
+        handleLoadStub.resetHistory();
       });
 
       after(() => {
         handleFetchPlayersStub.restore();
         handleFetchStatsStub.restore();
+        handleLoadStub.restore();
+      });
+
+      describe('if request message is load', () => {
+
+        it('should delegate to handleLoad', () => {
+          messageHandler.handleMessage({message:'load'}, null, null);
+          expect(handleLoadStub.calledOnce).to.equal(true);
+        });
+
       });
 
       describe('if request message is fetchPlayers', () => {
@@ -91,6 +104,78 @@ describe('Background Scripts', () => {
           expect(handleFetchStatsStub.notCalled).to.equal(true);
         });
 
+      });
+
+    });
+
+    describe('handleLoad', () => {
+
+      let getActiveTabStub;
+      let isExtensionOnStub;
+      let messageActiveTabStub;
+      let setIconStub;
+
+      let testTab
+
+      before(() => {
+        chrome.browserAction = {
+          setIcon: () => {}
+        };
+
+        testTab = {
+          url: 'https://www.testurl.com/test',
+          id: 'test'
+        };
+
+        getActiveTabStub = sinon.stub(messageHandler.utils, 'getActiveTab');
+        isExtensionOnStub = sinon.stub(messageHandler.utils, 'isExtensionOn');
+        messageActiveTabStub = sinon.stub(messageHandler.utils, 'messageActiveTab');
+        setIconStub = sinon.stub(chrome.browserAction, 'setIcon');
+
+        getActiveTabStub.resolves(testTab);
+      });
+
+      afterEach(() => {
+        getActiveTabStub.resetHistory();
+        isExtensionOnStub.resetHistory();
+        messageActiveTabStub.resetHistory();
+        setIconStub.resetHistory();
+
+        isExtensionOnStub.resolves(null);
+      });
+
+      after(() => {
+        getActiveTabStub.restore();
+        isExtensionOnStub.restore();
+        messageActiveTabStub.restore();
+        setIconStub.restore();
+      });
+
+
+      it('should message active tab to start and set active icon if extension is on', () => {
+        isExtensionOnStub.resolves(true);
+        return messageHandler.handleLoad()
+          .then(() => {
+            expect(getActiveTabStub.calledOnce).to.equal(true);
+            expect(isExtensionOnStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
+            expect(setIconStub.calledOnce).to.equal(true);
+            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/active32.png', tabId: 'test'}]);
+          });
+      });
+
+      it('should message active tab to stop and set inactive icon if extension if off', () => {
+        isExtensionOnStub.resolves(false);
+        return messageHandler.handleLoad()
+          .then(() => {
+            expect(getActiveTabStub.calledOnce).to.equal(true);
+            expect(isExtensionOnStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
+            expect(setIconStub.calledOnce).to.equal(true);
+            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/inactive32.png', tabId: 'test'}]);
+          });
       });
 
     });
