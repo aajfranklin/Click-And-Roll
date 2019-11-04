@@ -178,6 +178,15 @@ describe('Background Scripts', () => {
           });
       });
 
+      it('should callback with [null, null] if sendResponse callback provided', () => {
+        const callbackStub = sinon.stub();
+        return messageHandler.handleLoad(callbackStub)
+          .then(() => {
+            expect(callbackStub.calledOnce).to.equal(true);
+            expect(callbackStub.firstCall.args).to.deep.equal([[null, null]]);
+          })
+      });
+
     });
 
     describe('handleFetchPlayers', () => {

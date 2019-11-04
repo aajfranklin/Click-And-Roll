@@ -9,8 +9,8 @@ function MessageHandler() {
   this.handleMessage = (request, sender, sendResponse) => {
     switch (request.message) {
       case 'load':
-        this.handleLoad();
-        return false;
+        this.handleLoad(sendResponse);
+        return true;
       case 'fetchPlayers':
         this.handleFetchPlayers(request, sender, sendResponse);
         return true;
@@ -22,7 +22,7 @@ function MessageHandler() {
     }
   };
 
-  this.handleLoad = () => {
+  this.handleLoad = (sendResponse) => {
     let activeTab;
     return this.utils.getActiveTab()
       .then(tab => {
@@ -37,6 +37,7 @@ function MessageHandler() {
           this.utils.messageActiveTab({message: 'stop'});
           chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: activeTab.id});
         }
+        if (sendResponse) sendResponse([null, null]);
       });
   };
 
