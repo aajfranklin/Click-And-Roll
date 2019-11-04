@@ -6,6 +6,9 @@ function MessageHandler() {
 
   this.handleMessage = (request, sender, sendResponse) => {
     switch (request.message) {
+      case 'load':
+        this.handleLoad();
+        return false;
       case 'fetchPlayers':
         this.handleFetchPlayers(request, sender, sendResponse);
         return true;
@@ -15,6 +18,25 @@ function MessageHandler() {
       default:
         return false;
     }
+  };
+
+  this.handleLoad = () => {
+    let activeTab;
+    const utils = new Utils();
+    utils.getActiveTab()
+      .then(tab => {
+        activeTab = tab;
+        return utils.isExtensionOn((new URL(activeTab.url)).hostname);
+      })
+      .then(isExtensionOnForDomain => {
+        if (isExtensionOnForDomain) {
+          utils.messageActiveTab({message: 'start'});
+          chrome.browserAction.setIcon({path: '../assets/active32.png', tabId: activeTab.id});
+        } else {
+          utils.messageActiveTab({message: 'stop'});
+          chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: activeTab.id});
+        }
+      });
   };
 
   this.handleFetchPlayers = (request, sender, sendResponse) => {

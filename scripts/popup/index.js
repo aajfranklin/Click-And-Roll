@@ -17,7 +17,7 @@ window.addEventListener('click',function(e){
     popup.toggleCheckbox('extension-toggle');
     utils.getActiveTab()
       .then(tab => {
-        popup.toggleSetting('clickAndRoll', (new URL(tab.url)).hostname)
+        popup.toggleSetting('clickAndRoll', tab)
       });
   }
 
@@ -29,7 +29,7 @@ window.addEventListener('click',function(e){
     utils.getActiveTab()
       .then(tab => {
         const domain = (new URL(tab.url)).hostname;
-        popup.toggleSetting(domain, domain);
+        popup.toggleSetting(domain, tab);
       });
   }
 });

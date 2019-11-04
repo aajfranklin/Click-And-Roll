@@ -10,21 +10,25 @@ function Popup() {
     }
   };
 
-  this.toggleSetting = (setting, activeTabDomain) => {
+  this.toggleSetting = (setting, tab) => {
     return this.utils.isSettingOn(setting)
       .then(isSettingOn => {
         if (isSettingOn) {
           return this.utils.saveToSyncStorage(setting, '')
             .then(() => {
               this.utils.messageActiveTab({message: 'stop'});
+              chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: tab.id});
             })
         } else {
           return this.utils.saveToSyncStorage(setting, 'true')
             .then(() => {
-              return this.utils.isExtensionOn(activeTabDomain);
+              return this.utils.isExtensionOn((new URL(tab.url)).hostname);
             })
             .then(isExtensionOnForDomain => {
-              if (isExtensionOnForDomain) this.utils.messageActiveTab({message: 'start'});
+              if (isExtensionOnForDomain) {
+                this.utils.messageActiveTab({message: 'start'});
+                chrome.browserAction.setIcon({path: '../assets/active32.png', tabId: tab.id});
+              }
             });
         }
       })
