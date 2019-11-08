@@ -32,10 +32,10 @@ function MessageHandler() {
       .then(isExtensionOnForDomain => {
         if (isExtensionOnForDomain) {
           this.utils.messageActiveTab({message: 'start'});
-          chrome.browserAction.setIcon({path: '../assets/active32.png', tabId: activeTab.id});
+          chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: activeTab.id});
         } else {
           this.utils.messageActiveTab({message: 'stop'});
-          chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: activeTab.id});
+          chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: activeTab.id});
         }
         if (sendResponse) sendResponse([null, null]);
       });

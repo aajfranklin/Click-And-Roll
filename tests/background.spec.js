@@ -161,7 +161,7 @@ describe('Background Scripts', () => {
             expect(messageActiveTabStub.calledOnce).to.equal(true);
             expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
             expect(setIconStub.calledOnce).to.equal(true);
-            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/active32.png', tabId: 'test'}]);
+            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}]);
           });
       });
 
@@ -174,7 +174,7 @@ describe('Background Scripts', () => {
             expect(messageActiveTabStub.calledOnce).to.equal(true);
             expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
             expect(setIconStub.calledOnce).to.equal(true);
-            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/inactive32.png', tabId: 'test'}]);
+            expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}]);
           });
       });
 

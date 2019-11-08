@@ -17,7 +17,7 @@ function Popup() {
           return this.utils.saveToSyncStorage(setting, '')
             .then(() => {
               this.utils.messageActiveTab({message: 'stop'});
-              chrome.browserAction.setIcon({path: '../assets/inactive32.png', tabId: tab.id});
+              chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: tab.id});
             })
         } else {
           return this.utils.saveToSyncStorage(setting, 'true')
@@ -27,7 +27,7 @@ function Popup() {
             .then(isExtensionOnForDomain => {
               if (isExtensionOnForDomain) {
                 this.utils.messageActiveTab({message: 'start'});
-                chrome.browserAction.setIcon({path: '../assets/active32.png', tabId: tab.id});
+                chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: tab.id});
               }
             });
         }

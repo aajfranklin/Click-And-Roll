@@ -8,17 +8,17 @@ Click and Roll is a chrome extension that lets you hover over an NBA player's na
 
 Click and Roll highlights a recognised player name in a teal font. Hover over the name to see the player's stats. Here's how it looks in action:
 
-![Click and Roll hover demo](assets/demo1.gif)
+![Click and Roll hover demo](assets/animated/demo1.gif)
 
 Dismiss the overlay by clicking the close button, hovering over a different player's name, or clicking anywhere outside the overlay:
 
-![Click and Roll dismiss demo](assets/demo2.gif)
+![Click and Roll dismiss demo](assets/animated/demo2.gif)
 
 ### Toggle Click and Roll globally or for individual websites
 
 Use the Click and Roll options menu to toggle it on or off, globally or for individual sites:
 
-![Click and Roll toggle demo](assets/demo3.gif)
+![Click and Roll toggle demo](assets/animated/demo3.gif)
 
 ## Future Features
 

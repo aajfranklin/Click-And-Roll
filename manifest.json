@@ -3,7 +3,7 @@
   "name": "Click and Roll",
   "version": "0.1",
   "icons": {
-    "128": "./assets/clickAndRoll.png"
+    "128": "./assets/static/clickAndRoll.png"
   },
   "content_scripts": [
     {
@@ -34,7 +34,7 @@
     ]
   },
   "browser_action": {
-    "default_icon": "./assets/clickAndRoll.png",
+    "default_icon": "./assets/static/clickAndRoll.png",
     "default_popup": "./view/popup.html",
     "default_title": "Click and Roll"
   },

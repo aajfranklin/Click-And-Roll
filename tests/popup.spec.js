@@ -117,7 +117,7 @@ describe('Popup', () => {
           expect(messageActiveTabStub.calledOnce).to.equal(true);
           expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
           expect(chromeSetIconStub.calledOnce).to.equal(true);
-          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/inactive32.png', tabId: 'test'}])
+          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
         })
     });
 
@@ -134,7 +134,7 @@ describe('Popup', () => {
           expect(messageActiveTabStub.calledOnce).to.equal(true);
           expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
           expect(chromeSetIconStub.calledOnce).to.equal(true);
-          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/active32.png', tabId: 'test'}])
+          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
         });
     });
 
