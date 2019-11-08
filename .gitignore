@@ -5,3 +5,4 @@ background/endpointAnalysis.js
 sandbox/
 tests/node_modules
 build/
+stats/
