@@ -176,7 +176,7 @@ describe('Background Scripts', () => {
       let messageActiveTabStub;
       let setIconStub;
 
-      let testTab
+      let testTab;
 
       before(() => {
         chrome.browserAction = {
@@ -385,53 +385,76 @@ describe('Background Scripts', () => {
 
     describe('handleFetchStats', () => {
 
+      let applyRateLimitStub;
       let fetchCareerStatsStub;
       let fetchCommonPlayerInfoStub;
       let getCareerHTMLStub;
       let getProfileHTMLStub;
+      let saveToStorageStub;
       let sendResponseSpy;
 
       before(() => {
+        applyRateLimitStub = sinon.stub(messageHandler, 'applyRateLimit');
         fetchCareerStatsStub = sinon.stub(messageHandler, 'fetchCareerStats');
         fetchCommonPlayerInfoStub = sinon.stub(messageHandler, 'fetchCommonPlayerInfo');
         getCareerHTMLStub = sinon.stub(messageHandler, 'getCareerHTML');
         getProfileHTMLStub = sinon.stub(messageHandler, 'getProfileHTML');
+        saveToStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
 
         sendResponseSpy = sinon.spy();
 
+        applyRateLimitStub.resolves(null);
         fetchCareerStatsStub.resolves(null);
         fetchCommonPlayerInfoStub.resolves(null);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
+        saveToStorageStub.returns(null);
       });
 
       afterEach(() => {
+        applyRateLimitStub.resetHistory();
         fetchCareerStatsStub.resetHistory();
         fetchCommonPlayerInfoStub.resetHistory();
         getCareerHTMLStub.resetHistory();
         getProfileHTMLStub.resetHistory();
+        saveToStorageStub.resetHistory();
 
         sendResponseSpy.resetHistory();
 
+        applyRateLimitStub.resolves(null);
         fetchCareerStatsStub.resolves(null);
         fetchCommonPlayerInfoStub.resolves(null);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
+        saveToStorageStub.returns(null);
       });
 
       after(() => {
+        applyRateLimitStub.restore();
         fetchCareerStatsStub.restore();
         fetchCommonPlayerInfoStub.restore();
         getCareerHTMLStub.restore();
         getProfileHTMLStub.restore();
+        saveToStorageStub.restore();
       });
 
-      it('should call fetchCareerStats with request playerId', () => {
+      it('should call applyRateLimit', () => {
         return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
           .then(() => {
-            expect(fetchCareerStatsStub.calledOnce).to.equal(true);
-            expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+            expect(applyRateLimitStub.calledOnce).to.equal(true);
           })
+      });
+
+      describe('if applyRateLimit resolves', () => {
+
+        it('should call fetchCareerStats with request playerId', () => {
+          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+            .then(() => {
+              expect(fetchCareerStatsStub.calledOnce).to.equal(true);
+              expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+            })
+        });
+
       });
 
       describe('if fetchCareerStats resolves', () => {
@@ -513,6 +536,63 @@ describe('Background Scripts', () => {
         });
 
       });
+
+    });
+
+    describe('applyRateLimit', () => {
+
+      let dateNowStub;
+      let setTimeoutSpy;
+
+      before(() => {
+        dateNowStub = sinon.stub(Date, 'now');
+        setTimeoutSpy = sinon.spy(window, 'setTimeout');
+
+        dateNowStub.returns(0);
+      });
+
+      afterEach(() => {
+        dateNowStub.returns(0);
+
+        dateNowStub.resetHistory();
+        setTimeoutSpy.resetHistory();
+      });
+
+      after(() => {
+        dateNowStub.restore();
+      });
+
+      it('should call setTimeout with interval of 0 if last call was over three seconds ago', () => {
+        dateNowStub.returns(3001);
+
+        chrome.storage = {
+          local: {
+            get: (timestamp, callback) => callback({timestamp: 0})
+          }
+        };
+
+        return messageHandler.applyRateLimit()
+          .then(() => {
+            expect(setTimeoutSpy.calledOnce).to.equal(true);
+            expect(setTimeoutSpy.firstCall.args[1]).to.equal(0);
+          });
+      });
+
+      it('should call setTimeout with difference between gap and three seconds if last call was under three seconds ago', () => {
+        dateNowStub.returns(2999);
+
+        chrome.storage = {
+          local: {
+            get: (timestamp, callback) => callback({timestamp: 0})
+          }
+        };
+
+        return messageHandler.applyRateLimit()
+          .then(() => {
+            expect(setTimeoutSpy.calledOnce).to.equal(true);
+            expect(setTimeoutSpy.firstCall.args[1]).to.equal(1);
+          });
+      })
 
     });
 

@@ -29,7 +29,6 @@ The order and number of features added will depend on user demand. Possible feat
 - An advanced stats tab
 - Player accolades/awards in the player profile
 - Choice of player name highlight colour (including none)
-- 'Performance mode'
 
 ## Requirements
 
