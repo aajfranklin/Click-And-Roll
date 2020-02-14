@@ -103,7 +103,11 @@ function MessageHandler() {
   this.handleFetchStats = (request, sendResponse) => {
     const stats = {id: request.playerId};
 
-    return this.fetchCareerStats(request.playerId)
+    return this.applyRateLimit()
+      .then(() => {
+        this.utils.saveToLocalStorage('timestamp', Date.now());
+        return this.fetchCareerStats(request.playerId);
+      })
       .then(response => {
         stats.careerHTML = this.getCareerHTML(response);
         return this.fetchCommonPlayerInfo(request.playerId);
@@ -118,6 +122,15 @@ function MessageHandler() {
       .catch(err => {
         sendResponse([err, null]);
       });
+  };
+
+  this.applyRateLimit = () => {
+    return new Promise(resolve => {
+      chrome.storage.local.get(['timestamp'], (result) => {
+        const timeout = Math.max(0, 3000 - (Date.now() - result.timestamp));
+        setTimeout(resolve, timeout);
+      });
+    });
   };
 
   this.fetchCareerStats = (playerId) => {
