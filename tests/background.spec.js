@@ -4,28 +4,89 @@ describe('Background Scripts', () => {
 
     const messageHandler = new MessageHandler();
 
-    describe('addListener', () => {
-
-      let chromeAddListenerStub;
+    describe('addListeners', () => {
+      let onBeforeSendHeadersStub;
+      let onMessageStub;
+      let onActivatedStub;
 
       before(() => {
+
+        chrome.webRequest = {onBeforeSendHeaders: {addListener: () => {}}};
         chrome.runtime.onMessage = {addListener: () => {}};
-        chromeAddListenerStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
-        chromeAddListenerStub.returns(null);
+        chrome.tabs = {onActivated: {addListener: () => {}}};
+
+        onBeforeSendHeadersStub = sinon.stub(chrome.webRequest.onBeforeSendHeaders, 'addListener');
+        onMessageStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
+        onActivatedStub = sinon.stub(chrome.tabs.onActivated, 'addListener');
+
+        onBeforeSendHeadersStub.returns(null);
+        onMessageStub.returns(null);
+        onActivatedStub.returns(null);
       });
 
       afterEach(() => {
-        chromeAddListenerStub.resetHistory();
+        onBeforeSendHeadersStub.resetHistory();
+        onMessageStub.resetHistory();
+        onActivatedStub.resetHistory();
       });
 
       after(() => {
-        chromeAddListenerStub.restore();
+        onBeforeSendHeadersStub.restore();
+        onMessageStub.restore();
+        onActivatedStub.restore();
       });
 
       it('should call chrome runtime on message add listener with correct listener', () => {
-        messageHandler.addListener();
-        expect(chromeAddListenerStub.calledOnce).to.equal(true);
-        expect(chromeAddListenerStub.withArgs(messageHandler.handleMessage).calledOnce).to.equal(true);
+        const onBeforeSendHeadersArgs = [messageHandler.setRequestHeaders, {urls: ['https://stats.nba.com/stats/*']}, ['requestHeaders', 'blocking', 'extraHeaders']];
+
+        messageHandler.addListeners();
+        expect(onBeforeSendHeadersStub.calledOnce).to.equal(true);
+        expect(onBeforeSendHeadersStub.firstCall.args).to.deep.equal(onBeforeSendHeadersArgs);
+        expect(onMessageStub.calledOnce).to.equal(true);
+        expect(onMessageStub.firstCall.args[0]).to.equal(messageHandler.handleMessage);
+        expect(onActivatedStub.calledOnce).to.equal(true);
+        expect(onActivatedStub.firstCall.args[0]).to.equal(messageHandler.handleLoad);
+      });
+
+    });
+
+    describe('setRequestHeaders', () => {
+
+      it ('should change the referer if present', () => {
+        const webRequestDetails = {
+          requestHeaders: [
+            {name: 'someHeader', value: 'someValue'},
+            {name: 'Referer', value: 'http://test'}
+          ]
+        };
+
+        const expected = {requestHeaders: [
+          {name: 'someHeader', value: 'someValue'},
+          {name: 'Referer', value: 'https://stats.nba.com'},
+          {name: 'x-nba-stats-origin', value: 'stats'},
+          {name: 'x-nba-stats-token', value: 'true'}
+        ]};
+
+        const result = messageHandler.setRequestHeaders(webRequestDetails);
+        expect(result).to.deep.equal(expected);
+      });
+
+      it ('add the referer if not present', () => {
+        const webRequestDetails = {
+          requestHeaders: [
+            {name: 'someHeader', value: 'someValue'},
+          ]
+        };
+
+        const expected = {requestHeaders: [
+            {name: 'someHeader', value: 'someValue'},
+            {name: 'Referer', value: 'https://stats.nba.com'},
+            {name: 'x-nba-stats-origin', value: 'stats'},
+            {name: 'x-nba-stats-token', value: 'true'}
+          ]};
+
+        const result = messageHandler.setRequestHeaders(webRequestDetails);
+        expect(result).to.deep.equal(expected);
       });
 
     });
