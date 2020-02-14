@@ -65,11 +65,10 @@ function ClickAndRoll() {
           return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
             .then(fetchedPlayers => {
               this.utils.saveToLocalStorage('players', fetchedPlayers);
-              resolve(fetchedPlayers);
+              return resolve(fetchedPlayers);
             })
-        } else {
-          resolve(result.players);
         }
+        return resolve(result.players);
       });
     });
   };

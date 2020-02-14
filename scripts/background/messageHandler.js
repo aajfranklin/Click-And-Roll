@@ -88,7 +88,8 @@ function MessageHandler() {
           LeagueID: '00',
           Season: '2018-19',
           IsOnlyCurrentSeason: '0'
-        }
+        },
+        cache: false
       })
   };
 
@@ -102,27 +103,75 @@ function MessageHandler() {
   };
 
   this.handleFetchStats = (request, sendResponse) => {
-    const stats = {id: request.playerId};
+    let cacheRecords;
+    const id = request.playerId;
+
+    this.getCacheRecords()
+      .then(result => {
+        cacheRecords = result;
+        if (!cacheRecords.length) return this.fetchNonCachedStats(id);
+
+        const player = cacheRecords.filter(player => player.id === id)[0] || null;
+        const statsInCacheAndCurrent = player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
+
+        if (!statsInCacheAndCurrent) return this.fetchNonCachedStats(id);
+        return this.fetchCachedStats(id);
+      })
+      .then(stats => {
+        this.cacheStats(stats, id, cacheRecords);
+        sendResponse([null, stats]);
+      })
+      .catch(err => {
+        sendResponse([err, null]);
+      });
+  };
+
+  this.getCacheRecords = () => {
+    return new Promise(resolve => {
+      chrome.storage.local.get(['cached-players'], result => {
+        if (!result || $.isEmptyObject(result)) {
+          this.utils.saveToLocalStorage('cached-players', []);
+          return resolve([]);
+        }
+        const cachedPlayers = result['cached-players'];
+        return resolve(cachedPlayers.length >= 50 ? cachedPlayers.splice(25, 25) : cachedPlayers);
+      });
+    });
+  };
+
+  this.fetchCachedStats = (id) => {
+    return new Promise(resolve => {
+      chrome.storage.local.get([`player-${id}`], result => {
+        return resolve(result[`player-${id}`]);
+      });
+    });
+  };
+
+  this.fetchNonCachedStats = (id) => {
+    const stats = {id};
 
     return this.applyRateLimit()
       .then(() => {
         this.utils.saveToLocalStorage('timestamp', Date.now());
-        return this.fetchCareerStats(request.playerId);
+        return this.fetchCareerStats(id);
       })
       .then(response => {
         stats.careerHTML = this.getCareerHTML(response);
-        return this.fetchCommonPlayerInfo(request.playerId);
+        return this.fetchCommonPlayerInfo(id);
       })
       .then(response => {
         return this.getProfileHTML(response);
       })
       .then(profileHTML => {
         stats.profileHTML = profileHTML;
-        sendResponse([null, stats]);
+        return stats;
       })
-      .catch(err => {
-        sendResponse([err, null]);
-      });
+  };
+
+  this.cacheStats = (stats, id, records) => {
+    const newRecord = [{id, timestamp: Date.now()}];
+    this.utils.saveToLocalStorage(`player-${id}`, stats);
+    this.utils.saveToLocalStorage('cached-players', records.filter(player => player.id !== id).concat(newRecord));
   };
 
   this.applyRateLimit = () => {
@@ -142,7 +191,8 @@ function MessageHandler() {
           LeagueID: '00',
           PerMode: 'PerGame',
           PlayerID: playerId
-        }
+        },
+        cache: false
       })
   };
 
@@ -203,7 +253,8 @@ function MessageHandler() {
         data: {
           LeagueID: '00',
           PlayerID: playerId
-        }
+        },
+        cache: false
       })
   };
 

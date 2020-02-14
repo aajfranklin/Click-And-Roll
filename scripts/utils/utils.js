@@ -16,7 +16,7 @@ function Utils() {
   this.getActiveTab = () => {
     return new Promise(resolve => {
       chrome.tabs.query({active: true, currentWindow: true}, (tabs) =>{
-        resolve(tabs[0]);
+        return resolve(tabs[0]);
       });
     });
   };
@@ -44,7 +44,7 @@ function Utils() {
   this.saveToSyncStorage = (name, value) => {
     return new Promise(resolve => {
       chrome.storage.sync.set({[name]: value}, () => {
-        resolve();
+        return resolve();
       });
     });
   };
@@ -53,9 +53,9 @@ function Utils() {
     return new Promise(resolve => {
       chrome.storage.sync.get(setting, result => {
         if ($.isEmptyObject(result)) {
-          resolve(true);
+          return resolve(true);
         }
-        resolve(!!result[setting]);
+        return resolve(!!result[setting]);
       });
     });
   };
