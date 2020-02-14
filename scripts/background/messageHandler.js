@@ -56,7 +56,7 @@ function MessageHandler() {
     return this.utils.getActiveTab()
       .then(tab => {
         activeTab = tab;
-        return this.utils.isExtensionOn((new URL(activeTab.url)).hostname);
+        return this.utils.isExtensionOn(this.utils.getTabUrl(activeTab));
       })
       .then(isExtensionOnForDomain => {
         if (isExtensionOnForDomain) {

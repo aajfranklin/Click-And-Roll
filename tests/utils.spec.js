@@ -70,6 +70,21 @@ describe('Utils', () => {
 
   });
 
+  describe('getTabUrl', () => {
+
+    it('should return tab host name if not empty tab', () => {
+      expect(testUtils.getTabUrl({url: 'https://www.testhost.com/etc'})).to.equal('www.testhost.com');
+    });
+
+    it('should return \'chrome://newtab/\' if empty tab', () => {
+      expect(testUtils.getTabUrl({url: ''})).to.equal('chrome://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://newtab/'})).to.equal('chrome://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://new-tab-page/'})).to.equal('chrome://newtab/');
+      expect(testUtils.getTabUrl(undefined)).to.equal('chrome://newtab/');
+    });
+
+  });
+
   describe('messageActiveTab', () => {
 
     let sendMessageSpy;

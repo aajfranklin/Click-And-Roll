@@ -70,9 +70,11 @@ describe('Popup', () => {
 
     before(() => {
       testTab = {
-        url: 'https://www.testurl.com/test',
+        url: 'https://www.test.com/test',
         id: 'test'
       };
+
+      testPopup.tab = testTab;
 
       chrome.browserAction = {
         setIcon: () => {}
@@ -105,12 +107,13 @@ describe('Popup', () => {
       chromeSetIconStub.restore();
 
       delete chrome.browserAction;
+      testPopup.tab = null;
     });
 
     it('should save setting as \'\', send \'stop\' message, and set inactive icon if setting is on', () => {
       isSettingOnStub.resolves(true);
       saveToSyncStorageStub.resolves(true);
-      return testPopup.toggleSetting('testSetting', testTab)
+      return testPopup.toggleSetting('testSetting')
         .then(() => {
           expect(saveToSyncStorageStub.calledOnce).to.equal(true);
           expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', '']);
@@ -125,12 +128,12 @@ describe('Popup', () => {
       isSettingOnStub.resolves(false);
       saveToSyncStorageStub.resolves(true);
       isExtensionOnStub.resolves(true);
-      return testPopup.toggleSetting('testSetting', testTab)
+      return testPopup.toggleSetting('testSetting')
         .then(() => {
           expect(saveToSyncStorageStub.calledOnce).to.equal(true);
           expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', 'true']);
           expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.testurl.com']);
+          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
           expect(messageActiveTabStub.calledOnce).to.equal(true);
           expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
           expect(chromeSetIconStub.calledOnce).to.equal(true);
@@ -142,12 +145,12 @@ describe('Popup', () => {
       isSettingOnStub.resolves(false);
       saveToSyncStorageStub.resolves(true);
       isExtensionOnStub.resolves(false);
-      return testPopup.toggleSetting('testSetting', testTab)
+      return testPopup.toggleSetting('testSetting')
         .then(() => {
           expect(saveToSyncStorageStub.calledOnce).to.equal(true);
           expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', 'true']);
           expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.testurl.com']);
+          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
           expect(messageActiveTabStub.notCalled).to.equal(true);
           expect(chromeSetIconStub.notCalled).to.equal(true);
         });
@@ -177,12 +180,15 @@ describe('Popup', () => {
     let getActiveTabStub;
     let isSettingOnStub;
     let toggleCheckboxStub;
+    let testTab;
 
     before(() => {
-      getActiveTabStub = sinon.stub(testPopup.utils, 'getActiveTab').resolves({
-        url: 'https://www.test.com'
-      });
+      testTab = {
+        url: 'https://www.test.com/test',
+        id: 'test'
+      };
 
+      getActiveTabStub = sinon.stub(testPopup.utils, 'getActiveTab').resolves(testTab);
       isSettingOnStub = sinon.stub(testPopup.utils, 'isSettingOn');
       toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
     });
@@ -197,6 +203,15 @@ describe('Popup', () => {
       getActiveTabStub.restore();
       isSettingOnStub.restore();
       toggleCheckboxStub.restore();
+    });
+
+    it('should set the tab', () => {
+      isSettingOnStub.withArgs('www.test.com').resolves(true);
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      return testPopup.initialiseSettings()
+        .then(() => {
+          expect(testPopup.tab).to.equal(testTab);
+        })
     });
 
     it('should toggle both toggles if both are on', () => {
@@ -245,7 +260,6 @@ describe('Popup', () => {
 
     let addToggleAnimationStub;
     let toggleCheckboxStub;
-    let getActiveTabStub;
     let toggleSettingStub;
     let chromeCreateTabStub;
 
@@ -257,23 +271,21 @@ describe('Popup', () => {
       };
 
       testTab = {
-        url: 'https://www.testurl.com/test',
+        url: 'https://www.test.com/test',
         id: 'test'
       };
 
+      testPopup.tab = testTab;
+
       addToggleAnimationStub = sinon.stub(testPopup, 'addToggleAnimation');
       toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
-      getActiveTabStub = sinon.stub (testPopup.utils, 'getActiveTab');
       toggleSettingStub = sinon.stub(testPopup, 'toggleSetting');
       chromeCreateTabStub = sinon.stub(chrome.tabs, 'create');
-
-      getActiveTabStub.resolves(testTab);
     });
 
     afterEach(() => {
       addToggleAnimationStub.resetHistory();
       toggleCheckboxStub.resetHistory();
-      getActiveTabStub.resetHistory();
       toggleSettingStub.resetHistory();
       chromeCreateTabStub.resetHistory();
     });
@@ -281,9 +293,10 @@ describe('Popup', () => {
     after(() => {
       addToggleAnimationStub.restore();
       toggleCheckboxStub.restore();
-      getActiveTabStub.restore();
       toggleSettingStub.restore();
       chromeCreateTabStub.restore();
+
+      testPopup.tab = null;
     });
 
     it('should add the toggle animation if target id contains toggle and animation not present', () => {
@@ -298,10 +311,8 @@ describe('Popup', () => {
         }
       };
 
-      return testPopup.handleClick(e)
-        .then(() => {
-          expect(addToggleAnimationStub.calledOnce).to.equal(true);
-        });
+      testPopup.handleClick(e);
+      expect(addToggleAnimationStub.calledOnce).to.equal(true);
     });
 
     it('should toggle extension slider and setting if target is extension toggle', () => {
@@ -316,14 +327,11 @@ describe('Popup', () => {
         }
       };
 
-      return testPopup.handleClick(e)
-        .then(() => {
-          expect(toggleCheckboxStub.calledOnce).to.equal(true);
-          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['extension-toggle']);
-          expect(getActiveTabStub.calledOnce).to.equal(true);
-          expect(toggleSettingStub.calledOnce).to.equal(true);
-          expect(toggleSettingStub.firstCall.args).to.deep.equal(['clickAndRoll', testTab]);
-        });
+      testPopup.handleClick(e);
+      expect(toggleCheckboxStub.calledOnce).to.equal(true);
+      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['extension-toggle']);
+      expect(toggleSettingStub.calledOnce).to.equal(true);
+      expect(toggleSettingStub.firstCall.args).to.deep.equal(['clickAndRoll']);
     });
 
     it('should toggle domain slider and setting if target is domain toggle', () => {
@@ -338,31 +346,27 @@ describe('Popup', () => {
         }
       };
 
-      return testPopup.handleClick(e)
-        .then(() => {
-          expect(toggleCheckboxStub.calledOnce).to.equal(true);
-          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-toggle']);
-          expect(getActiveTabStub.calledOnce).to.equal(true);
-          expect(toggleSettingStub.calledOnce).to.equal(true);
-          expect(toggleSettingStub.firstCall.args).to.deep.equal(['www.testurl.com', testTab]);
-        });
+      testPopup.handleClick(e);
+      expect(toggleCheckboxStub.calledOnce).to.equal(true);
+      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-toggle']);
+      expect(toggleSettingStub.calledOnce).to.equal(true);
+      expect(toggleSettingStub.firstCall.args).to.deep.equal(['www.test.com']);
     });
 
     it('should open target href in new tab if target is not a toggle and has an href', () => {
       const e = {
         target: {
           id: 'other',
-          href: 'https://www.testurl.com/test'
+          href: 'https://www.test.com/test'
         }
       };
 
       testPopup.handleClick(e);
       expect(addToggleAnimationStub.notCalled).to.equal(true);
       expect(toggleCheckboxStub.notCalled).to.equal(true);
-      expect(getActiveTabStub.notCalled).to.equal(true);
       expect(toggleSettingStub.notCalled).to.equal(true);
       expect(chromeCreateTabStub.calledOnce).to.equal(true);
-      expect(chromeCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.testurl.com/test'}]);
+      expect(chromeCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.test.com/test'}]);
     });
 
   });

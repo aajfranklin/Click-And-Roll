@@ -21,6 +21,16 @@ function Utils() {
     });
   };
 
+  this.getTabUrl = (tab) => {
+    const isEmptyTab = tab === undefined
+      || tab.url === ''
+      || tab.url === ('chrome://new-tab-page/')
+      || tab.url === 'chrome://newtab/';
+    return isEmptyTab
+      ? 'chrome://newtab/'
+      : (new URL(tab.url)).hostname
+  };
+
   this.messageActiveTab = (request) => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, request)

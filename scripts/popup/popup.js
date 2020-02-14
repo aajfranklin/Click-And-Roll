@@ -1,5 +1,6 @@
 function Popup() {
   this.utils = new Utils();
+  this.tab = null;
 
   this.toggleCheckbox = (id) => {
     const checkbox = document.getElementById(id);
@@ -10,28 +11,28 @@ function Popup() {
     }
   };
 
-  this.toggleSetting = (setting, tab) => {
+  this.toggleSetting = (setting) => {
     return this.utils.isSettingOn(setting)
       .then(isSettingOn => {
         if (isSettingOn) {
           return this.utils.saveToSyncStorage(setting, '')
             .then(() => {
               this.utils.messageActiveTab({message: 'stop'});
-              chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: tab.id});
+              chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: this.tab.id});
             })
         } else {
           return this.utils.saveToSyncStorage(setting, 'true')
             .then(() => {
-              return this.utils.isExtensionOn((new URL(tab.url)).hostname);
+              return this.utils.isExtensionOn(this.utils.getTabUrl(this.tab));
             })
             .then(isExtensionOnForDomain => {
               if (isExtensionOnForDomain) {
                 this.utils.messageActiveTab({message: 'start'});
-                chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: tab.id});
+                chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: this.tab.id});
               }
             });
         }
-      })
+      });
   };
 
   this.addToggleAnimation = (slider) => {
@@ -42,7 +43,8 @@ function Popup() {
   this.initialiseSettings = () => {
     return this.utils.getActiveTab()
       .then(tab => {
-        return this.utils.isSettingOn((new URL(tab.url)).hostname);
+        this.tab = tab;
+        return this.utils.isSettingOn(this.utils.getTabUrl(this.tab));
       })
       .then(isOn => {
         if (isOn) this.toggleCheckbox('domain-toggle');
@@ -66,13 +68,7 @@ function Popup() {
       }
 
       this.toggleCheckbox(id);
-      return this.utils.getActiveTab()
-        .then(tab => {
-          const setting = id === 'extension-toggle'
-            ? 'clickAndRoll'
-            : (new URL(tab.url)).hostname;
-          this.toggleSetting(setting, tab);
-        });
+      this.toggleSetting(id === 'extension-toggle' ? 'clickAndRoll' : this.utils.getTabUrl(this.tab));
     }
 
     if (targetIsLink) chrome.tabs.create({url: e.target.href});
