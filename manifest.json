@@ -40,7 +40,10 @@
   },
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "https://stats.nba.com/stats/*"
   ],
   "web_accessible_resources": [
     "view/frame.html",

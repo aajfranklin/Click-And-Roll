@@ -2,8 +2,36 @@ function MessageHandler() {
 
   this.utils = new Utils();
 
-  this.addListener = () => {
+  this.addListeners = () => {
+    const filter = {urls: ['https://stats.nba.com/stats/*']};
+    const extraInfoSpec = ['requestHeaders', 'blocking', 'extraHeaders'];
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(this.setRequestHeaders, filter, extraInfoSpec);
     chrome.runtime.onMessage.addListener(this.handleMessage);
+    chrome.tabs.onActivated.addListener(this.handleLoad);
+  };
+
+  this.setRequestHeaders = (requestDetails) => {
+    let hasReferer = false;
+    const newReferer = 'https://stats.nba.com';
+    const headers = requestDetails.requestHeaders;
+
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].name.toLowerCase() === 'referer') {
+        headers[i].value = newReferer;
+        hasReferer = true;
+        break;
+      }
+    }
+
+    if (!hasReferer) {
+      headers.push({name: 'Referer', value: newReferer});
+    }
+
+    headers.push({name: 'x-nba-stats-origin', value: 'stats'});
+    headers.push({name: 'x-nba-stats-token', value: 'true'});
+
+    return {requestHeaders: headers}
   };
 
   this.handleMessage = (request, sender, sendResponse) => {
