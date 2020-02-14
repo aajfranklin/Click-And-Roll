@@ -5,6 +5,7 @@ describe('Background Scripts', () => {
     const messageHandler = new MessageHandler();
 
     describe('addListeners', () => {
+      let handleLoadStub;
       let onBeforeSendHeadersStub;
       let onMessageStub;
       let onActivatedStub;
@@ -15,22 +16,26 @@ describe('Background Scripts', () => {
         chrome.runtime.onMessage = {addListener: () => {}};
         chrome.tabs = {onActivated: {addListener: () => {}}};
 
+        handleLoadStub = sinon.stub(messageHandler, 'handleLoad');
         onBeforeSendHeadersStub = sinon.stub(chrome.webRequest.onBeforeSendHeaders, 'addListener');
         onMessageStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
         onActivatedStub = sinon.stub(chrome.tabs.onActivated, 'addListener');
 
+        handleLoadStub.returns(null);
         onBeforeSendHeadersStub.returns(null);
         onMessageStub.returns(null);
         onActivatedStub.returns(null);
       });
 
       afterEach(() => {
+        handleLoadStub.resetHistory();
         onBeforeSendHeadersStub.resetHistory();
         onMessageStub.resetHistory();
         onActivatedStub.resetHistory();
       });
 
       after(() => {
+        handleLoadStub.restore();
         onBeforeSendHeadersStub.restore();
         onMessageStub.restore();
         onActivatedStub.restore();
@@ -45,7 +50,9 @@ describe('Background Scripts', () => {
         expect(onMessageStub.calledOnce).to.equal(true);
         expect(onMessageStub.firstCall.args[0]).to.equal(messageHandler.handleMessage);
         expect(onActivatedStub.calledOnce).to.equal(true);
-        expect(onActivatedStub.firstCall.args[0]).to.equal(messageHandler.handleLoad);
+        expect(handleLoadStub.calledOnce).to.equal(false);
+        onActivatedStub.firstCall.args[0]();
+        expect(handleLoadStub.calledOnce).to.equal(true);
       });
 
     });

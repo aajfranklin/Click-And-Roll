@@ -8,7 +8,8 @@ function MessageHandler() {
 
     chrome.webRequest.onBeforeSendHeaders.addListener(this.setRequestHeaders, filter, extraInfoSpec);
     chrome.runtime.onMessage.addListener(this.handleMessage);
-    chrome.tabs.onActivated.addListener(this.handleLoad);
+    // pass in anon function invoking handleLoad, rather than handleLoad itself, so that we don't pass onActivated result to handleLoad
+    chrome.tabs.onActivated.addListener(() => this.handleLoad());
   };
 
   this.setRequestHeaders = (requestDetails) => {
