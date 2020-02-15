@@ -570,6 +570,7 @@ describe('Content Scripts', () => {
 
     describe('getPlayers', () => {
 
+      let getFromLocalStorageStub;
       let sendRuntimeMessageStub;
       let saveToLocalStorageStub;
       let result;
@@ -577,28 +578,29 @@ describe('Content Scripts', () => {
       before(() => {
         testClickAndRoll = new ClickAndRoll();
 
+        getFromLocalStorageStub = sinon.stub(testClickAndRoll.utils, 'getFromLocalStorage');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         saveToLocalStorageStub = sinon.stub(testClickAndRoll.utils, 'saveToLocalStorage');
 
-        chrome.storage = {
-          local: {
-            get: (input, callback) => callback(result)
-          }
-        }
+        getFromLocalStorageStub.resolves(null);
       });
 
       afterEach(() => {
+        getFromLocalStorageStub.resolves(null);
+
+        getFromLocalStorageStub.resetHistory();
         sendRuntimeMessageStub.resetHistory();
         saveToLocalStorageStub.resetHistory();
       });
 
       after(() => {
+        getFromLocalStorageStub.restore();
         sendRuntimeMessageStub.restore();
         saveToLocalStorageStub.restore();
       });
 
       it('should resolve players fetched from storage if present', () => {
-        result = {players: ['player']};
+        getFromLocalStorageStub.resolves(['player']);
         return testClickAndRoll.getPlayers()
           .then((result) => {
             expect(result).to.deep.equal(['player']);
@@ -606,7 +608,6 @@ describe('Content Scripts', () => {
       });
 
       it('should fetch and resolve players from background script if none stored', () => {
-        result = {};
         sendRuntimeMessageStub.resolves(['player']);
         return testClickAndRoll.getPlayers()
           .then((result) => {

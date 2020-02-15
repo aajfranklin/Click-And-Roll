@@ -562,35 +562,34 @@ describe('Background Scripts', () => {
     describe('applyRateLimit', () => {
 
       let dateNowStub;
+      let getFromLocalStorageStub;
       let setTimeoutSpy;
 
       before(() => {
         dateNowStub = sinon.stub(Date, 'now');
+        getFromLocalStorageStub = sinon.stub(messageHandler.utils, 'getFromLocalStorage');
         setTimeoutSpy = sinon.spy(window, 'setTimeout');
 
+        getFromLocalStorageStub.resolves(null);
         dateNowStub.returns(0);
       });
 
       afterEach(() => {
+        getFromLocalStorageStub.resolves(null);
         dateNowStub.returns(0);
 
+        getFromLocalStorageStub.resetHistory();
         dateNowStub.resetHistory();
         setTimeoutSpy.resetHistory();
       });
 
       after(() => {
+        getFromLocalStorageStub.restore();
         dateNowStub.restore();
       });
 
       it('should call setTimeout with interval of 0 if last call was over three seconds ago', () => {
         dateNowStub.returns(3001);
-
-        chrome.storage = {
-          local: {
-            get: (timestamp, callback) => callback({timestamp: 0})
-          }
-        };
-
         return messageHandler.applyRateLimit()
           .then(() => {
             expect(setTimeoutSpy.calledOnce).to.equal(true);
@@ -600,13 +599,6 @@ describe('Background Scripts', () => {
 
       it('should call setTimeout with difference between gap and three seconds if last call was under three seconds ago', () => {
         dateNowStub.returns(2999);
-
-        chrome.storage = {
-          local: {
-            get: (timestamp, callback) => callback({timestamp: 0})
-          }
-        };
-
         return messageHandler.applyRateLimit()
           .then(() => {
             expect(setTimeoutSpy.calledOnce).to.equal(true);
