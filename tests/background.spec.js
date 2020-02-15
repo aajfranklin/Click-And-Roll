@@ -361,7 +361,8 @@ describe('Background Scripts', () => {
                   LeagueID: '00',
                   Season: '2018-19',
                   IsOnlyCurrentSeason: '0'
-                }
+                },
+                cache: false
               }
             ).calledOnce).to.equal(true);
           });
@@ -392,13 +393,70 @@ describe('Background Scripts', () => {
 
     describe('handleFetchStats', () => {
 
+      it('should fail', () => {
+        expect(false).to.equal(true);
+      })
+
+    });
+
+    describe('getCacheRecords', () => {
+
+      it('should fail', () => {
+        expect(false).to.equal(true);
+      })
+
+    });
+
+    describe('areStatsInCacheAndCurrent', () => {
+
+      let dateNowStub;
+
+      before(() => {
+        dateNowStub = sinon.stub(Date, 'now').returns(3 * 60 * 60 * 1000);
+      });
+
+      after(() => {
+        dateNowStub.restore();
+      });
+
+      it('should return false if cache is empty', () => {
+        const result = messageHandler.areStatsInCacheAndCurrent([], 1);
+        expect(result).to.equal(false);
+      });
+
+      it('should return false if cache has records but not current player', () => {
+        const result = messageHandler.areStatsInCacheAndCurrent([{id: 2}], 1);
+        expect(result).to.equal(false);
+      });
+
+      it('should return false if cache has records and player but timestamp is over three hours old', () => {
+        const result = messageHandler.areStatsInCacheAndCurrent([{id: 1, timestamp: 0}], 1);
+        expect(result).to.equal(false);
+      });
+
+      it('should return true if cache has records and current player', () => {
+        const result = messageHandler.areStatsInCacheAndCurrent([{id: 1, timestamp: 1}], 1);
+        expect(result).to.equal(true);
+      });
+
+    });
+
+    describe('fetchCachedStats', () => {
+
+      it('should fail', () => {
+        expect(false).to.equal(true);
+      })
+
+    });
+
+    describe('fetchNonCachedStats', () => {
+
       let applyRateLimitStub;
       let fetchCareerStatsStub;
       let fetchCommonPlayerInfoStub;
       let getCareerHTMLStub;
       let getProfileHTMLStub;
       let saveToStorageStub;
-      let sendResponseSpy;
 
       before(() => {
         applyRateLimitStub = sinon.stub(messageHandler, 'applyRateLimit');
@@ -407,8 +465,6 @@ describe('Background Scripts', () => {
         getCareerHTMLStub = sinon.stub(messageHandler, 'getCareerHTML');
         getProfileHTMLStub = sinon.stub(messageHandler, 'getProfileHTML');
         saveToStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
-
-        sendResponseSpy = sinon.spy();
 
         applyRateLimitStub.resolves(null);
         fetchCareerStatsStub.resolves(null);
@@ -425,8 +481,6 @@ describe('Background Scripts', () => {
         getCareerHTMLStub.resetHistory();
         getProfileHTMLStub.resetHistory();
         saveToStorageStub.resetHistory();
-
-        sendResponseSpy.resetHistory();
 
         applyRateLimitStub.resolves(null);
         fetchCareerStatsStub.resolves(null);
@@ -446,7 +500,7 @@ describe('Background Scripts', () => {
       });
 
       it('should call applyRateLimit', () => {
-        return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+        return messageHandler.fetchNonCachedStats(1)
           .then(() => {
             expect(applyRateLimitStub.calledOnce).to.equal(true);
           })
@@ -455,7 +509,7 @@ describe('Background Scripts', () => {
       describe('if applyRateLimit resolves', () => {
 
         it('should call fetchCareerStats with request playerId', () => {
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+          return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(fetchCareerStatsStub.calledOnce).to.equal(true);
               expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
@@ -468,7 +522,7 @@ describe('Background Scripts', () => {
 
         it('should call getCareerHTML with fetchCareerStats response', () => {
           fetchCareerStatsStub.resolves('careerStats');
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+          return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getCareerHTMLStub.calledOnce).to.equal(true);
               expect(getCareerHTMLStub.withArgs('careerStats').calledOnce).to.equal(true);
@@ -476,7 +530,7 @@ describe('Background Scripts', () => {
         });
 
         it('should call fetchCommonPlayerInfo with request playerId', () => {
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+          return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
               expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
@@ -487,7 +541,7 @@ describe('Background Scripts', () => {
 
           it('should call getProfileHTML with fetchCommonPlayerInfo response', () => {
             fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
-            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
+            return messageHandler.fetchNonCachedStats(1)
               .then(() => {
                 expect(getProfileHTMLStub.calledOnce).to.equal(true);
                 expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
@@ -496,50 +550,17 @@ describe('Background Scripts', () => {
 
           describe('if getProfileHTML resolves', () => {
 
-            it('should send the response', () => {
+            it('should return stats', () => {
               getCareerHTMLStub.returns('careerStats');
               getProfileHTMLStub.resolves('profileStats');
-              return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
-                .then(() => {
-                  expect(sendResponseSpy.calledOnce).to.equal(true);
-                  expect(sendResponseSpy.withArgs([null, {
-                    id: 1,
-                    careerHTML: 'careerStats',
-                    profileHTML: 'profileStats'
-                  }]).calledOnce).to.equal(true);
-                })
+              return messageHandler.fetchNonCachedStats(1)
+                .then(result => {
+                  expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats'});
+                });
             });
 
           });
 
-        });
-
-        describe('if fetchCommonPlayerInfo rejects', () => {
-
-          it('should send the err', () => {
-            fetchCommonPlayerInfoStub.rejects('err');
-            return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
-              .then(() => {
-                expect(sendResponseSpy.calledOnce).to.equal(true);
-                expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
-                expect(sendResponseSpy.firstCall.args[0][1]).to.equal(null);
-              })
-          });
-
-        });
-
-      });
-
-      describe('if fetchCareerStats rejects', () => {
-
-        it('should send the err', () => {
-          fetchCareerStatsStub.rejects('err');
-          return messageHandler.handleFetchStats({message: 'fetchStats', playerId: 1}, sendResponseSpy)
-            .then(() => {
-              expect(sendResponseSpy.calledOnce).to.equal(true);
-              expect(sendResponseSpy.firstCall.args[0][0].name).to.equal('err');
-              expect(sendResponseSpy.firstCall.args[0][1]).to.equal(null);
-            })
         });
 
       });
@@ -631,7 +652,8 @@ describe('Background Scripts', () => {
                   LeagueID: '00',
                   PerMode: 'PerGame',
                   PlayerID: 1
-                }
+                },
+                cache: false
               }
             ).calledOnce).to.equal(true);
           });
@@ -733,8 +755,9 @@ describe('Background Scripts', () => {
                 data: {
                   LeagueID: '00',
                   PlayerID: 1
-                }
-              }
+                },
+                cache: false
+              },
             ).calledOnce).to.equal(true);
           });
       });

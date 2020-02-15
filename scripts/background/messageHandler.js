@@ -109,13 +109,9 @@ function MessageHandler() {
     this.getCacheRecords()
       .then(result => {
         cacheRecords = result;
-        if (!cacheRecords.length) return this.fetchNonCachedStats(id);
-
-        const player = cacheRecords.filter(player => player.id === id)[0] || null;
-        const statsInCacheAndCurrent = player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
-
-        if (!statsInCacheAndCurrent) return this.fetchNonCachedStats(id);
-        return this.fetchCachedStats(id);
+        return this.areStatsInCacheAndCurrent(cacheRecords, id)
+          ? this.fetchCachedStats(id)
+          : this.fetchNonCachedStats(id);
       })
       .then(stats => {
         this.cacheStats(stats, id, cacheRecords);
@@ -137,6 +133,11 @@ function MessageHandler() {
         return resolve(cachedPlayers.length >= 50 ? cachedPlayers.splice(25, 25) : cachedPlayers);
       });
     });
+  };
+
+  this.areStatsInCacheAndCurrent = (cacheRecords,id) => {
+    const player = cacheRecords.filter(player => player.id === id)[0] || null;
+    return player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
   };
 
   this.fetchCachedStats = (id) => {
