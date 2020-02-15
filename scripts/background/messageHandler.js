@@ -81,7 +81,7 @@ function MessageHandler() {
   };
 
   this.apiGet = (endpoint, params) => {
-    const data = {LeagueId: '00', ...params};
+    const data = {LeagueID: '00', ...params};
     return $.ajax(`https://stats.nba.com/stats/${endpoint}`,
       {
         method: 'GET',
@@ -145,7 +145,7 @@ function MessageHandler() {
       })
       .then(response => {
         stats.careerHTML = this.getCareerHTML(response);
-        return this.apiGet('commonplayerinfo', {PlayerId: id});
+        return this.apiGet('commonplayerinfo', {PlayerID: id});
       })
       .then(response => {
         return this.getProfileHTML(response);

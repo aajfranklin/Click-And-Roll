@@ -259,45 +259,54 @@ describe('Background Scripts', () => {
 
     describe('handleFetchPlayers', () => {
 
-      let fetchPlayersStub;
+      let apiGetStub;
       let formatPlayersStub;
       let sendResponseSpy;
 
       before(() => {
-        fetchPlayersStub = sinon.stub(messageHandler, 'fetchPlayers');
+        apiGetStub = sinon.stub(messageHandler, 'apiGet');
         formatPlayersStub = sinon.stub(messageHandler, 'formatPlayers');
 
-        fetchPlayersStub.resolves(null);
+        apiGetStub.resolves(null);
         formatPlayersStub.returns(null);
 
         sendResponseSpy = sinon.spy();
       });
 
       afterEach(() => {
-        fetchPlayersStub.resolves(null);
+        apiGetStub.resolves(null);
 
-        fetchPlayersStub.resetHistory();
+        apiGetStub.resetHistory();
         formatPlayersStub.resetHistory();
 
         sendResponseSpy.resetHistory();
       });
 
       after(() => {
-        fetchPlayersStub.restore();
+        apiGetStub.restore();
         formatPlayersStub.restore();
       });
 
-      it('should call fetchPlayers', () => {
+      it('should call apiGet with correct args', () => {
+        const expectedArgs = [
+          'commonallplayers',
+          {
+            Season: '2018-19',
+            IsOnlyCurrentSeason: '0'
+          }
+        ];
+
         return messageHandler.handleFetchPlayers(sendResponseSpy)
           .then(() => {
-            expect(fetchPlayersStub.calledOnce).to.equal(true);
+            expect(apiGetStub.calledOnce).to.equal(true);
+            expect(apiGetStub.firstCall.args).to.deep.equal(expectedArgs);
           });
       });
 
-      describe('if fetchPlayers resolves', () => {
+      describe('if apiGet resolves', () => {
 
-        it('should pass fetchPlayers response to formatPlayers', () => {
-          fetchPlayersStub.resolves('response');
+        it('should pass apiGet response to formatPlayers', () => {
+          apiGetStub.resolves('response');
           return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(formatPlayersStub.calledOnce).to.equal(true);
@@ -306,7 +315,7 @@ describe('Background Scripts', () => {
         });
 
         it('should send the response', () => {
-          fetchPlayersStub.resolves('response');
+          apiGetStub.resolves('response');
           formatPlayersStub.returns('players');
           return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
@@ -317,10 +326,10 @@ describe('Background Scripts', () => {
 
       });
 
-      describe('if fetchPlayers rejects', () => {
+      describe('if apiGet rejects', () => {
 
         it('should send the err', () => {
-          fetchPlayersStub.rejects('err');
+          apiGetStub.rejects('err');
           return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
@@ -333,7 +342,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('fetchPlayers', () => {
+    describe('apiGet', () => {
 
       let ajaxStub;
 
@@ -351,20 +360,22 @@ describe('Background Scripts', () => {
       });
 
       it('should make an ajax request with the correct params', () => {
-        return messageHandler.fetchPlayers()
+        const expectedArgs = [
+          'https://stats.nba.com/stats/endpoint',
+          {
+            method: 'GET',
+            data: {
+              LeagueID: '00',
+              param: 'test'
+            },
+            cache: false
+          }
+        ];
+
+        return messageHandler.apiGet('endpoint', {param: 'test'})
           .then(() => {
-            expect(ajaxStub.withArgs(
-              'https://stats.nba.com/stats/commonallplayers',
-              {
-                method: 'GET',
-                data: {
-                  LeagueID: '00',
-                  Season: '2018-19',
-                  IsOnlyCurrentSeason: '0'
-                },
-                cache: false
-              }
-            ).calledOnce).to.equal(true);
+            expect(ajaxStub.calledOnce).to.equal(true);
+            expect(ajaxStub.firstCall.args).to.deep.equal(expectedArgs);
           });
       });
 
@@ -444,23 +455,20 @@ describe('Background Scripts', () => {
     describe('fetchNonCachedStats', () => {
 
       let applyRateLimitStub;
-      let fetchCareerStatsStub;
-      let fetchCommonPlayerInfoStub;
+      let apiGetStub;
       let getCareerHTMLStub;
       let getProfileHTMLStub;
       let saveToStorageStub;
 
       before(() => {
         applyRateLimitStub = sinon.stub(messageHandler, 'applyRateLimit');
-        fetchCareerStatsStub = sinon.stub(messageHandler, 'fetchCareerStats');
-        fetchCommonPlayerInfoStub = sinon.stub(messageHandler, 'fetchCommonPlayerInfo');
+        apiGetStub = sinon.stub(messageHandler, 'apiGet');
         getCareerHTMLStub = sinon.stub(messageHandler, 'getCareerHTML');
         getProfileHTMLStub = sinon.stub(messageHandler, 'getProfileHTML');
         saveToStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
 
         applyRateLimitStub.resolves(null);
-        fetchCareerStatsStub.resolves(null);
-        fetchCommonPlayerInfoStub.resolves(null);
+        apiGetStub.resolves(null);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -468,15 +476,13 @@ describe('Background Scripts', () => {
 
       afterEach(() => {
         applyRateLimitStub.resetHistory();
-        fetchCareerStatsStub.resetHistory();
-        fetchCommonPlayerInfoStub.resetHistory();
+        apiGetStub.resetHistory();
         getCareerHTMLStub.resetHistory();
         getProfileHTMLStub.resetHistory();
         saveToStorageStub.resetHistory();
 
         applyRateLimitStub.resolves(null);
-        fetchCareerStatsStub.resolves(null);
-        fetchCommonPlayerInfoStub.resolves(null);
+        apiGetStub.resolves(null);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -484,8 +490,7 @@ describe('Background Scripts', () => {
 
       after(() => {
         applyRateLimitStub.restore();
-        fetchCareerStatsStub.restore();
-        fetchCommonPlayerInfoStub.restore();
+        apiGetStub.restore();
         getCareerHTMLStub.restore();
         getProfileHTMLStub.restore();
         saveToStorageStub.restore();
@@ -500,20 +505,24 @@ describe('Background Scripts', () => {
 
       describe('if applyRateLimit resolves', () => {
 
-        it('should call fetchCareerStats with request playerId', () => {
+        it('should call apiGet with correct params', () => {
+          const expectedArgs = [
+            'playerCareerStats',
+            {PerMode: 'PerGame', PlayerID: 1}
+          ];
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
-              expect(fetchCareerStatsStub.calledOnce).to.equal(true);
-              expect(fetchCareerStatsStub.withArgs(1).calledOnce).to.equal(true);
+              expect(apiGetStub.calledTwice).to.equal(true);
+              expect(apiGetStub.firstCall.args).to.deep.equal(expectedArgs);
             })
         });
 
       });
 
-      describe('if fetchCareerStats resolves', () => {
+      describe('if apiGet resolves', () => {
 
-        it('should call getCareerHTML with fetchCareerStats response', () => {
-          fetchCareerStatsStub.resolves('careerStats');
+        it('should call getCareerHTML with apiGet response', () => {
+          apiGetStub.resolves('careerStats');
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getCareerHTMLStub.calledOnce).to.equal(true);
@@ -521,36 +530,36 @@ describe('Background Scripts', () => {
             })
         });
 
-        it('should call fetchCommonPlayerInfo with request playerId', () => {
+        it('should call apiGet with correct params', () => {
+          const expectedArgs = [
+            'commonplayerinfo',
+            {PlayerID: 1}
+          ];
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
-              expect(fetchCommonPlayerInfoStub.calledOnce).to.equal(true);
-              expect(fetchCommonPlayerInfoStub.withArgs(1).calledOnce).to.equal(true);
+              expect(apiGetStub.calledTwice).to.equal(true);
+              expect(apiGetStub.secondCall.args).to.deep.equal(expectedArgs);
             })
         });
 
-        describe('if fetchCommonPlayerInfo resolves', () => {
+        it('should call getProfileHTML with second apiGet response', () => {
+          apiGetStub.resolves('commonPlayerInfo');
+          return messageHandler.fetchNonCachedStats(1)
+            .then(() => {
+              expect(getProfileHTMLStub.calledOnce).to.equal(true);
+              expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
+            })
+        });
 
-          it('should call getProfileHTML with fetchCommonPlayerInfo response', () => {
-            fetchCommonPlayerInfoStub.resolves('commonPlayerInfo');
+        describe('if getProfileHTML resolves', () => {
+
+          it('should return stats', () => {
+            getCareerHTMLStub.returns('careerStats');
+            getProfileHTMLStub.resolves('profileStats');
             return messageHandler.fetchNonCachedStats(1)
-              .then(() => {
-                expect(getProfileHTMLStub.calledOnce).to.equal(true);
-                expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
-              })
-          });
-
-          describe('if getProfileHTML resolves', () => {
-
-            it('should return stats', () => {
-              getCareerHTMLStub.returns('careerStats');
-              getProfileHTMLStub.resolves('profileStats');
-              return messageHandler.fetchNonCachedStats(1)
-                .then(result => {
-                  expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats'});
-                });
-            });
-
+              .then(result => {
+                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats'});
+              });
           });
 
         });
@@ -605,43 +614,6 @@ describe('Background Scripts', () => {
             expect(setTimeoutSpy.firstCall.args[1]).to.equal(1);
           });
       })
-
-    });
-
-    describe('fetchCareerStats', () => {
-
-      let ajaxStub;
-
-      before(() => {
-        ajaxStub = sinon.stub($, 'ajax');
-        ajaxStub.resolves(null);
-      });
-
-      afterEach(() => {
-        ajaxStub.resetHistory();
-      });
-
-      after(() => {
-        ajaxStub.restore();
-      });
-
-      it('should make an ajax request with the correct params', () => {
-        return messageHandler.fetchCareerStats(1)
-          .then(() => {
-            expect(ajaxStub.withArgs(
-            'https://stats.nba.com/stats/playercareerstats',
-              {
-                method: 'GET',
-                data: {
-                  LeagueID: '00',
-                  PerMode: 'PerGame',
-                  PlayerID: 1
-                },
-                cache: false
-              }
-            ).calledOnce).to.equal(true);
-          });
-      });
 
     });
 
@@ -708,42 +680,6 @@ describe('Background Scripts', () => {
         };
 
         expect(messageHandler.getCareerHTML(response)).to.equal('');
-      });
-
-    });
-
-    describe('fetchCommonPlayerInfo', () => {
-
-      let ajaxStub;
-
-      before(() => {
-        ajaxStub = sinon.stub($, 'ajax');
-        ajaxStub.resolves(null);
-      });
-
-      afterEach(() => {
-        ajaxStub.resetHistory();
-      });
-
-      after(() => {
-        ajaxStub.restore();
-      });
-
-      it('should make an ajax request with the correct params', () => {
-        return messageHandler.fetchCommonPlayerInfo(1)
-          .then(() => {
-            expect(ajaxStub.withArgs(
-              'https://stats.nba.com/stats/commonplayerinfo',
-              {
-                method: 'GET',
-                data: {
-                  LeagueID: '00',
-                  PlayerID: 1
-                },
-                cache: false
-              },
-            ).calledOnce).to.equal(true);
-          });
       });
 
     });
