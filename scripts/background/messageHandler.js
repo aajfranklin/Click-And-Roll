@@ -126,8 +126,15 @@ function MessageHandler() {
           this.utils.saveToLocalStorage('cache-records', []);
           return [];
         }
-        return cacheRecords.length >= 50 ? cacheRecords.splice(25, 25) : cacheRecords;
+        return cacheRecords.length >= 100 ? this.cleanCache(cacheRecords) : cacheRecords;
       });
+  };
+
+  this.cleanCache = (cacheRecords) => {
+    cacheRecords.splice(0, Math.floor(cacheRecords.length / 2)).map(record => {
+      this.utils.removeFromLocalStorage(`player-${record.id}`)
+    });
+    return cacheRecords;
   };
 
   this.areStatsInCacheAndCurrent = (cacheRecords,id) => {

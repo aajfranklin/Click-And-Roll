@@ -507,23 +507,31 @@ describe('Background Scripts', () => {
 
       let getFromLocalStorageStub;
       let saveToLocalStorageStub;
+      let cleanCacheStub;
 
       before(() => {
         getFromLocalStorageStub = sinon.stub(messageHandler.utils, 'getFromLocalStorage');
         saveToLocalStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
+        cleanCacheStub = sinon.stub(messageHandler, 'cleanCache');
 
         getFromLocalStorageStub.resolves(null);
         saveToLocalStorageStub.resolves(null);
+        cleanCacheStub.resolves(null);
       });
 
       afterEach(() => {
         getFromLocalStorageStub.resolves(null);
+        cleanCacheStub.resolves(null);
+
+        getFromLocalStorageStub.resetHistory();
         saveToLocalStorageStub.resetHistory();
+        cleanCacheStub.resetHistory();
       });
 
       after(() => {
         getFromLocalStorageStub.restore();
         saveToLocalStorageStub.restore();
+        cleanCacheStub.restore();
       });
 
       it('should request \'cache-records\' from local storage', () => {
@@ -551,17 +559,50 @@ describe('Background Scripts', () => {
           });
       });
 
-      it('should return last 25 cache-records if there are 50 records', () => {
-        getFromLocalStorageStub.resolves([0,1,2,3,4,5,6,7,8,9,
-          0,1,2,3,4,5,6,7,8,9,
-          0,1,2,3,4,5,6,7,8,9,
-          0,1,2,3,4,5,6,7,8,9,
-          0,1,2,3,4,5,6,7,8,9]);
+      it('should invoke clean cache and return the result if there are over 100 records', () => {
+        const records = [];
+        const expectedRecords = [];
+
+        for (let i = 0; i < 100; i++) {
+          records.push(i);
+          if (i < 50) expectedRecords.push(i);
+        }
+
+        getFromLocalStorageStub.resolves(records);
+        cleanCacheStub.resolves(expectedRecords);
 
         return messageHandler.getCacheRecords()
           .then(result => {
-            expect(result).to.deep.equal([5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9]);
+            expect(result).to.deep.equal(expectedRecords);
           });
+      });
+
+    });
+
+    describe('cleanCache', () => {
+
+      let removeFromLocalStorageStub;
+
+      before(() => {
+        removeFromLocalStorageStub = sinon.stub(messageHandler.utils, 'removeFromLocalStorage');
+      });
+
+      afterEach(() => {
+        removeFromLocalStorageStub.resetHistory();
+      });
+
+      after(() => {
+        removeFromLocalStorageStub.restore();
+      });
+
+      it('should call remove from local storage as many times as half the length of the records', () => {
+        messageHandler.cleanCache([0,1,2,3,4,5,6]);
+        expect(removeFromLocalStorageStub.calledThrice).to.equal(true);
+      });
+
+      it('should return records from second half of the array', () => {
+        const result = messageHandler.cleanCache([0,1,2,3,4,5,6,7,8,9]);
+        expect(result).to.deep.equal([5,6,7,8,9]);
       });
 
     });

@@ -148,6 +148,72 @@ describe('Utils', () => {
 
   });
 
+
+  describe('getFromLocalStorage', () => {
+
+    let chromeStorageLocalGetSpy;
+
+    before(() => {
+      chrome.storage = {
+        local: {
+          get: (input, callback) => callback()
+        }
+      };
+
+      chromeStorageLocalGetSpy = sinon.spy(chrome.storage.local, 'get');
+    });
+
+    afterEach(() => {
+      chromeStorageLocalGetSpy.resetHistory();
+    });
+
+    after(() => {
+      chromeStorageLocalGetSpy.restore();
+      delete chrome.storage;
+    });
+
+    it('should call get on chrome local storage with passed in name', () => {
+      return testUtils.getFromLocalStorage('testName')
+        .then(result => {
+          expect(chromeStorageLocalGetSpy.calledOnce).to.equal(true);
+          expect(chromeStorageLocalGetSpy.withArgs(['testName']).calledOnce).to.equal(true);
+          expect(result).to.equal(null);
+        });
+    });
+
+  });
+
+  describe('removeFromLocalStorage', () => {
+
+    let chromeStorageLocalSpy;
+
+    before(() => {
+      chrome.storage = {
+        local: {
+          remove: (input, callback) => callback()
+        }
+      };
+
+      chromeStorageLocalSpy = sinon.spy(chrome.storage.local, 'remove');
+    });
+
+    afterEach(() => {
+      chromeStorageLocalSpy.resetHistory();
+    });
+
+    after(() => {
+      chromeStorageLocalSpy.restore();
+      delete chrome.storage;
+    });
+
+    it('should call remove on chrome sync storage with passed in name', () => {
+      testUtils.removeFromLocalStorage('testName');
+      expect(chromeStorageLocalSpy.calledOnce).to.equal(true);
+      expect(chromeStorageLocalSpy.withArgs(['testName']).calledOnce).to.equal(true);
+    });
+
+  });
+
   describe('saveToSyncStorage', () => {
 
     let chromeStorageSyncSpy;
@@ -177,6 +243,37 @@ describe('Utils', () => {
           expect(chromeStorageSyncSpy.calledOnce).to.equal(true);
           expect(chromeStorageSyncSpy.withArgs({testName: 'testValue'}).calledOnce).to.equal(true);
         });
+    });
+
+  });
+
+  describe('removeFromSyncStorage', () => {
+
+    let chromeStorageSyncSpy;
+
+    before(() => {
+      chrome.storage = {
+        sync: {
+          remove: (input, callback) => callback()
+        }
+      };
+
+      chromeStorageSyncSpy = sinon.spy(chrome.storage.sync, 'remove');
+    });
+
+    afterEach(() => {
+      chromeStorageSyncSpy.resetHistory();
+    });
+
+    after(() => {
+      chromeStorageSyncSpy.restore();
+      delete chrome.storage;
+    });
+
+    it('should call remove on chrome sync storage with passed in name', () => {
+      testUtils.removeFromSyncStorage('testName');
+      expect(chromeStorageSyncSpy.calledOnce).to.equal(true);
+      expect(chromeStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
     });
 
   });

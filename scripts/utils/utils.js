@@ -50,12 +50,20 @@ function Utils() {
     })
   };
 
+  this.removeFromLocalStorage = (name) => {
+    chrome.storage.local.remove([name], () => {})
+  };
+
   this.saveToSyncStorage = (name, value) => {
     return new Promise(resolve => {
       chrome.storage.sync.set({[name]: value}, () => {
         return resolve();
       });
     });
+  };
+
+  this.removeFromSyncStorage = (name) => {
+    chrome.storage.sync.remove([name], () => {})
   };
 
   this.isSettingOn = (setting) => {

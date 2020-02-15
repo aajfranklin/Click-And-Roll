@@ -65,6 +65,7 @@ describe('Popup', () => {
     let isSettingOnStub;
     let messageActiveTabStub;
     let saveToSyncStorageStub;
+    let removeFromSyncStorageStub;
     let chromeSetIconStub;
     let testTab;
 
@@ -84,6 +85,7 @@ describe('Popup', () => {
       isSettingOnStub = sinon.stub(testPopup.utils, 'isSettingOn');
       messageActiveTabStub = sinon.stub(testPopup.utils, 'messageActiveTab');
       saveToSyncStorageStub = sinon.stub(testPopup.utils, 'saveToSyncStorage');
+      removeFromSyncStorageStub = sinon.stub(testPopup.utils, 'removeFromSyncStorage');
       chromeSetIconStub = sinon.stub(chrome.browserAction, 'setIcon');
     });
 
@@ -92,6 +94,7 @@ describe('Popup', () => {
       isSettingOnStub.resetHistory();
       messageActiveTabStub.resetHistory();
       saveToSyncStorageStub.resetHistory();
+      removeFromSyncStorageStub.resetHistory();
       chromeSetIconStub.resetHistory();
 
       isExtensionOnStub.resolves(null);
@@ -104,6 +107,7 @@ describe('Popup', () => {
       isSettingOnStub.restore();
       messageActiveTabStub.restore();
       saveToSyncStorageStub.restore();
+      removeFromSyncStorageStub.restore();
       chromeSetIconStub.restore();
 
       delete chrome.browserAction;
@@ -124,14 +128,13 @@ describe('Popup', () => {
         })
     });
 
-    it('should save setting as \'true\', send \'start\' message, and set active icon if setting is off and extension is on', () => {
+    it('should remove setting, send \'start\' message, and set active icon if setting is off and extension is on', () => {
       isSettingOnStub.resolves(false);
-      saveToSyncStorageStub.resolves(true);
       isExtensionOnStub.resolves(true);
       return testPopup.toggleSetting('testSetting')
         .then(() => {
-          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
-          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', 'true']);
+          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
           expect(isExtensionOnStub.calledOnce).to.equal(true);
           expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
           expect(messageActiveTabStub.calledOnce).to.equal(true);
@@ -141,14 +144,13 @@ describe('Popup', () => {
         });
     });
 
-    it('should save setting as \'true\' and send no message if setting is off and extension is off', () => {
+    it('should remove setting and send no message if setting is off and extension is off', () => {
       isSettingOnStub.resolves(false);
-      saveToSyncStorageStub.resolves(true);
       isExtensionOnStub.resolves(false);
       return testPopup.toggleSetting('testSetting')
         .then(() => {
-          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
-          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', 'true']);
+          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
           expect(isExtensionOnStub.calledOnce).to.equal(true);
           expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
           expect(messageActiveTabStub.notCalled).to.equal(true);

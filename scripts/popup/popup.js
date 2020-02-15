@@ -21,10 +21,8 @@ function Popup() {
               chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: this.tab.id});
             })
         } else {
-          return this.utils.saveToSyncStorage(setting, 'true')
-            .then(() => {
-              return this.utils.isExtensionOn(this.utils.getTabUrl(this.tab));
-            })
+          this.utils.removeFromSyncStorage(setting);
+          return this.utils.isExtensionOn(this.utils.getTabUrl(this.tab))
             .then(isExtensionOnForDomain => {
               if (isExtensionOnForDomain) {
                 this.utils.messageActiveTab({message: 'start'});
