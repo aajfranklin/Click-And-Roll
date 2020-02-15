@@ -106,12 +106,14 @@ function MessageHandler() {
     return this.getCacheRecords()
       .then(result => {
         cacheRecords = result;
-        return this.areStatsInCacheAndCurrent(cacheRecords, id)
+        return this.statsInCacheAndCurrent(cacheRecords, id)
           ? this.utils.getFromLocalStorage(`player-${id}`)
           : this.fetchNonCachedStats(id);
       })
       .then(stats => {
-        this.cacheStats(stats, id, cacheRecords);
+        if (!this.statsInCacheAndCurrent(cacheRecords, id)) {
+          this.cacheStats(stats, id, cacheRecords);
+        }
         sendResponse([null, stats]);
       })
       .catch(err => {
@@ -137,7 +139,7 @@ function MessageHandler() {
     return cacheRecords;
   };
 
-  this.areStatsInCacheAndCurrent = (cacheRecords,id) => {
+  this.statsInCacheAndCurrent = (cacheRecords, id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
     return player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
   };

@@ -405,7 +405,7 @@ describe('Background Scripts', () => {
     describe('handleFetchStats', () => {
 
       let getCacheRecordsStub;
-      let areStatsInCacheAndCurrentStub;
+      let statsInCacheAndCurrentStub;
       let getFromLocalStorageStub;
       let fetchNonCachedStatsStub;
       let cacheStatsStub;
@@ -413,26 +413,26 @@ describe('Background Scripts', () => {
 
       before(() => {
         getCacheRecordsStub = sinon.stub(messageHandler, 'getCacheRecords');
-        areStatsInCacheAndCurrentStub = sinon.stub(messageHandler, 'areStatsInCacheAndCurrent');
+        statsInCacheAndCurrentStub = sinon.stub(messageHandler, 'statsInCacheAndCurrent');
         getFromLocalStorageStub = sinon.stub(messageHandler.utils, 'getFromLocalStorage');
         fetchNonCachedStatsStub = sinon.stub(messageHandler, 'fetchNonCachedStats');
         cacheStatsStub = sinon.stub(messageHandler, 'cacheStats');
         sendResponseStub = sinon.stub();
 
         getCacheRecordsStub.resolves(null);
-        areStatsInCacheAndCurrentStub.returns(false);
+        statsInCacheAndCurrentStub.returns(false);
         getFromLocalStorageStub.resolves(null);
         fetchNonCachedStatsStub.resolves(null);
       });
 
       afterEach(() => {
         getCacheRecordsStub.resolves(null);
-        areStatsInCacheAndCurrentStub.returns(false);
+        statsInCacheAndCurrentStub.returns(false);
         getFromLocalStorageStub.resolves(null);
         fetchNonCachedStatsStub.resolves(null);
 
         getCacheRecordsStub.resetHistory();
-        areStatsInCacheAndCurrentStub.resetHistory();
+        statsInCacheAndCurrentStub.resetHistory();
         getFromLocalStorageStub.resetHistory();
         fetchNonCachedStatsStub.resetHistory();
         cacheStatsStub.resetHistory();
@@ -441,7 +441,7 @@ describe('Background Scripts', () => {
 
       after(() => {
         getCacheRecordsStub.restore();
-        areStatsInCacheAndCurrentStub.restore();
+        statsInCacheAndCurrentStub.restore();
         getFromLocalStorageStub.restore();
         fetchNonCachedStatsStub.restore();
         cacheStatsStub.restore();
@@ -457,13 +457,13 @@ describe('Background Scripts', () => {
       it('should check stats are in cache and current', () => {
         return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
           .then(() => {
-            expect(areStatsInCacheAndCurrentStub.calledOnce).to.equal(true);
-            expect(areStatsInCacheAndCurrentStub.firstCall.args).to.deep.equal([null, 1]);
+            expect(statsInCacheAndCurrentStub.called).to.equal(true);
+            expect(statsInCacheAndCurrentStub.firstCall.args).to.deep.equal([null, 1]);
           });
       });
 
       it('should get stats from storage if in cache and current', () => {
-        areStatsInCacheAndCurrentStub.returns(true);
+        statsInCacheAndCurrentStub.returns(true);
         return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
           .then(() => {
             expect(getFromLocalStorageStub.calledOnce).to.equal(true);
@@ -471,8 +471,8 @@ describe('Background Scripts', () => {
           });
       });
 
-      it('should fetch stats from if not in cache and current', () => {
-        areStatsInCacheAndCurrentStub.returns(false);
+      it('should fetch stats from api if not in cache and current', () => {
+        statsInCacheAndCurrentStub.returns(false);
         return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
           .then(() => {
             expect(fetchNonCachedStatsStub.calledOnce).to.equal(true);
@@ -480,12 +480,27 @@ describe('Background Scripts', () => {
           });
       });
 
-      it('should cache stats and send them in response if successful', () => {
+      it('should cache stats if they were not in cache and current', () => {
         fetchNonCachedStatsStub.resolves('stats');
         return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
           .then(() => {
             expect(cacheStatsStub.calledOnce).to.equal(true);
             expect(cacheStatsStub.firstCall.args).to.deep.equal(['stats', 1, null]);
+          });
+      });
+
+      it('should not cache stats if they were in cache and current', () => {
+        statsInCacheAndCurrentStub.returns(true);
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(cacheStatsStub.called).to.equal(false);
+          });
+      });
+
+      it('should send stats in response if successful', () => {
+        fetchNonCachedStatsStub.resolves('stats');
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
             expect(sendResponseStub.calledOnce).to.equal(true);
             expect(sendResponseStub.firstCall.args[0]).to.deep.equal([null, 'stats'])
           });
@@ -607,7 +622,7 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('areStatsInCacheAndCurrent', () => {
+    describe('statsInCacheAndCurrent', () => {
 
       let dateNowStub;
 
@@ -620,22 +635,22 @@ describe('Background Scripts', () => {
       });
 
       it('should return false if cache is empty', () => {
-        const result = messageHandler.areStatsInCacheAndCurrent([], 1);
+        const result = messageHandler.statsInCacheAndCurrent([], 1);
         expect(result).to.equal(false);
       });
 
       it('should return false if cache has records but not current player', () => {
-        const result = messageHandler.areStatsInCacheAndCurrent([{id: 2}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 2}], 1);
         expect(result).to.equal(false);
       });
 
       it('should return false if cache has records and player but timestamp is over three hours old', () => {
-        const result = messageHandler.areStatsInCacheAndCurrent([{id: 1, timestamp: 0}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0}], 1);
         expect(result).to.equal(false);
       });
 
       it('should return true if cache has records and current player', () => {
-        const result = messageHandler.areStatsInCacheAndCurrent([{id: 1, timestamp: 1}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1}], 1);
         expect(result).to.equal(true);
       });
 
