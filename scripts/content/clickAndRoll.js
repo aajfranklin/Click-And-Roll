@@ -59,18 +59,15 @@ function ClickAndRoll() {
   };
 
   this.getPlayers = () => {
-    return new Promise(resolve => {
-      chrome.storage.local.get(['players'], (result) => {
-        if (!result || $.isEmptyObject(result)) {
-          return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
-            .then(fetchedPlayers => {
-              this.utils.saveToLocalStorage('players', fetchedPlayers);
-              return resolve(fetchedPlayers);
-            })
-        }
-        return resolve(result.players);
+    return this.utils.getFromLocalStorage('players')
+      .then(players => {
+        if (players) return Promise.resolve(players);
+        return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
+      })
+      .then(fetchedPlayers => {
+        this.utils.saveToLocalStorage('players', fetchedPlayers);
+        return fetchedPlayers;
       });
-    });
   };
 
   this.highlight = (nodes) => {

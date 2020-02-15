@@ -123,16 +123,14 @@ function MessageHandler() {
   };
 
   this.getCacheRecords = () => {
-    return new Promise(resolve => {
-      chrome.storage.local.get(['cached-players'], result => {
-        if (!result || $.isEmptyObject(result)) {
-          this.utils.saveToLocalStorage('cached-players', []);
-          return resolve([]);
+    return this.utils.getFromLocalStorage('cache-records')
+      .then(cacheRecords => {
+        if (!cacheRecords) {
+          this.utils.saveToLocalStorage('cache-records', []);
+          return [];
         }
-        const cachedPlayers = result['cached-players'];
-        return resolve(cachedPlayers.length >= 50 ? cachedPlayers.splice(25, 25) : cachedPlayers);
+        return cacheRecords.length >= 50 ? cacheRecords.splice(25, 25) : cacheRecords;
       });
-    });
   };
 
   this.areStatsInCacheAndCurrent = (cacheRecords,id) => {
@@ -164,16 +162,17 @@ function MessageHandler() {
   this.cacheStats = (stats, id, records) => {
     const newRecord = [{id, timestamp: Date.now()}];
     this.utils.saveToLocalStorage(`player-${id}`, stats);
-    this.utils.saveToLocalStorage('cached-players', records.filter(player => player.id !== id).concat(newRecord));
+    this.utils.saveToLocalStorage('cache-records', records.filter(player => player.id !== id).concat(newRecord));
   };
 
   this.applyRateLimit = () => {
-    return new Promise(resolve => {
-      chrome.storage.local.get(['timestamp'], (result) => {
-        const timeout = Math.max(0, 3000 - (Date.now() - result.timestamp));
-        setTimeout(resolve, timeout);
+    return this.utils.getFromLocalStorage('timestamp')
+      .then(timestamp => {
+        return new Promise(resolve => {
+          const timeout = Math.max(0, 3000 - (Date.now() - timestamp));
+          setTimeout(resolve, timeout);
+        });
       });
-    });
   };
 
   this.fetchCareerStats = (playerId) => {

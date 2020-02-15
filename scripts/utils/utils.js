@@ -45,7 +45,7 @@ function Utils() {
   this.getFromLocalStorage = (name) => {
     return new Promise(resolve => {
       chrome.storage.local.get([name], result => {
-        return resolve(result[name]);
+        return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
       })
     })
   };
