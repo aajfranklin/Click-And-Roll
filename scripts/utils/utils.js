@@ -41,6 +41,15 @@ function Utils() {
     chrome.storage.local.set({[name]: value}, () => {});
   };
 
+
+  this.getFromLocalStorage = (name) => {
+    return new Promise(resolve => {
+      chrome.storage.local.get([name], result => {
+        return resolve(result[name]);
+      })
+    })
+  };
+
   this.saveToSyncStorage = (name, value) => {
     return new Promise(resolve => {
       chrome.storage.sync.set({[name]: value}, () => {

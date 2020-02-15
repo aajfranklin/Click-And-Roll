@@ -441,14 +441,6 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('fetchCachedStats', () => {
-
-      it('should fail', () => {
-        expect(false).to.equal(true);
-      })
-
-    });
-
     describe('fetchNonCachedStats', () => {
 
       let applyRateLimitStub;

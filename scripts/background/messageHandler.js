@@ -110,7 +110,7 @@ function MessageHandler() {
       .then(result => {
         cacheRecords = result;
         return this.areStatsInCacheAndCurrent(cacheRecords, id)
-          ? this.fetchCachedStats(id)
+          ? this.utils.getFromLocalStorage(`player-${id}`)
           : this.fetchNonCachedStats(id);
       })
       .then(stats => {
@@ -138,14 +138,6 @@ function MessageHandler() {
   this.areStatsInCacheAndCurrent = (cacheRecords,id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
     return player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
-  };
-
-  this.fetchCachedStats = (id) => {
-    return new Promise(resolve => {
-      chrome.storage.local.get([`player-${id}`], result => {
-        return resolve(result[`player-${id}`]);
-      });
-    });
   };
 
   this.fetchNonCachedStats = (id) => {
