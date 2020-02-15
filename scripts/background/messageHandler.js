@@ -103,7 +103,7 @@ function MessageHandler() {
     let cacheRecords;
     const id = request.playerId;
 
-    this.getCacheRecords()
+    return this.getCacheRecords()
       .then(result => {
         cacheRecords = result;
         return this.areStatsInCacheAndCurrent(cacheRecords, id)

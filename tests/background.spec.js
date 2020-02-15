@@ -404,17 +404,165 @@ describe('Background Scripts', () => {
 
     describe('handleFetchStats', () => {
 
-      it('should fail', () => {
-        expect(false).to.equal(true);
-      })
+      let getCacheRecordsStub;
+      let areStatsInCacheAndCurrentStub;
+      let getFromLocalStorageStub;
+      let fetchNonCachedStatsStub;
+      let cacheStatsStub;
+      let sendResponseStub;
+
+      before(() => {
+        getCacheRecordsStub = sinon.stub(messageHandler, 'getCacheRecords');
+        areStatsInCacheAndCurrentStub = sinon.stub(messageHandler, 'areStatsInCacheAndCurrent');
+        getFromLocalStorageStub = sinon.stub(messageHandler.utils, 'getFromLocalStorage');
+        fetchNonCachedStatsStub = sinon.stub(messageHandler, 'fetchNonCachedStats');
+        cacheStatsStub = sinon.stub(messageHandler, 'cacheStats');
+        sendResponseStub = sinon.stub();
+
+        getCacheRecordsStub.resolves(null);
+        areStatsInCacheAndCurrentStub.returns(false);
+        getFromLocalStorageStub.resolves(null);
+        fetchNonCachedStatsStub.resolves(null);
+      });
+
+      afterEach(() => {
+        getCacheRecordsStub.resolves(null);
+        areStatsInCacheAndCurrentStub.returns(false);
+        getFromLocalStorageStub.resolves(null);
+        fetchNonCachedStatsStub.resolves(null);
+
+        getCacheRecordsStub.resetHistory();
+        areStatsInCacheAndCurrentStub.resetHistory();
+        getFromLocalStorageStub.resetHistory();
+        fetchNonCachedStatsStub.resetHistory();
+        cacheStatsStub.resetHistory();
+        sendResponseStub.resetHistory();
+      });
+
+      after(() => {
+        getCacheRecordsStub.restore();
+        areStatsInCacheAndCurrentStub.restore();
+        getFromLocalStorageStub.restore();
+        fetchNonCachedStatsStub.restore();
+        cacheStatsStub.restore();
+      });
+
+      it('should get cache records', () => {
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(getCacheRecordsStub.calledOnce).to.equal(true);
+          });
+      });
+
+      it('should check stats are in cache and current', () => {
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(areStatsInCacheAndCurrentStub.calledOnce).to.equal(true);
+            expect(areStatsInCacheAndCurrentStub.firstCall.args).to.deep.equal([null, 1]);
+          });
+      });
+
+      it('should get stats from storage if in cache and current', () => {
+        areStatsInCacheAndCurrentStub.returns(true);
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(getFromLocalStorageStub.calledOnce).to.equal(true);
+            expect(getFromLocalStorageStub.firstCall.args[0]).to.equal('player-1');
+          });
+      });
+
+      it('should fetch stats from if not in cache and current', () => {
+        areStatsInCacheAndCurrentStub.returns(false);
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(fetchNonCachedStatsStub.calledOnce).to.equal(true);
+            expect(fetchNonCachedStatsStub.firstCall.args[0]).to.equal(1);
+          });
+      });
+
+      it('should cache stats and send them in response if successful', () => {
+        fetchNonCachedStatsStub.resolves('stats');
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(cacheStatsStub.calledOnce).to.equal(true);
+            expect(cacheStatsStub.firstCall.args).to.deep.equal(['stats', 1, null]);
+            expect(sendResponseStub.calledOnce).to.equal(true);
+            expect(sendResponseStub.firstCall.args[0]).to.deep.equal([null, 'stats'])
+          });
+      });
+
+      it('should send error in response if unsuccessful', () => {
+        fetchNonCachedStatsStub.rejects('err');
+        return messageHandler.handleFetchStats({playerId: 1}, sendResponseStub)
+          .then(() => {
+            expect(sendResponseStub.calledOnce).to.equal(true);
+            expect(sendResponseStub.firstCall.args[0][0].name).to.equal('err');
+            expect(sendResponseStub.firstCall.args[0][1]).to.equal(null);
+          })
+      });
 
     });
 
     describe('getCacheRecords', () => {
 
-      it('should fail', () => {
-        expect(false).to.equal(true);
-      })
+      let getFromLocalStorageStub;
+      let saveToLocalStorageStub;
+
+      before(() => {
+        getFromLocalStorageStub = sinon.stub(messageHandler.utils, 'getFromLocalStorage');
+        saveToLocalStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
+
+        getFromLocalStorageStub.resolves(null);
+        saveToLocalStorageStub.resolves(null);
+      });
+
+      afterEach(() => {
+        getFromLocalStorageStub.resolves(null);
+        saveToLocalStorageStub.resetHistory();
+      });
+
+      after(() => {
+        getFromLocalStorageStub.restore();
+        saveToLocalStorageStub.restore();
+      });
+
+      it('should request \'cache-records\' from local storage', () => {
+        return messageHandler.getCacheRecords()
+          .then(() => {
+            expect(getFromLocalStorageStub.calledOnce).to.equal(true);
+            expect(getFromLocalStorageStub.firstCall.args).to.deep.equal(['cache-records']);
+          });
+      });
+
+      it('should return an empty array and save empty array to storage as \'cache-records\' if none fetched', () => {
+        return messageHandler.getCacheRecords()
+          .then(result => {
+            expect(saveToLocalStorageStub.calledOnce).to.equal(true);
+            expect(saveToLocalStorageStub.firstCall.args).to.deep.equal(['cache-records', []]);
+            expect(result).to.deep.equal([]);
+          });
+      });
+
+      it('should return cache-records if there are less than 50 records', () => {
+        getFromLocalStorageStub.resolves(['records']);
+        return messageHandler.getCacheRecords()
+          .then(result => {
+            expect(result).to.deep.equal(['records']);
+          });
+      });
+
+      it('should return last 25 cache-records if there are 50 records', () => {
+        getFromLocalStorageStub.resolves([0,1,2,3,4,5,6,7,8,9,
+          0,1,2,3,4,5,6,7,8,9,
+          0,1,2,3,4,5,6,7,8,9,
+          0,1,2,3,4,5,6,7,8,9,
+          0,1,2,3,4,5,6,7,8,9]);
+
+        return messageHandler.getCacheRecords()
+          .then(result => {
+            expect(result).to.deep.equal([5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9]);
+          });
+      });
 
     });
 
@@ -564,6 +712,44 @@ describe('Background Scripts', () => {
 
         });
 
+      });
+
+    });
+
+    describe('cacheStats', () => {
+
+      let dateNowStub;
+      let saveToLocalStorageStub;
+
+      before(() => {
+        dateNowStub = sinon.stub(Date, 'now');
+        saveToLocalStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
+
+        dateNowStub.returns(0);
+      });
+
+      afterEach(() => {
+        saveToLocalStorageStub.resetHistory();
+      });
+
+      after(() => {
+        dateNowStub.restore();
+        saveToLocalStorageStub.restore();
+      });
+
+      it('should save two things to local storage', () => {
+        messageHandler.cacheStats('stats', 1, []);
+        expect(saveToLocalStorageStub.calledTwice).to.equal(true);
+      });
+
+      it('should save stats to storage under player id', () => {
+        messageHandler.cacheStats('stats', 1, []);
+        expect(saveToLocalStorageStub.firstCall.args).to.deep.equal(['player-1', 'stats']);
+      });
+
+      it('should save cache records to storage with new player and timestamp added', () => {
+        messageHandler.cacheStats('stats', 1, []);
+        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0}]]);
       });
 
     });
