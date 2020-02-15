@@ -71,7 +71,7 @@ function MessageHandler() {
   };
 
   this.handleFetchPlayers = (sendResponse) => {
-    return this.fetchPlayers()
+    return this.apiGet('commonallplayers', {Season: '2018-19', IsOnlyCurrentSeason: '0'})
       .then(response => {
         sendResponse([null, this.formatPlayers(response)]);
       })
@@ -80,15 +80,12 @@ function MessageHandler() {
       });
   };
 
-  this.fetchPlayers = () => {
-    return $.ajax('https://stats.nba.com/stats/commonallplayers',
+  this.apiGet = (endpoint, params) => {
+    const data = {LeagueId: '00', ...params};
+    return $.ajax(`https://stats.nba.com/stats/${endpoint}`,
       {
         method: 'GET',
-        data: {
-          LeagueID: '00',
-          Season: '2018-19',
-          IsOnlyCurrentSeason: '0'
-        },
+        data,
         cache: false
       })
   };
@@ -144,11 +141,11 @@ function MessageHandler() {
     return this.applyRateLimit()
       .then(() => {
         this.utils.saveToLocalStorage('timestamp', Date.now());
-        return this.fetchCareerStats(id);
+        return this.apiGet('playerCareerStats', {PerMode: 'PerGame', PlayerID: id});
       })
       .then(response => {
         stats.careerHTML = this.getCareerHTML(response);
-        return this.fetchCommonPlayerInfo(id);
+        return this.apiGet('commonplayerinfo', {PlayerId: id});
       })
       .then(response => {
         return this.getProfileHTML(response);
@@ -173,19 +170,6 @@ function MessageHandler() {
           setTimeout(resolve, timeout);
         });
       });
-  };
-
-  this.fetchCareerStats = (playerId) => {
-    return $.ajax('https://stats.nba.com/stats/playercareerstats',
-      {
-        method: 'GET',
-        data: {
-          LeagueID: '00',
-          PerMode: 'PerGame',
-          PlayerID: playerId
-        },
-        cache: false
-      })
   };
 
   this.getCareerHTML = (response) => {
@@ -236,18 +220,6 @@ function MessageHandler() {
     }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
-  };
-
-  this.fetchCommonPlayerInfo = (playerId) => {
-    return $.ajax('https://stats.nba.com/stats/commonplayerinfo',
-      {
-        method: 'GET',
-        data: {
-          LeagueID: '00',
-          PlayerID: playerId
-        },
-        cache: false
-      })
   };
 
   this.getProfileHTML = (response) => {
