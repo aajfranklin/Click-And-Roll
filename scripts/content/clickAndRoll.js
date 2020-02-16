@@ -134,47 +134,27 @@ function ClickAndRoll() {
   };
 
   this.resetFrame = () => {
-    if (this.frameContainer.parentNode !== this.getNewContainerParent()) {
-      this.assignContainerToNewParent();
-    }
-
-    this.frameContainer.style.height = 'calc(50vh + 2px)';
+    this.attachFrame();
+    this.applyFrameStyles();
     this.getFrameDocument().body.innerHTML = '';
     this.positionFrameContainer();
     this.getFrameDocument().body.appendChild(this.frameContent);
   };
 
-  this.getNewContainerParent = () => {
-    let rootOffsetParent = this.activeName.element;
-    let rootScrollParent = null;
-
-    while (rootOffsetParent.offsetParent) {
-      rootOffsetParent = rootOffsetParent.offsetParent;
-      rootScrollParent = (rootOffsetParent.scrollHeight > rootOffsetParent.clientHeight)
-        ? rootOffsetParent
-        : rootScrollParent;
-    }
-
-    return (rootOffsetParent === document.body)
-      ? document.body
-      : rootScrollParent || rootOffsetParent;
+  this.attachFrame = () => {
+    if (this.frameContainer.parentNode) this.frameContainer.parentNode.removeChild(this.frameContainer);
+    document.body.appendChild(this.frameContainer);
+    this.frameContainer.appendChild(this.frame);
   };
 
-  this.assignContainerToNewParent = () => {
-    if (this.frameContainer.parentNode) {
-      this.frameContainer.parentNode.removeChild(this.frameContainer);
-    }
-
-    this.getNewContainerParent().appendChild(this.frameContainer);
-    this.frameContainer.appendChild(this.frame);
-
+  this.applyFrameStyles = () => {
     this.getFrameDocument().body.id = 'frame-body';
-
     const style = document.createElement('style');
     style.type = 'text/css';
     style.textContent = this.frameStyle;
     style.title = 'click-and-roll';
     this.getFrameDocument().head.appendChild(style);
+    this.frameContainer.style.height = 'calc(50vh + 2px)';
   };
 
   this.positionFrameContainer = () => {
@@ -200,26 +180,17 @@ function ClickAndRoll() {
   };
 
   this.getOffsetFromParent = (rect) => {
-    const scrollX = (this.frameContainer.parentNode === document.body)
-      ? (window.scrollX ? window.scrollX : window.pageXOffset)
-      : this.frameContainer.parentNode.scrollLeft;
-    const scrollY = (this.frameContainer.parentNode === document.body)
-      ? (window.scrollY ? window.scrollY : window.pageYOffset)
-      : this.frameContainer.parentNode.scrollTop;
-
-    const parentOffset = {
-      x: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().left,
-      y: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().top
-    };
+    const scrollX = window.scrollX ? window.scrollX : window.pageXOffset;
+    const scrollY = window.scrollY ? window.scrollY : window.pageYOffset;
 
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = this.activeName.isInLeftHalf
-      ? rect.left + scrollX - parentOffset.x - 2
-      : rect.left + scrollX - parentOffset.x - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
+      ? rect.left + scrollX - 2
+      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
 
     const overlayTop = this.activeName.isInTopHalf
-      ? rect.top + scrollY - parentOffset.y + rect.height
-      : rect.top + scrollY - parentOffset.y - this.getHalfViewHeight();
+      ? rect.top + scrollY + rect.height
+      : rect.top + scrollY - this.getHalfViewHeight();
 
     return {
       left: overlayLeft,

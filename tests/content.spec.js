@@ -807,7 +807,6 @@ describe('Content Scripts', () => {
 
     describe('resetFrame', () => {
 
-      let getNewContainerParentStub;
       let assignContainerToNewParentStub;
       let getFrameDocumentStub;
       let positionFrameContainerStub;
@@ -817,8 +816,7 @@ describe('Content Scripts', () => {
       before(() => {
         testClickAndRoll = new ClickAndRoll();
 
-        getNewContainerParentStub = sinon.stub(testClickAndRoll, 'getNewContainerParent');
-        assignContainerToNewParentStub = sinon.stub(testClickAndRoll, 'assignContainerToNewParent');
+        assignContainerToNewParentStub = sinon.stub(testClickAndRoll, 'applyFrameStyles');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         positionFrameContainerStub = sinon.stub(testClickAndRoll, 'positionFrameContainer');
 
@@ -835,7 +833,6 @@ describe('Content Scripts', () => {
 
       afterEach(() => {
         appendChildStub.resetHistory();
-        getNewContainerParentStub.resetHistory();
         assignContainerToNewParentStub.resetHistory();
         getFrameDocumentStub.resetHistory();
         positionFrameContainerStub.resetHistory();
@@ -843,7 +840,6 @@ describe('Content Scripts', () => {
 
       after(() => {
         appendChildStub.restore();
-        getNewContainerParentStub.restore();
         assignContainerToNewParentStub.restore();
         getFrameDocumentStub.restore();
         positionFrameContainerStub.restore();
@@ -851,7 +847,6 @@ describe('Content Scripts', () => {
 
       it('should assign container to new parent if existing parent is not same as new container parent', () => {
         testClickAndRoll.frameContainer.parentNode = null;
-        getNewContainerParentStub.resolves('differentParent');
         testClickAndRoll.resetFrame();
         expect(assignContainerToNewParentStub.calledOnce).to.equal(true);
       });
@@ -874,77 +869,17 @@ describe('Content Scripts', () => {
 
     });
 
-    describe('getNewContainerParent', () => {
+    describe('applyFrameStyles', () => {
 
-      before(() => {
-        testClickAndRoll = new ClickAndRoll();
-      });
-
-      it('should return document body if it is the root parent', () => {
-        testClickAndRoll.activeName.element = {
-          offsetParent: {
-            scrollHeight: 1,
-            clientHeight: 0,
-            offsetParent: document.body
-          }
-        };
-
-        expect(testClickAndRoll.getNewContainerParent()).to.equal(document.body);
-      });
-
-      it('should return the scroll parent if document body is not root parent and scroll parent is present', () => {
-        const scrollParent = {
-          scrollHeight: 1,
-          clientHeight: 0,
-          offsetParent: {
-            scrollHeight: 0,
-            clientHeight: 1
-          }
-        };
-
-        testClickAndRoll.activeName.element = {
-          offsetParent: scrollParent
-        };
-
-        expect(testClickAndRoll.getNewContainerParent()).to.equal(scrollParent);
-      });
-
-      it('should return the offset parent if document body is not root parent and scroll parent is null', () => {
-        const offsetParent = {
-          scrollHeight: 0,
-          clientHeight: 1
-        };
-
-        testClickAndRoll.activeName.element = {
-          offsetParent: {
-            scrollHeight: 0,
-            clientHeight: 1,
-            offsetParent
-          }
-        };
-
-        expect(testClickAndRoll.getNewContainerParent()).to.equal(offsetParent);
-      });
-
-    });
-
-    describe('assignContainerToNewParent', () => {
-
-      let getNewContainerParentStub;
       let getFrameDocumentStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
-
-        getNewContainerParentStub = sinon.stub(testClickAndRoll, 'getNewContainerParent');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-
-        getNewContainerParentStub.returns(document.body);
         getFrameDocumentStub.returns(document);
       });
 
       afterEach(() => {
-        getNewContainerParentStub.resetHistory();
         getFrameDocumentStub.resetHistory();
         document.body.removeChild(testClickAndRoll.frameContainer);
         document.head.removeChild(document.getElementsByTagName('style')[0]);
@@ -953,7 +888,7 @@ describe('Content Scripts', () => {
       it('should remove the frame container from its parent if present', () => {
         document.body.appendChild(testClickAndRoll.frameContainer);
         const frameContainerSpy = sinon.spy(testClickAndRoll.frameContainer.parentNode, 'removeChild');
-        testClickAndRoll.assignContainerToNewParent();
+        testClickAndRoll.applyFrameStyles();
         expect(frameContainerSpy.calledOnce).to.equal(true);
         expect(frameContainerSpy.firstCall.args[0]).to.equal(testClickAndRoll.frameContainer);
 
@@ -962,18 +897,18 @@ describe('Content Scripts', () => {
       });
 
       it('should append the frame container to the new container parent', () => {
-        testClickAndRoll.assignContainerToNewParent();
+        testClickAndRoll.applyFrameStyles();
         expect(testClickAndRoll.frameContainer.parentNode).to.equal(document.body);
       });
 
       it('should append the frame to the container', () => {
-        testClickAndRoll.assignContainerToNewParent();
+        testClickAndRoll.applyFrameStyles();
         expect(testClickAndRoll.frame.parentNode).to.equal(testClickAndRoll.frameContainer);
       });
 
       it('should apply appropriate styl and id to frame document', () => {
         testClickAndRoll.frameStyle = 'test';
-        testClickAndRoll.assignContainerToNewParent();
+        testClickAndRoll.applyFrameStyles();
         expect(document.getElementsByTagName('style')[0].type).to.equal('text/css');
         expect(document.getElementsByTagName('style')[0].title).to.equal('click-and-roll');
         expect(document.getElementsByTagName('style')[0].textContent).to.equal('test');
