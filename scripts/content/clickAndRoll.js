@@ -54,6 +54,7 @@ function ClickAndRoll() {
         const resultNodes = this.resultSearch.searchRootNode(document.body);
 
         this.highlight(resultNodes);
+        this.handleEdgeCases();
         this.observeMutations();
       });
   };
@@ -340,6 +341,18 @@ function ClickAndRoll() {
     this.frameContent.classList.add('loading');
     this.frameContent.classList.add('loaded');
     this.getFrameDocument().getElementById('network-error').hidden = false;
+  };
+
+  this.handleEdgeCases = () => {
+    const isGoogleSearchWithCarousel = document.URL.match(/google.*\/search/)
+      && document.getElementsByTagName('g-scrolling-carousel');
+
+    if (isGoogleSearchWithCarousel) {
+      const overlays = document.getElementsByClassName('y6ZeVb');
+      for (let i = 0; i < overlays.length; i++) {
+        overlays[i].setAttribute('style', 'pointer-events: none');
+      }
+    }
   };
 
   this.teardown = () => {
