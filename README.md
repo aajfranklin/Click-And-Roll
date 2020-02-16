@@ -41,7 +41,7 @@ Chrome version 57 or above is recommended. Older versions will have formatting i
 
 Player stats are fetched via the stats.nba.com API. Thanks to [GitHub user swar](https://github.com/swar) for their comprehensive [endpoint analysis](https://github.com/swar/nba_api/blob/master/analysis_archive/stats/analysis.json) that made this possible.
 
-Player profile images are retrieved via the basektball-reference.com image API.
+Player profile images are retrieved via the basketball-reference.com image API.
 
 ### How many players does Click and Roll cover?
 
