@@ -644,14 +644,24 @@ describe('Background Scripts', () => {
         expect(result).to.equal(false);
       });
 
-      it('should return false if cache has records and player but timestamp is over three hours old', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0}], 1);
-        expect(result).to.equal(false);
+      it('should return true if cache has records and player, timestamp is under three hours old, and player is inactive', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, active: false}], 1);
+        expect(result).to.equal(true);
       });
 
-      it('should return true if cache has records and current player', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1}], 1);
+      it('should return true if cache has records and player, timestamp is under three hours old, and player is active', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, active: true}], 1);
         expect(result).to.equal(true);
+      });
+
+      it('should return true if cache has records and player, timestamp is over three hours old, and player is inactive', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, active: false}], 1);
+        expect(result).to.equal(true);
+      });
+
+      it('should return false if cache has records and player, timestamp is over three hours old, and player is active', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, active: true}], 1);
+        expect(result).to.equal(false);
       });
 
     });
@@ -664,6 +674,22 @@ describe('Background Scripts', () => {
       let getProfileHTMLStub;
       let saveToStorageStub;
 
+      const getStatsResponse = 'careerStats';
+
+      const getProfileResponse = {
+        resultSets: [{
+          headers: ['TO_YEAR'],
+          rowSet: [['2019']]
+        }]
+      };
+
+      const getProfileResponseRetired = {
+        resultSets: [{
+          headers: ['TO_YEAR'],
+          rowSet: [['2018']]
+        }]
+      };
+
       before(() => {
         applyRateLimitStub = sinon.stub(messageHandler, 'applyRateLimit');
         apiGetStub = sinon.stub(messageHandler, 'apiGet');
@@ -672,7 +698,8 @@ describe('Background Scripts', () => {
         saveToStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
 
         applyRateLimitStub.resolves(null);
-        apiGetStub.resolves(null);
+        apiGetStub.onCall(0).resolves(getStatsResponse);
+        apiGetStub.onCall(1).resolves(getProfileResponse);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -686,7 +713,8 @@ describe('Background Scripts', () => {
         saveToStorageStub.resetHistory();
 
         applyRateLimitStub.resolves(null);
-        apiGetStub.resolves(null);
+        apiGetStub.onCall(0).resolves(getStatsResponse);
+        apiGetStub.onCall(1).resolves(getProfileResponse);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -726,7 +754,6 @@ describe('Background Scripts', () => {
       describe('if apiGet resolves', () => {
 
         it('should call getCareerHTML with apiGet response', () => {
-          apiGetStub.resolves('careerStats');
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getCareerHTMLStub.calledOnce).to.equal(true);
@@ -747,22 +774,31 @@ describe('Background Scripts', () => {
         });
 
         it('should call getProfileHTML with second apiGet response', () => {
-          apiGetStub.resolves('commonPlayerInfo');
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getProfileHTMLStub.calledOnce).to.equal(true);
-              expect(getProfileHTMLStub.withArgs('commonPlayerInfo').calledOnce).to.equal(true);
+              expect(getProfileHTMLStub.withArgs(getProfileResponse).calledOnce).to.equal(true);
             })
         });
 
         describe('if getProfileHTML resolves', () => {
 
-          it('should return stats', () => {
+          it('should return stats with active true if player career includes current season', () => {
             getCareerHTMLStub.returns('careerStats');
             getProfileHTMLStub.resolves('profileStats');
             return messageHandler.fetchNonCachedStats(1)
               .then(result => {
-                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats'});
+                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: true});
+              });
+          });
+
+          it('should return stats with active true if player career does not include current season', () => {
+            apiGetStub.onCall(1).resolves(getProfileResponseRetired);
+            getCareerHTMLStub.returns('careerStats');
+            getProfileHTMLStub.resolves('profileStats');
+            return messageHandler.fetchNonCachedStats(1)
+              .then(result => {
+                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: false});
               });
           });
 
@@ -804,8 +840,8 @@ describe('Background Scripts', () => {
       });
 
       it('should save cache records to storage with new player and timestamp added', () => {
-        messageHandler.cacheStats('stats', 1, []);
-        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0}]]);
+        messageHandler.cacheStats({active: true}, 1, []);
+        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, active: true}]]);
       });
 
     });

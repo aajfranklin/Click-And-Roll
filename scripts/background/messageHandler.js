@@ -141,7 +141,7 @@ function MessageHandler() {
 
   this.statsInCacheAndCurrent = (cacheRecords, id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
-    return player !== null && Date.now() - player.timestamp < (3 * 60 * 60 * 1000);
+    return player !== null && (!player.active || Date.now() - player.timestamp < (3 * 60 * 60 * 1000));
   };
 
   this.fetchNonCachedStats = (id) => {
@@ -157,6 +157,8 @@ function MessageHandler() {
         return this.apiGet('commonplayerinfo', {PlayerID: id});
       })
       .then(response => {
+        const toYearIndex = response.resultSets[0].headers.indexOf('TO_YEAR');
+        stats.active = response.resultSets[0].rowSet[0][toYearIndex] >= new Date().getFullYear() - 1;
         return this.getProfileHTML(response);
       })
       .then(profileHTML => {
@@ -166,7 +168,7 @@ function MessageHandler() {
   };
 
   this.cacheStats = (stats, id, records) => {
-    const newRecord = [{id, timestamp: Date.now()}];
+    const newRecord = [{id, timestamp: Date.now(), active: stats.active}];
     this.utils.saveToLocalStorage(`player-${id}`, stats);
     this.utils.saveToLocalStorage('cache-records', records.filter(player => player.id !== id).concat(newRecord));
   };
