@@ -808,7 +808,8 @@ describe('Content Scripts', () => {
     describe('resetFrame', () => {
 
       let attachFrameStub;
-      let applyFrameStulesStub;
+      let applyFrameStylesStub;
+      let applyScrollRuleStub;
       let getFrameDocumentStub;
       let positionFrameContainerStub;
       let frameDocumentBodyStub;
@@ -818,7 +819,8 @@ describe('Content Scripts', () => {
         testClickAndRoll = new ClickAndRoll();
 
         attachFrameStub = sinon.stub(testClickAndRoll, 'attachFrame');
-        applyFrameStulesStub = sinon.stub(testClickAndRoll, 'applyFrameStyles');
+        applyFrameStylesStub = sinon.stub(testClickAndRoll, 'applyFrameStyles');
+        applyScrollRuleStub = sinon.stub(testClickAndRoll, 'applyScrollRule');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         positionFrameContainerStub = sinon.stub(testClickAndRoll, 'positionFrameContainer');
 
@@ -836,7 +838,8 @@ describe('Content Scripts', () => {
       afterEach(() => {
         attachFrameStub.resetHistory();
         appendChildStub.resetHistory();
-        applyFrameStulesStub.resetHistory();
+        applyFrameStylesStub.resetHistory();
+        applyScrollRuleStub.resetHistory();
         getFrameDocumentStub.resetHistory();
         positionFrameContainerStub.resetHistory();
       });
@@ -844,7 +847,8 @@ describe('Content Scripts', () => {
       after(() => {
         attachFrameStub.restore();
         appendChildStub.restore();
-        applyFrameStulesStub.restore();
+        applyFrameStylesStub.restore();
+        applyScrollRuleStub.restore();
         getFrameDocumentStub.restore();
         positionFrameContainerStub.restore();
       });
@@ -854,10 +858,15 @@ describe('Content Scripts', () => {
         expect(attachFrameStub.calledOnce).to.equal(true);
       });
 
+      it('should apply scroll rule', () => {
+        testClickAndRoll.resetFrame();
+        expect(applyScrollRuleStub.calledOnce).to.equal(true);
+      });
+
       it('should assign apply frame styles', () => {
         testClickAndRoll.frameContainer.parentNode = null;
         testClickAndRoll.resetFrame();
-        expect(applyFrameStulesStub.calledOnce).to.equal(true);
+        expect(applyFrameStylesStub.calledOnce).to.equal(true);
       });
 
       it('should position frame container', () => {
@@ -929,6 +938,96 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('applyScrollRule', () => {
+
+      let setScrollParentStub;
+
+      before(() => {
+        setScrollParentStub = sinon.stub(testClickAndRoll, 'setScrollParent');
+      });
+
+      afterEach(() => {
+        setScrollParentStub.resetHistory();
+      });
+
+      after(() => {
+        setScrollParentStub.restore();
+      });
+
+      it('should not add scroll event listener if scroll parent is body', () => {
+        testClickAndRoll.scrollParent = document.body;
+        const addEventListenerSpy = sinon.spy(testClickAndRoll.scrollParent, 'addEventListener');
+        testClickAndRoll.applyScrollRule();
+        expect(addEventListenerSpy.notCalled).to.equal(true);
+      });
+
+      it('should add scroll event listener if scroll parent is not body', () => {
+        testClickAndRoll.scrollParent = document.createElement('div');
+        const addEventListenerSpy = sinon.spy(testClickAndRoll.scrollParent, 'addEventListener');
+        testClickAndRoll.applyScrollRule();
+        expect(addEventListenerSpy.calledOnce).to.equal(true);
+        expect(addEventListenerSpy.firstCall.args).to.deep.equal(['scroll', testClickAndRoll.positionFrameContainer]);
+      });
+
+    });
+
+    describe('setScrollParent', () => {
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+      });
+
+      it('should return document body if it is the root parent', () => {
+        testClickAndRoll.activeName.element = {
+          offsetParent: {
+            scrollHeight: 1,
+            clientHeight: 0,
+            offsetParent: document.body
+          }
+        };
+
+        testClickAndRoll.setScrollParent();
+        expect(testClickAndRoll.scrollParent).to.equal(document.body);
+      });
+
+      it('should return the scroll parent if document body is not root parent and scroll parent is present', () => {
+        const scrollParent = {
+          scrollHeight: 1,
+          clientHeight: 0,
+          offsetParent: {
+            scrollHeight: 0,
+            clientHeight: 1
+          }
+        };
+
+        testClickAndRoll.activeName.element = {
+          offsetParent: scrollParent
+        };
+
+        testClickAndRoll.setScrollParent();
+        expect(testClickAndRoll.scrollParent).to.equal(scrollParent);
+      });
+
+      it('should return the offset parent if document body is not root parent and scroll parent is null', () => {
+        const offsetParent = {
+          scrollHeight: 0,
+          clientHeight: 1
+        };
+
+        testClickAndRoll.activeName.element = {
+          offsetParent: {
+            scrollHeight: 0,
+            clientHeight: 1,
+            offsetParent
+          }
+        };
+
+        testClickAndRoll.setScrollParent();
+        expect(testClickAndRoll.scrollParent).to.equal(offsetParent);
+      });
+
+    });
+
     describe('positionFrameContainer', () => {
 
       let getHalfViewHeightStub;
@@ -948,10 +1047,15 @@ describe('Content Scripts', () => {
         getHalfViewWidthStub = sinon.stub(testClickAndRoll, 'getHalfViewWidth');
         getOffsetFromParentStub = sinon.stub(testClickAndRoll, 'getOffsetFromParent');
 
+        getHalfViewHeightStub.returns(1);
+        getHalfViewWidthStub.returns(1);
         getOffsetFromParentStub.returns({top: 50, left: 100})
       });
 
       afterEach(() => {
+        getHalfViewHeightStub.returns(1);
+        getHalfViewWidthStub.returns(1);
+
         getHalfViewHeightStub.resetHistory();
         getHalfViewWidthStub.resetHistory();
         getOffsetFromParentStub.resetHistory();
@@ -975,16 +1079,20 @@ describe('Content Scripts', () => {
         expect(testClickAndRoll.frameContainer.style.marginLeft).to.equal('0px');
       });
 
-      it('should set frame to reveal from top if in top half', () => {
-        getHalfViewHeightStub.returns(1);
-        testClickAndRoll.positionFrameContainer();
-        expect(testClickAndRoll.frameContent.classList.contains('reveal-from-top')).to.equal(true);
+      it('should not set half if scroll event', () => {
+        testClickAndRoll.activeName.isInLeftHalf = null;
+        testClickAndRoll.activeName.isInTopHalf = null;
+        testClickAndRoll.positionFrameContainer('event');
+        expect(testClickAndRoll.activeName.isInLeftHalf).to.equal(null);
+        expect(testClickAndRoll.activeName.isInTopHalf).to.equal(null);
       });
 
-      it('should set frame to reveal from bottom if in bottom half', () => {
-        getHalfViewHeightStub.returns(-1);
+      it('should set half if not scroll event', () => {
+        testClickAndRoll.activeName.isInLeftHalf = null;
+        testClickAndRoll.activeName.isInTopHalf = null;
         testClickAndRoll.positionFrameContainer();
-        expect(testClickAndRoll.frameContent.classList.contains('reveal-from-bottom')).to.equal(true);
+        expect(testClickAndRoll.activeName.isInLeftHalf).to.equal(true);
+        expect(testClickAndRoll.activeName.isInTopHalf).to.equal(true);
       });
 
       it('should set frame container top and left from offset from parent', () => {
@@ -1055,6 +1163,22 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('applyAnimationClass', () => {
+
+      it('should set frame to reveal from top if in top half', () => {
+        testClickAndRoll.activeName.isInTopHalf = true;
+        testClickAndRoll.applyAnimationClass();
+        expect(testClickAndRoll.frameContent.classList.contains('reveal-from-top')).to.equal(true);
+      });
+
+      it('should set frame to reveal from bottom if in bottom half', () => {
+        testClickAndRoll.activeName.isInTopHalf = false;
+        testClickAndRoll.applyAnimationClass();
+        expect(testClickAndRoll.frameContent.classList.contains('reveal-from-bottom')).to.equal(true);
+      });
+
+    });
+
     describe('setFrameLoading', () => {
 
       before(() => {
@@ -1118,6 +1242,7 @@ describe('Content Scripts', () => {
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
+        testClickAndRoll.scrollParent = document.createElement('div');
 
         activeNameElement = document.createElement('div');
         testClickAndRoll.activeName.element = activeNameElement;

@@ -17,6 +17,7 @@ function ClickAndRoll() {
   this.observer = null;
   this.players = [];
   this.resultSearch = new ResultSearch();
+  this.scrollParent = null;
 
   this.utils = new Utils();
 
@@ -54,7 +55,7 @@ function ClickAndRoll() {
         const resultNodes = this.resultSearch.searchRootNode(document.body);
 
         this.highlight(resultNodes);
-        this.handleEdgeCases();
+        this.handleReportedEdgeCases();
         this.observeMutations();
       });
   };
@@ -135,9 +136,11 @@ function ClickAndRoll() {
 
   this.resetFrame = () => {
     this.attachFrame();
+    this.applyScrollRule();
     this.applyFrameStyles();
     this.getFrameDocument().body.innerHTML = '';
     this.positionFrameContainer();
+    this.applyAnimationClass();
     this.getFrameDocument().body.appendChild(this.frameContent);
   };
 
@@ -157,21 +160,36 @@ function ClickAndRoll() {
     this.frameContainer.style.height = 'calc(50vh + 2px)';
   };
 
-  this.positionFrameContainer = () => {
+  this.applyScrollRule = () => {
+    this.setScrollParent();
+    if (this.scrollParent !== document.body) {
+      this.scrollParent.addEventListener('scroll', this.positionFrameContainer);
+    }
+  };
+
+  this.setScrollParent = () => {
+    let offsetParent = this.activeName.element;
+    let scrollParent = null;
+
+    while (offsetParent.offsetParent) {
+      offsetParent = offsetParent.offsetParent;
+      scrollParent = (offsetParent.scrollHeight > offsetParent.clientHeight)
+        ? offsetParent
+        : scrollParent;
+    }
+
+    this.scrollParent = offsetParent === document.body ? document.body : scrollParent || offsetParent;
+  };
+
+  this.positionFrameContainer = (scrollEvent) => {
     const rect = this.activeName.element.getBoundingClientRect();
-    this.activeName.isInLeftHalf = rect.left < this.getHalfViewWidth();
-    this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
+
+    if (!scrollEvent) {
+      this.activeName.isInLeftHalf = rect.left < this.getHalfViewWidth();
+      this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
+    }
 
     this.frameContainer.style.marginLeft = this.activeName.isInLeftHalf ? '0' : '4px';
-
-    // remove existing animation class
-    this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
-
-    if (this.activeName.isInTopHalf) {
-      this.frameContent.classList.add('reveal-from-top');
-    } else {
-      this.frameContent.classList.add('reveal-from-bottom');
-    }
 
     const offset = this.getOffsetFromParent(rect);
     this.frameContainer.style.top = offset.top + 'px';
@@ -198,6 +216,16 @@ function ClickAndRoll() {
     }
   };
 
+  this.applyAnimationClass = () => {
+    this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
+
+    if (this.activeName.isInTopHalf) {
+      this.frameContent.classList.add('reveal-from-top');
+    } else {
+      this.frameContent.classList.add('reveal-from-bottom');
+    }
+  };
+
   this.setFrameLoading = (newPlayerId) => {
     this.frameContent.classList.remove('loaded');
     this.frameContent.classList.add('loading');
@@ -214,6 +242,7 @@ function ClickAndRoll() {
   this.closeOverlay = () => {
     this.activeName.element.onmouseenter = this.handleHover;
     this.frameContainer.hidden = true;
+    this.scrollParent.removeEventListener('scroll', this.positionFrameContainer);
     document.removeEventListener('click', this.closeOverlay);
     this.getFrameDocument().getElementById('dismiss').onclick = null;
   };
@@ -314,7 +343,12 @@ function ClickAndRoll() {
     this.getFrameDocument().getElementById('network-error').hidden = false;
   };
 
-  this.handleEdgeCases = () => {
+  this.handleReportedEdgeCases = () => {
+    /*
+    User noted that results in google search carousel do not respond to hover events
+    This is due to placeholder element google displays before images and text load in
+    The overlay element prevents pointer events within carousel items
+     */
     const isGoogleSearchWithCarousel = document.URL.match(/google.*\/search/)
       && document.getElementsByTagName('g-scrolling-carousel');
 
