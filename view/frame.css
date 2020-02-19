@@ -131,11 +131,20 @@ h1#player-name {
   overflow-x: scroll;
 }
 
+.short-career {
+  height: 100%;
+}
+
+.short-career #career-stats {
+  margin: auto;
+}
+
 h2.sub-heading {
   color: teal;
   font-size: 14px;
   margin: 0;
-  padding: 4px 0 12px 8px;
+  padding: 12px 0 12px 8px;
+  width: fit-content;
 }
 
 .stick-left {
@@ -144,10 +153,6 @@ h2.sub-heading {
 }
 
 /* Profile styles */
-
-#player-profile {
-  margin: 8px 0 8px 0;
-}
 
 #player-profile-content {
   display: flex;

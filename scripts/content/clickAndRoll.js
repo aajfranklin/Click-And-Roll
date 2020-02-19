@@ -267,53 +267,16 @@ function ClickAndRoll() {
     }
 
     if (!this.frameContainer.hidden) {
-      this.resizeFrameContent();
+      this.checkContentHeight();
     }
   };
 
-  this.resizeFrameContent = () => {
+  this.checkContentHeight = () => {
     const frameContent = this.getFrameDocument().getElementById('content');
     const playerHeaderHeight = 37;
 
     if (frameContent.scrollHeight + playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
-      this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
-      const newHeight = (frameContent.scrollHeight + playerHeaderHeight) + 'px';
-
-      const rule = this.activeName.isInTopHalf
-        ? '@keyframes resize{from{height:calc(100vh - 2px);}'
-          + 'to{height:' + newHeight + ';}}'
-        : '@keyframes resize{from{height:calc(100vh - 2px);margin-top:0;;}'
-          + 'to{height:' + newHeight + ';margin-top:calc(100vh - 2px - ' + newHeight + ');}}';
-
-      // if user has scrolled over multiple names in quick succession, existing resize rule and event listeners should be removed
-      this.removeResizeAnimation();
-      this.frameContent.removeEventListener('animationend', this.handleAnimationEnd);
-
-      this.getStyleSheet().insertRule(rule, 0);
-      this.frameContent.addEventListener('animationend', this.handleAnimationEnd);
-      this.frameContent.classList.add('resize');
-    }
-  };
-
-  this.handleAnimationEnd = (animationEvent) => {
-    if (animationEvent.animationName === 'resize') {
-      this.removeResizeAnimation();
-      this.frameContent.classList.remove('resize');
-      this.frameContent.removeEventListener('animationend', this.handleAnimationEnd);
-
-      const frameContentHeight = this.frameContent.scrollHeight + 2;
-      this.frameContainer.style.height = frameContentHeight + 'px';
-      this.frameContainer.style.top = this.activeName.isInTopHalf
-        ? this.frameContainer.style.top
-        : this.frameContainer.offsetTop + this.getHalfViewHeight() - frameContentHeight + 'px';
-    }
-  };
-
-  this.removeResizeAnimation = () => {
-    const stylesheet = this.getStyleSheet();
-    const resizeRules = Array.prototype.filter.call(stylesheet.rules, rule => rule.name === 'resize');
-    for (let i = 0; i < resizeRules.length; i++) {
-      stylesheet.deleteRule(Array.prototype.indexOf.call(stylesheet.rules, resizeRules[i]));
+      frameContent.classList.add('short-career');
     }
   };
 
@@ -323,13 +286,6 @@ function ClickAndRoll() {
 
   this.getHalfViewWidth = () => {
     return window.innerWidth / 2;
-  };
-
-// ensures we always manipulate the correct style sheet if others are injected in iFrame e.g. by another extension
-  this.getStyleSheet = () => {
-    return Array.prototype.filter.call(this.getFrameDocument().styleSheets, stylesheet => {
-      return stylesheet.title === 'click-and-roll';
-    })[0];
   };
 
   this.getFrameDocument = () => {

@@ -1278,7 +1278,7 @@ describe('Content Scripts', () => {
 
     describe('displayStats', () => {
       let getFrameDocumentStub;
-      let resizeFrameContentStub;
+      let checkContentHeightStub;
 
       let nameElement;
 
@@ -1286,7 +1286,7 @@ describe('Content Scripts', () => {
         testClickAndRoll = new ClickAndRoll();
 
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        resizeFrameContentStub = sinon.stub(testClickAndRoll, 'resizeFrameContent');
+        checkContentHeightStub = sinon.stub(testClickAndRoll, 'checkContentHeight');
 
         getFrameDocumentStub.returns(document);
 
@@ -1297,12 +1297,12 @@ describe('Content Scripts', () => {
 
       afterEach(() => {
         getFrameDocumentStub.resetHistory();
-        resizeFrameContentStub.resetHistory();
+        checkContentHeightStub.resetHistory();
       });
 
       after(() => {
         getFrameDocumentStub.restore();
-        resizeFrameContentStub.restore();
+        checkContentHeightStub.restore();
 
         document.body.removeChild(nameElement);
       });
@@ -1311,7 +1311,7 @@ describe('Content Scripts', () => {
         testClickAndRoll.dataReceived = false;
         testClickAndRoll.displayStats();
         expect(getFrameDocumentStub.notCalled).to.equal(true);
-        expect(resizeFrameContentStub.notCalled).to.equal(true);
+        expect(checkContentHeightStub.notCalled).to.equal(true);
       });
 
       it('should set player name text content, player profile, and career stat rows if stats are present', () => {
@@ -1366,50 +1366,40 @@ describe('Content Scripts', () => {
       it('should resize frame content if frame container is not hidden', () => {
         testClickAndRoll.frameContainer.hidden = false;
         testClickAndRoll.displayStats();
-        expect(resizeFrameContentStub.calledOnce).to.equal(true);
+        expect(checkContentHeightStub.calledOnce).to.equal(true);
       });
 
     });
 
-    describe('resizeFrameContent', () => {
+    describe('checkContentHeight', () => {
 
-    });
-
-    describe('handleAnimationEnd', () => {
-
-    });
-
-    describe('removeResizeAnimation', () => {
-
-      let getStyleSheetStub;
-      let deleteRuleStub;
+      let getFrameDocumentStub;
+      let content;
 
       before(() => {
-        testClickAndRoll = new ClickAndRoll();
-
-        const stylesheet = {
-          rules: [
-            {name: 'resize'},
-            {name: 'resize'},
-            {name: 'other'}
-          ],
-          deleteRule: () => {}
-        };
-
-        getStyleSheetStub = sinon.stub(testClickAndRoll, 'getStyleSheet');
-        getStyleSheetStub.returns(stylesheet);
-
-        deleteRuleStub = sinon.stub(stylesheet, 'deleteRule');
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        getFrameDocumentStub.returns(document);
       });
 
-      after(() => {
-        getStyleSheetStub.restore();
-        deleteRuleStub.restore();
+      beforeEach(() => {
+        content = document.createElement('div');
+        content.id = 'content';
+        document.body.appendChild(content);
       });
 
-      it('should invoke delete rule for each resize rule', () => {
-        testClickAndRoll.removeResizeAnimation();
-        expect(deleteRuleStub.calledTwice).to.equal(true);
+      afterEach(() => {
+        document.body.removeChild(content);
+      });
+
+      it('should add short-career class to frame content if content height is too short', () => {
+        testClickAndRoll.checkContentHeight();
+        expect(content.classList.contains('short-career')).to.equal(true);
+      });
+
+      it('should not add short-career class to frame content if content height is tall enough', () => {
+        content.style.height = '100vh';
+        testClickAndRoll.checkContentHeight();
+        expect(content.classList.contains('short-career')).to.equal(false);
       });
 
     });
@@ -1437,28 +1427,6 @@ describe('Content Scripts', () => {
       it('should return half the inner width', () => {
         expect(testClickAndRoll.getHalfViewWidth()).to.equal(50);
       })
-
-    });
-
-    describe('getStyleSheet', () => {
-
-      let getFrameDocumentStub;
-      let style;
-
-      before(() => {
-        testClickAndRoll = new ClickAndRoll();
-
-        style = document.createElement('style');
-        style.title = 'click-and-roll';
-        document.head.appendChild(style);
-
-        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        getFrameDocumentStub.returns(document);
-      });
-
-      it('should return the stylesheet belonging to the inserted style node', () => {
-        expect(testClickAndRoll.getStyleSheet().ownerNode).to.equal(style);
-      });
 
     });
 
