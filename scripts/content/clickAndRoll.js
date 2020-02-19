@@ -17,6 +17,7 @@ function ClickAndRoll() {
   this.observer = null;
   this.players = [];
   this.resultSearch = new ResultSearch();
+  this.scrollParent = null;
 
   this.utils = new Utils();
 
@@ -54,6 +55,7 @@ function ClickAndRoll() {
         const resultNodes = this.resultSearch.searchRootNode(document.body);
 
         this.highlight(resultNodes);
+        this.handleReportedEdgeCases();
         this.observeMutations();
       });
   };
@@ -133,64 +135,61 @@ function ClickAndRoll() {
   };
 
   this.resetFrame = () => {
-    if (this.frameContainer.parentNode !== this.getNewContainerParent()) {
-      this.assignContainerToNewParent();
-    }
-
-    this.frameContainer.style.height = 'calc(50vh + 2px)';
+    this.attachFrame();
+    this.applyScrollRule();
+    this.applyFrameStyles();
     this.getFrameDocument().body.innerHTML = '';
     this.positionFrameContainer();
+    this.applyAnimationClass();
     this.getFrameDocument().body.appendChild(this.frameContent);
   };
 
-  this.getNewContainerParent = () => {
-    let rootOffsetParent = this.activeName.element;
-    let rootScrollParent = null;
-
-    while (rootOffsetParent.offsetParent) {
-      rootOffsetParent = rootOffsetParent.offsetParent;
-      rootScrollParent = (rootOffsetParent.scrollHeight > rootOffsetParent.clientHeight)
-        ? rootOffsetParent
-        : rootScrollParent;
-    }
-
-    return (rootOffsetParent === document.body)
-      ? document.body
-      : rootScrollParent || rootOffsetParent;
+  this.attachFrame = () => {
+    if (this.frameContainer.parentNode) this.frameContainer.parentNode.removeChild(this.frameContainer);
+    document.body.appendChild(this.frameContainer);
+    this.frameContainer.appendChild(this.frame);
   };
 
-  this.assignContainerToNewParent = () => {
-    if (this.frameContainer.parentNode) {
-      this.frameContainer.parentNode.removeChild(this.frameContainer);
-    }
-
-    this.getNewContainerParent().appendChild(this.frameContainer);
-    this.frameContainer.appendChild(this.frame);
-
+  this.applyFrameStyles = () => {
     this.getFrameDocument().body.id = 'frame-body';
-
     const style = document.createElement('style');
     style.type = 'text/css';
     style.textContent = this.frameStyle;
     style.title = 'click-and-roll';
     this.getFrameDocument().head.appendChild(style);
+    this.frameContainer.style.height = 'calc(50vh + 2px)';
   };
 
-  this.positionFrameContainer = () => {
+  this.applyScrollRule = () => {
+    this.setScrollParent();
+    if (this.scrollParent !== document.body) {
+      this.scrollParent.addEventListener('scroll', this.positionFrameContainer);
+    }
+  };
+
+  this.setScrollParent = () => {
+    let offsetParent = this.activeName.element;
+    let scrollParent = null;
+
+    while (offsetParent.offsetParent) {
+      offsetParent = offsetParent.offsetParent;
+      scrollParent = (offsetParent.scrollHeight > offsetParent.clientHeight)
+        ? offsetParent
+        : scrollParent;
+    }
+
+    this.scrollParent = offsetParent === document.body ? document.body : scrollParent || offsetParent;
+  };
+
+  this.positionFrameContainer = (scrollEvent) => {
     const rect = this.activeName.element.getBoundingClientRect();
-    this.activeName.isInLeftHalf = rect.left < this.getHalfViewWidth();
-    this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
+
+    if (!scrollEvent) {
+      this.activeName.isInLeftHalf = rect.left < this.getHalfViewWidth();
+      this.activeName.isInTopHalf = rect.top < this.getHalfViewHeight();
+    }
 
     this.frameContainer.style.marginLeft = this.activeName.isInLeftHalf ? '0' : '4px';
-
-    // remove existing animation class
-    this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
-
-    if (this.activeName.isInTopHalf) {
-      this.frameContent.classList.add('reveal-from-top');
-    } else {
-      this.frameContent.classList.add('reveal-from-bottom');
-    }
 
     const offset = this.getOffsetFromParent(rect);
     this.frameContainer.style.top = offset.top + 'px';
@@ -199,30 +198,31 @@ function ClickAndRoll() {
   };
 
   this.getOffsetFromParent = (rect) => {
-    const scrollX = (this.frameContainer.parentNode === document.body)
-      ? (window.scrollX ? window.scrollX : window.pageXOffset)
-      : this.frameContainer.parentNode.scrollLeft;
-    const scrollY = (this.frameContainer.parentNode === document.body)
-      ? (window.scrollY ? window.scrollY : window.pageYOffset)
-      : this.frameContainer.parentNode.scrollTop;
-
-    const parentOffset = {
-      x: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().left,
-      y: (this.frameContainer.parentNode === document.body) ? 0 : this.frameContainer.parentNode.getBoundingClientRect().top
-    };
+    const scrollX = window.scrollX ? window.scrollX : window.pageXOffset;
+    const scrollY = window.scrollY ? window.scrollY : window.pageYOffset;
 
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = this.activeName.isInLeftHalf
-      ? rect.left + scrollX - parentOffset.x - 2
-      : rect.left + scrollX - parentOffset.x - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
+      ? rect.left + scrollX - 2
+      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
 
     const overlayTop = this.activeName.isInTopHalf
-      ? rect.top + scrollY - parentOffset.y + rect.height
-      : rect.top + scrollY - parentOffset.y - this.getHalfViewHeight();
+      ? rect.top + scrollY + rect.height
+      : rect.top + scrollY - this.getHalfViewHeight();
 
     return {
       left: overlayLeft,
       top: overlayTop
+    }
+  };
+
+  this.applyAnimationClass = () => {
+    this.frameContent.classList.remove('reveal-from-top', 'reveal-from-bottom');
+
+    if (this.activeName.isInTopHalf) {
+      this.frameContent.classList.add('reveal-from-top');
+    } else {
+      this.frameContent.classList.add('reveal-from-bottom');
     }
   };
 
@@ -242,6 +242,7 @@ function ClickAndRoll() {
   this.closeOverlay = () => {
     this.activeName.element.onmouseenter = this.handleHover;
     this.frameContainer.hidden = true;
+    this.scrollParent.removeEventListener('scroll', this.positionFrameContainer);
     document.removeEventListener('click', this.closeOverlay);
     this.getFrameDocument().getElementById('dismiss').onclick = null;
   };
@@ -340,6 +341,23 @@ function ClickAndRoll() {
     this.frameContent.classList.add('loading');
     this.frameContent.classList.add('loaded');
     this.getFrameDocument().getElementById('network-error').hidden = false;
+  };
+
+  this.handleReportedEdgeCases = () => {
+    /*
+    User noted that results in google search carousel do not respond to hover events
+    This is due to placeholder element google displays before images and text load in
+    The overlay element prevents pointer events within carousel items
+     */
+    const isGoogleSearchWithCarousel = document.URL.match(/google.*\/search/)
+      && document.getElementsByTagName('g-scrolling-carousel');
+
+    if (isGoogleSearchWithCarousel) {
+      const overlays = document.getElementsByClassName('y6ZeVb');
+      for (let i = 0; i < overlays.length; i++) {
+        overlays[i].setAttribute('style', 'pointer-events: none');
+      }
+    }
   };
 
   this.teardown = () => {
