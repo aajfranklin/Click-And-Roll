@@ -86,7 +86,8 @@ function MessageHandler() {
       {
         method: 'GET',
         data,
-        cache: false
+        cache: false,
+        timeout: 5000
       })
   };
 

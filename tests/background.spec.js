@@ -368,7 +368,8 @@ describe('Background Scripts', () => {
               LeagueID: '00',
               param: 'test'
             },
-            cache: false
+            cache: false,
+            timeout: 5000
           }
         ];
 
