@@ -54,7 +54,7 @@ function MessageHandler() {
   };
 
   this.apiGet = (endpoint, id) => {
-    return $.ajax(`http://192.168.1.90:3000/${endpoint}/${id}`,
+    return $.ajax(`http://clickandroll.co.uk/${endpoint}/${id}`,
       {
         method: 'GET',
         cache: false,
