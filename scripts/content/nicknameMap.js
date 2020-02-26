@@ -1,6 +1,6 @@
 const nicknameMap = [
   {
-    name: 'Steph Curry',
-    id: 201939
+    NAME: 'Steph Curry',
+    PLAYER_ID: 201939
   }
 ];
