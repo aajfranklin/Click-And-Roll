@@ -285,10 +285,11 @@ describe('Background Scripts', () => {
 
       it('should make an ajax request with the correct params', () => {
         const expectedArgs = [
-          'http://clickandroll.co.uk/endpoint/id',
+          'http://clickandroll.co.uk/api/endpoint/id',
           {
             method: 'GET',
             cache: false,
+            headers: {'x-click-and-roll': 'true'},
             timeout: 10000
           }
         ];

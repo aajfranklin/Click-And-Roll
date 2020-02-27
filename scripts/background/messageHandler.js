@@ -54,9 +54,10 @@ function MessageHandler() {
   };
 
   this.apiGet = (endpoint, id) => {
-    return $.ajax(`http://clickandroll.co.uk/${endpoint}/${id}`,
+    return $.ajax(`http://clickandroll.co.uk/api/${endpoint}/${id}`,
       {
         method: 'GET',
+        headers: {'x-click-and-roll': 'true'},
         cache: false,
         timeout: 10000
       })
