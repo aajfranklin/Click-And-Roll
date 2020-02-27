@@ -751,8 +751,8 @@ describe('Background Scripts', () => {
         dateNowStub.restore();
       });
 
-      it('should call setTimeout with interval of 0 if last call was over three seconds ago', () => {
-        dateNowStub.returns(3001);
+      it('should call setTimeout with interval of 0 if last call was over one second ago', () => {
+        dateNowStub.returns(1001);
         return messageHandler.applyRateLimit()
           .then(() => {
             expect(setTimeoutSpy.calledOnce).to.equal(true);
@@ -760,8 +760,8 @@ describe('Background Scripts', () => {
           });
       });
 
-      it('should call setTimeout with difference between gap and three seconds if last call was under three seconds ago', () => {
-        dateNowStub.returns(2999);
+      it('should call setTimeout with difference between gap and three seconds if last call was under one second ago', () => {
+        dateNowStub.returns(999);
         return messageHandler.applyRateLimit()
           .then(() => {
             expect(setTimeoutSpy.calledOnce).to.equal(true);

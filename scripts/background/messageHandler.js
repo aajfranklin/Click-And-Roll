@@ -136,7 +136,7 @@ function MessageHandler() {
     return this.utils.getFromLocalStorage('timestamp')
       .then(timestamp => {
         return new Promise(resolve => {
-          const timeout = Math.max(0, 3000 - (Date.now() - timestamp));
+          const timeout = Math.max(0, 1000 - (Date.now() - timestamp));
           setTimeout(resolve, timeout);
         });
       });
