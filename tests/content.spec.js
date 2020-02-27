@@ -513,7 +513,7 @@ describe('Content Scripts', () => {
         searchRootNodeStub = sinon.stub(testClickAndRoll.resultSearch, 'searchRootNode');
         setSearchStringsStub = sinon.stub(testClickAndRoll.resultSearch, 'setSearchStrings');
 
-        getPlayersStub.resolves([{name: 'name'}]);
+        getPlayersStub.resolves([{NAME: 'name'}]);
         ajaxStub.onFirstCall().resolves('fetchedTemplate');
         ajaxStub.onSecondCall().resolves('fetchedStyle');
         searchRootNodeStub.returns('nodes');
@@ -540,7 +540,7 @@ describe('Content Scripts', () => {
       it('should set running, players, stat template, frame style to correct values', () => {
         return testClickAndRoll.run()
           .then(() => {
-            expect(testClickAndRoll.players).to.deep.equal([{name: 'name'}].concat(nicknameMap));
+            expect(testClickAndRoll.players).to.deep.equal([{NAME: 'name'}].concat(nicknameMap));
             expect(testClickAndRoll.statTemplate).to.equal('fetchedTemplate');
             expect(testClickAndRoll.frameStyle).to.equal('fetchedStyle');
           });
@@ -684,7 +684,7 @@ describe('Content Scripts', () => {
           }
         };
 
-        testClickAndRoll.players = [{name: 'testName', id: '0'}];
+        testClickAndRoll.players = [{NAME: 'testName', PLAYER_ID: '0'}];
 
         updateActiveNameStub = sinon.stub(testClickAndRoll, 'updateActiveName');
         resetFrameStub = sinon.stub(testClickAndRoll, 'resetFrame');

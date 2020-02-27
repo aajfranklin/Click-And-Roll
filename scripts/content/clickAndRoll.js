@@ -49,7 +49,7 @@ function ClickAndRoll() {
       .then(response => {
         this.frameStyle = response;
 
-        const playerNames = this.players.map((player) => player.name);
+        const playerNames = this.players.map((player) => player['NAME']);
 
         this.resultSearch.setSearchStrings(playerNames);
         const resultNodes = this.resultSearch.searchRootNode(document.body);
@@ -101,7 +101,7 @@ function ClickAndRoll() {
     this.updateActiveName(mouseEnterEvent.target);
     this.resetFrame();
 
-    const newPlayerId = this.players.filter(player => player.name === this.activeName.element.textContent)[0].id;
+    const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
     const isNetworkErrorShowing = this.getFrameDocument().getElementById('network-error')
       && !this.getFrameDocument().getElementById('network-error').hidden;
 

@@ -3,36 +3,9 @@ function MessageHandler() {
   this.utils = new Utils();
 
   this.addListeners = () => {
-    const filter = {urls: ['https://stats.nba.com/stats/*']};
-    const extraInfoSpec = ['requestHeaders', 'blocking', 'extraHeaders'];
-
-    chrome.webRequest.onBeforeSendHeaders.addListener(this.setRequestHeaders, filter, extraInfoSpec);
-    chrome.runtime.onMessage.addListener(this.handleMessage);
     // pass in anon function invoking handleLoad, rather than handleLoad itself, so that we don't pass onActivated result to handleLoad
     chrome.tabs.onActivated.addListener(() => this.handleLoad());
-  };
-
-  this.setRequestHeaders = (requestDetails) => {
-    let hasReferer = false;
-    const newReferer = 'https://stats.nba.com';
-    const headers = requestDetails.requestHeaders;
-
-    for (let i = 0; i < headers.length; i++) {
-      if (headers[i].name.toLowerCase() === 'referer') {
-        headers[i].value = newReferer;
-        hasReferer = true;
-        break;
-      }
-    }
-
-    if (!hasReferer) {
-      headers.push({name: 'Referer', value: newReferer});
-    }
-
-    headers.push({name: 'x-nba-stats-origin', value: 'stats'});
-    headers.push({name: 'x-nba-stats-token', value: 'true'});
-
-    return {requestHeaders: headers}
+    chrome.runtime.onMessage.addListener(this.handleMessage);
   };
 
   this.handleMessage = (request, sender, sendResponse) => {
@@ -71,33 +44,22 @@ function MessageHandler() {
   };
 
   this.handleFetchPlayers = (sendResponse) => {
-    return this.apiGet('commonallplayers', {Season: '2018-19', IsOnlyCurrentSeason: '0'})
+    return this.apiGet('players', 'all')
       .then(response => {
-        sendResponse([null, this.formatPlayers(response)]);
+        sendResponse([null, response]);
       })
       .catch(err => {
         sendResponse([err, null]);
       });
   };
 
-  this.apiGet = (endpoint, params) => {
-    const data = {LeagueID: '00', ...params};
-    return $.ajax(`https://stats.nba.com/stats/${endpoint}`,
+  this.apiGet = (endpoint, id) => {
+    return $.ajax(`http://clickandroll.co.uk/${endpoint}/${id}`,
       {
         method: 'GET',
-        data,
         cache: false,
-        timeout: 5000
+        timeout: 10000
       })
-  };
-
-  this.formatPlayers = (response) => {
-    return response.resultSets[0].rowSet.map((player) => {
-      return {
-        id: player[0],
-        name: player[2]
-      }
-    });
   };
 
   this.handleFetchStats = (request, sendResponse) => {
@@ -151,16 +113,12 @@ function MessageHandler() {
     return this.applyRateLimit()
       .then(() => {
         this.utils.saveToLocalStorage('timestamp', Date.now());
-        return this.apiGet('playerCareerStats', {PerMode: 'PerGame', PlayerID: id});
+        return this.apiGet('player', id);
       })
       .then(response => {
-        stats.careerHTML = this.getCareerHTML(response);
-        return this.apiGet('commonplayerinfo', {PlayerID: id});
-      })
-      .then(response => {
-        const toYearIndex = response.resultSets[0].headers.indexOf('TO_YEAR');
-        stats.active = response.resultSets[0].rowSet[0][toYearIndex] >= new Date().getFullYear() - 1;
-        return this.getProfileHTML(response);
+        stats.active = this.getActive(response.rows);
+        stats.careerHTML = this.getCareerHTML(response.rows);
+        return this.getProfileHTML(response.profile);
       })
       .then(profileHTML => {
         stats.profileHTML = profileHTML;
@@ -184,111 +142,111 @@ function MessageHandler() {
       });
   };
 
-  this.getCareerHTML = (response) => {
-    const seasons = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsRegularSeason')[0];
-    const career = response.resultSets.filter(resultSet => resultSet.name === 'CareerTotalsRegularSeason')[0];
-    const allStar = response.resultSets.filter(resultSet => resultSet.name === 'SeasonTotalsAllStarSeason')[0];
-    const allStarSeasons = allStar.rowSet.map(row => row[allStar.headers.indexOf('SEASON_ID')]);
+  this.getActive = (rows) => {
+    const lastActiveSeason = rows[rows.length - 2];
+    const lastActiveYear = parseInt(lastActiveSeason['SEASON_ID'].slice(0,4));
+    const currentYear = new Date().getFullYear();
 
+    return lastActiveYear >= currentYear - 1;
+  };
+
+  this.getCareerHTML = (rows) => {
     let careerStatsHTML = '';
 
-    if (seasons.rowSet.length) {
-      for (let i = 0; i < seasons.rowSet.length; i++) {
-        const season = seasons.rowSet[i];
-        const isAllStarSeason = allStarSeasons.indexOf(season[1]) !== -1;
-        const rowHTML = this.createRow(season, isAllStarSeason, false);
+    if (rows.length) {
+      for (let i = 0; i < rows.length - 1; i++) {
+        const season = rows[i];
+        const rowHTML = this.createRow(season, false);
         careerStatsHTML += rowHTML;
       }
 
-      const careerRow = this.createRow(career.rowSet[0], false, true);
+      const careerRow = this.createRow(rows[rows.length - 1], true);
       careerStatsHTML += careerRow;
     }
 
     return careerStatsHTML;
   };
 
-  this.createRow = (season, isAllStarSeason, isCareerRow) => {
-    if (isCareerRow) {
-      season[0] = 'Career';
-      season[1] = season[2] = '-';
-    } else {
-      const statsToRemove = [3, 2, 0];
-      for (let i = 0; i < statsToRemove.length; i++) {
-        season.splice(statsToRemove[i], 1);
-      }
-    }
+  this.createRow = (season, isCareerRow) => {
+    const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
 
-    let tableDataCells = '';
-
-    for (let i = 0; i < season.length; i++) {
-      const statContent = (season[i] === null) ? 'n/a' : season[i];
-      const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
-
-      const statHtml = i === 0
-        ? '<td class="season stick-left">' + statContent + (isAllStarSeason ? allStarSeasonSpan : '') + '</td>'
-        : '<td>' + statContent + '</td>';
-
-      tableDataCells += statHtml;
-    }
+    let tableDataCells = `<td class="season stick-left">${season['SEASON_ID']}`
+      + `${season['ALL_STAR'] ? allStarSeasonSpan : ''}</td>`
+      + `<td>${isCareerRow ? '-' : season['TEAM_ABBREVIATION']  || 'n/a'}</td>`
+      + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`
+      + `<td>${season['GP']       || 'n/a'}</td>`
+      + `<td>${season['MIN']      || 'n/a'}</td>`
+      + `<td>${season['FGM']      || 'n/a'}</td>`
+      + `<td>${season['FGA']      || 'n/a'}</td>`
+      + `<td>${season['FG_PCT']   || 'n/a'}</td>`
+      + `<td>${season['FG3M']     || 'n/a'}</td>`
+      + `<td>${season['FG3A']     || 'n/a'}</td>`
+      + `<td>${season['FG3_PCT']  || 'n/a'}</td>`
+      + `<td>${season['FTM']      || 'n/a'}</td>`
+      + `<td>${season['FTA']      || 'n/a'}</td>`
+      + `<td>${season['FT_PCT']   || 'n/a'}</td>`
+      + `<td>${season['OREB']     || 'n/a'}</td>`
+      + `<td>${season['DREB']     || 'n/a'}</td>`
+      + `<td>${season['REB']      || 'n/a'}</td>`
+      + `<td>${season['AST']      || 'n/a'}</td>`
+      + `<td>${season['STL']      || 'n/a'}</td>`
+      + `<td>${season['BLK']      || 'n/a'}</td>`
+      + `<td>${season['TOV']      || 'n/a'}</td>`
+      + `<td>${season['PF']       || 'n/a'}</td>`
+      + `<td>${season['PTS']      || 'n/a'}</td>`;
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
   };
 
-  this.getProfileHTML = (response) => {
-    const headers = response.resultSets[0].headers;
-    const profileData = response.resultSets[0].rowSet[0];
-
-    const getProfileValue = (key) => {
-      return profileData[headers.indexOf(key)];
-    };
+  this.getProfileHTML = (profile) => {
 
     const formattedProfile = [{
         label: 'Team',
-        value: getProfileValue('TEAM_ABBREVIATION') || 'n/a'
+        value: profile['TEAM_ABBREVIATION'] || 'n/a'
       },
       {
         label: 'Birthday',
-        value: this.formatBirthday(getProfileValue('BIRTHDATE'))
+        value: this.formatBirthday(profile['BIRTHDAY'])
       },
       {
         label: 'Country',
-        value: getProfileValue('COUNTRY') || 'n/a'
+        value: profile['COUNTRY'] || 'n/a'
       },
       {
         label: 'Number',
-        value: getProfileValue('JERSEY') || 'n/a'
+        value: profile['NUMBER'] || 'n/a'
       },
       {
         label: 'Height',
-        value: getProfileValue('HEIGHT') || 'n/a'
+        value: profile['HEIGHT'] || 'n/a'
       },
       {
         label: 'College',
-        value: getProfileValue('SCHOOL') || 'n/a'
+        value: profile['COLLEGE'] || 'n/a'
       },
       {
         label: 'Position',
-        value: getProfileValue('POSITION') || 'n/a'
+        value: profile['POSITION'] || 'n/a'
       },
       {
         label: 'Weight',
-        value: this.formatWeight(getProfileValue('WEIGHT'))
+        value: this.formatWeight(profile['WEIGHT'])
       },
       {
         label: 'Draft',
-        value: this.formatDraft(getProfileValue('DRAFT_YEAR'), getProfileValue('DRAFT_ROUND'), getProfileValue('DRAFT_NUMBER'))
+        value: this.formatDraft(profile['DRAFT_YEAR'], profile['DRAFT_ROUND'], profile['DRAFT_NUMBER'])
     }];
 
     let profileHTML = '';
-    const fullName = getProfileValue('DISPLAY_FIRST_LAST');
+    const fullName = profile['NAME'];
     const imageUrl = this.getPlayerImageUrl(fullName);
 
     const mapProfileValues = () => {
       profileHTML += '<div id="player-profile-info">';
 
       for (let i = 0; i < formattedProfile.length; i++) {
-        profileHTML += '<div class="info-label">' + formattedProfile[i].label + '</div>';
-        profileHTML += '<div class="info-data">' + formattedProfile[i].value + '</div>';
+        profileHTML += `<div class="info-label">${formattedProfile[i].label}</div>`;
+        profileHTML += `<div class="info-data">${formattedProfile[i].value}</div>`;
       }
 
       profileHTML += '</div>';
@@ -296,7 +254,7 @@ function MessageHandler() {
 
     return fetch(imageUrl, {cache: 'force-cache', redirect: 'error'})
       .then(() => {
-        profileHTML += '<img src ="' + imageUrl + '" alt="' + fullName + '" id="player-profile-image"/>';
+        profileHTML += `<img src ="${imageUrl}" alt="${fullName}" id="player-profile-image"/>`;
         mapProfileValues();
         return profileHTML;
       })

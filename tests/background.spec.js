@@ -6,94 +6,43 @@ describe('Background Scripts', () => {
 
     describe('addListeners', () => {
       let handleLoadStub;
-      let onBeforeSendHeadersStub;
       let onMessageStub;
       let onActivatedStub;
 
       before(() => {
 
-        chrome.webRequest = {onBeforeSendHeaders: {addListener: () => {}}};
         chrome.runtime.onMessage = {addListener: () => {}};
         chrome.tabs = {onActivated: {addListener: () => {}}};
 
         handleLoadStub = sinon.stub(messageHandler, 'handleLoad');
-        onBeforeSendHeadersStub = sinon.stub(chrome.webRequest.onBeforeSendHeaders, 'addListener');
         onMessageStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
         onActivatedStub = sinon.stub(chrome.tabs.onActivated, 'addListener');
 
         handleLoadStub.returns(null);
-        onBeforeSendHeadersStub.returns(null);
         onMessageStub.returns(null);
         onActivatedStub.returns(null);
       });
 
       afterEach(() => {
         handleLoadStub.resetHistory();
-        onBeforeSendHeadersStub.resetHistory();
         onMessageStub.resetHistory();
         onActivatedStub.resetHistory();
       });
 
       after(() => {
         handleLoadStub.restore();
-        onBeforeSendHeadersStub.restore();
         onMessageStub.restore();
         onActivatedStub.restore();
       });
 
       it('should call chrome runtime on message add listener with correct listener', () => {
-        const onBeforeSendHeadersArgs = [messageHandler.setRequestHeaders, {urls: ['https://stats.nba.com/stats/*']}, ['requestHeaders', 'blocking', 'extraHeaders']];
-
         messageHandler.addListeners();
-        expect(onBeforeSendHeadersStub.calledOnce).to.equal(true);
-        expect(onBeforeSendHeadersStub.firstCall.args).to.deep.equal(onBeforeSendHeadersArgs);
         expect(onMessageStub.calledOnce).to.equal(true);
         expect(onMessageStub.firstCall.args[0]).to.equal(messageHandler.handleMessage);
         expect(onActivatedStub.calledOnce).to.equal(true);
         expect(handleLoadStub.calledOnce).to.equal(false);
         onActivatedStub.firstCall.args[0]();
         expect(handleLoadStub.calledOnce).to.equal(true);
-      });
-
-    });
-
-    describe('setRequestHeaders', () => {
-
-      it ('should change the referer if present', () => {
-        const webRequestDetails = {
-          requestHeaders: [
-            {name: 'someHeader', value: 'someValue'},
-            {name: 'Referer', value: 'http://test'}
-          ]
-        };
-
-        const expected = {requestHeaders: [
-          {name: 'someHeader', value: 'someValue'},
-          {name: 'Referer', value: 'https://stats.nba.com'},
-          {name: 'x-nba-stats-origin', value: 'stats'},
-          {name: 'x-nba-stats-token', value: 'true'}
-        ]};
-
-        const result = messageHandler.setRequestHeaders(webRequestDetails);
-        expect(result).to.deep.equal(expected);
-      });
-
-      it ('add the referer if not present', () => {
-        const webRequestDetails = {
-          requestHeaders: [
-            {name: 'someHeader', value: 'someValue'},
-          ]
-        };
-
-        const expected = {requestHeaders: [
-            {name: 'someHeader', value: 'someValue'},
-            {name: 'Referer', value: 'https://stats.nba.com'},
-            {name: 'x-nba-stats-origin', value: 'stats'},
-            {name: 'x-nba-stats-token', value: 'true'}
-          ]};
-
-        const result = messageHandler.setRequestHeaders(webRequestDetails);
-        expect(result).to.deep.equal(expected);
       });
 
     });
@@ -260,41 +209,26 @@ describe('Background Scripts', () => {
     describe('handleFetchPlayers', () => {
 
       let apiGetStub;
-      let formatPlayersStub;
       let sendResponseSpy;
 
       before(() => {
         apiGetStub = sinon.stub(messageHandler, 'apiGet');
-        formatPlayersStub = sinon.stub(messageHandler, 'formatPlayers');
-
         apiGetStub.resolves(null);
-        formatPlayersStub.returns(null);
-
         sendResponseSpy = sinon.spy();
       });
 
       afterEach(() => {
         apiGetStub.resolves(null);
-
         apiGetStub.resetHistory();
-        formatPlayersStub.resetHistory();
-
         sendResponseSpy.resetHistory();
       });
 
       after(() => {
         apiGetStub.restore();
-        formatPlayersStub.restore();
       });
 
       it('should call apiGet with correct args', () => {
-        const expectedArgs = [
-          'commonallplayers',
-          {
-            Season: '2018-19',
-            IsOnlyCurrentSeason: '0'
-          }
-        ];
+        const expectedArgs = ['players', 'all'];
 
         return messageHandler.handleFetchPlayers(sendResponseSpy)
           .then(() => {
@@ -305,22 +239,12 @@ describe('Background Scripts', () => {
 
       describe('if apiGet resolves', () => {
 
-        it('should pass apiGet response to formatPlayers', () => {
-          apiGetStub.resolves('response');
-          return messageHandler.handleFetchPlayers(sendResponseSpy)
-            .then(() => {
-              expect(formatPlayersStub.calledOnce).to.equal(true);
-              expect(formatPlayersStub.withArgs('response').calledOnce).to.equal(true);
-            });
-        });
-
         it('should send the response', () => {
           apiGetStub.resolves('response');
-          formatPlayersStub.returns('players');
           return messageHandler.handleFetchPlayers(sendResponseSpy)
             .then(() => {
               expect(sendResponseSpy.calledOnce).to.equal(true);
-              expect(sendResponseSpy.withArgs([null, 'players']).calledOnce).to.equal(true);
+              expect(sendResponseSpy.withArgs([null, 'response']).calledOnce).to.equal(true);
             });
         });
 
@@ -361,44 +285,19 @@ describe('Background Scripts', () => {
 
       it('should make an ajax request with the correct params', () => {
         const expectedArgs = [
-          'https://stats.nba.com/stats/endpoint',
+          'http://clickandroll.co.uk/endpoint/id',
           {
             method: 'GET',
-            data: {
-              LeagueID: '00',
-              param: 'test'
-            },
             cache: false,
-            timeout: 5000
+            timeout: 10000
           }
         ];
 
-        return messageHandler.apiGet('endpoint', {param: 'test'})
+        return messageHandler.apiGet('endpoint', 'id')
           .then(() => {
             expect(ajaxStub.calledOnce).to.equal(true);
             expect(ajaxStub.firstCall.args).to.deep.equal(expectedArgs);
           });
-      });
-
-    });
-
-    describe('formatPlayers', () => {
-
-      it('should return only array of objects with id and name', () => {
-        const fetchedPlayers = {
-          resultSets: [
-            {
-              rowSet: [
-                ['id1', 'otherValue', 'player1'],
-                ['id2', 'otherValue', 'player2']
-              ]
-            }
-          ]
-        };
-        const result = messageHandler.formatPlayers(fetchedPlayers);
-        expect(result.length).to.equal(2);
-        expect(result[0]).to.deep.equal({id:'id1', name:'player1'});
-        expect(result[1]).to.deep.equal({id:'id2', name:'player2'});
       });
 
     });
@@ -671,36 +570,27 @@ describe('Background Scripts', () => {
 
       let applyRateLimitStub;
       let apiGetStub;
+      let getActiveStub;
       let getCareerHTMLStub;
       let getProfileHTMLStub;
       let saveToStorageStub;
 
-      const getStatsResponse = 'careerStats';
-
-      const getProfileResponse = {
-        resultSets: [{
-          headers: ['TO_YEAR'],
-          rowSet: [['2019']]
-        }]
-      };
-
-      const getProfileResponseRetired = {
-        resultSets: [{
-          headers: ['TO_YEAR'],
-          rowSet: [['2018']]
-        }]
+      const getStatsResponse = {
+        rows: 'rows',
+        profile: 'profile'
       };
 
       before(() => {
         applyRateLimitStub = sinon.stub(messageHandler, 'applyRateLimit');
         apiGetStub = sinon.stub(messageHandler, 'apiGet');
+        getActiveStub = sinon.stub(messageHandler, 'getActive');
         getCareerHTMLStub = sinon.stub(messageHandler, 'getCareerHTML');
         getProfileHTMLStub = sinon.stub(messageHandler, 'getProfileHTML');
         saveToStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
 
         applyRateLimitStub.resolves(null);
-        apiGetStub.onCall(0).resolves(getStatsResponse);
-        apiGetStub.onCall(1).resolves(getProfileResponse);
+        apiGetStub.resolves(getStatsResponse);
+        getActiveStub.returns(true);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -709,13 +599,14 @@ describe('Background Scripts', () => {
       afterEach(() => {
         applyRateLimitStub.resetHistory();
         apiGetStub.resetHistory();
+        getActiveStub.resetHistory();
         getCareerHTMLStub.resetHistory();
         getProfileHTMLStub.resetHistory();
         saveToStorageStub.resetHistory();
 
         applyRateLimitStub.resolves(null);
-        apiGetStub.onCall(0).resolves(getStatsResponse);
-        apiGetStub.onCall(1).resolves(getProfileResponse);
+        apiGetStub.resolves(getStatsResponse);
+        getActiveStub.returns(true);
         getCareerHTMLStub.returns(null);
         getProfileHTMLStub.resolves(null);
         saveToStorageStub.returns(null);
@@ -724,6 +615,7 @@ describe('Background Scripts', () => {
       after(() => {
         applyRateLimitStub.restore();
         apiGetStub.restore();
+        getActiveStub.restore();
         getCareerHTMLStub.restore();
         getProfileHTMLStub.restore();
         saveToStorageStub.restore();
@@ -739,13 +631,10 @@ describe('Background Scripts', () => {
       describe('if applyRateLimit resolves', () => {
 
         it('should call apiGet with correct params', () => {
-          const expectedArgs = [
-            'playerCareerStats',
-            {PerMode: 'PerGame', PlayerID: 1}
-          ];
+          const expectedArgs = ['player', 1];
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
-              expect(apiGetStub.calledTwice).to.equal(true);
+              expect(apiGetStub.calledOnce).to.equal(true);
               expect(apiGetStub.firstCall.args).to.deep.equal(expectedArgs);
             })
         });
@@ -754,52 +643,38 @@ describe('Background Scripts', () => {
 
       describe('if apiGet resolves', () => {
 
-        it('should call getCareerHTML with apiGet response', () => {
+        it('should call getCareerHTML with returned rows', () => {
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getCareerHTMLStub.calledOnce).to.equal(true);
-              expect(getCareerHTMLStub.withArgs('careerStats').calledOnce).to.equal(true);
+              expect(getCareerHTMLStub.withArgs('rows').calledOnce).to.equal(true);
             })
         });
 
-        it('should call apiGet with correct params', () => {
-          const expectedArgs = [
-            'commonplayerinfo',
-            {PlayerID: 1}
-          ];
+        it('should call getActive with returned rows', () => {
           return messageHandler.fetchNonCachedStats(1)
-            .then(() => {
-              expect(apiGetStub.calledTwice).to.equal(true);
-              expect(apiGetStub.secondCall.args).to.deep.equal(expectedArgs);
-            })
+              .then(() => {
+                expect(getActiveStub.calledOnce).to.equal(true);
+                expect(getActiveStub.withArgs('rows').calledOnce).to.equal(true);
+              })
         });
 
-        it('should call getProfileHTML with second apiGet response', () => {
+        it('should call getProfileHTML with returned profile', () => {
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
               expect(getProfileHTMLStub.calledOnce).to.equal(true);
-              expect(getProfileHTMLStub.withArgs(getProfileResponse).calledOnce).to.equal(true);
+              expect(getProfileHTMLStub.withArgs('profile').calledOnce).to.equal(true);
             })
         });
 
         describe('if getProfileHTML resolves', () => {
 
-          it('should return stats with active true if player career includes current season', () => {
+          it('should return stats with active flag, profile and career html', () => {
             getCareerHTMLStub.returns('careerStats');
             getProfileHTMLStub.resolves('profileStats');
             return messageHandler.fetchNonCachedStats(1)
               .then(result => {
                 expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: true});
-              });
-          });
-
-          it('should return stats with active true if player career does not include current season', () => {
-            apiGetStub.onCall(1).resolves(getProfileResponseRetired);
-            getCareerHTMLStub.returns('careerStats');
-            getProfileHTMLStub.resolves('profileStats');
-            return messageHandler.fetchNonCachedStats(1)
-              .then(result => {
-                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: false});
               });
           });
 
@@ -896,108 +771,68 @@ describe('Background Scripts', () => {
 
     });
 
+    describe('getActive', () => {
+
+      let dateStub;
+
+      before(() => {
+        dateStub = sinon.stub(Date.prototype, 'getFullYear');
+        dateStub.returns(2020);
+      });
+
+      after(() => {
+        dateStub.restore();
+      });
+
+      it('should return true if last season id starts with previous year', () => {
+        const seasons = [{SEASON_ID: '2019-20'}, {}];
+        expect(messageHandler.getActive(seasons)).to.equal(true);
+      });
+
+      it('should return true if last season id starts with current year', () => {
+        const seasons = [{SEASON_ID: '2020-21'}, {}];
+        expect(messageHandler.getActive(seasons)).to.equal(true);
+      });
+
+      it('should return false if last season id starts with year earlier than previous year', () => {
+        const seasons = [{SEASON_ID: '2018-19'}, {}];
+        expect(messageHandler.getActive(seasons)).to.equal(false);
+      });
+
+    });
+
     describe('getCareerHTML', () => {
 
       it('should return seasons as HTML string', () => {
-        const response = {
-          "resource": "playercareerstats",
-          "parameters": {
-            "PerMode": "PerGame",
-            "PlayerID": 0,
-            "LeagueID": "00"
-          },
-          "resultSets": [{
-            "name": "SeasonTotalsRegularSeason",
-            "headers": ["PLAYER_ID", "SEASON_ID", "LEAGUE_ID", "TEAM_ID", "TEAM_ABBREVIATION", "PLAYER_AGE", "GP"],
-            "rowSet": [
-              [0, "2003-04", "00", 1, "TST", 19.0, 82],
-              [0,"2004-05", "00", 1, "TST", 20.0, 82]
-            ]
-          }, {
-            "name": "CareerTotalsRegularSeason",
-            "headers": ["PLAYER_ID", "LEAGUE_ID", "Team_ID", "GP"],
-            "rowSet": [[0, "00", 0, 164]]
-          }, {
-            "name": "SeasonTotalsAllStarSeason",
-            "headers": ["PLAYER_ID", "SEASON_ID"],
-            "rowSet": [[0, "2004-05",]]
-          }, {
-            "name": "other"
-          }]
-        };
+        const rows = [{SEASON_ID: '2000-01', ALL_STAR: 1, TEAM_ABBREVIATION: 'TM', PLAYER_AGE: 20}, {SEASON_ID: 'Career'}];
 
-        const expected = '<tr><td class="season stick-left">2003-04</td><td>TST</td><td>19</td><td>82</td></tr>'
-          + '<tr><td class="season stick-left">2004-05<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TST</td><td>20</td><td>82</td></tr>'
-          + '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>164</td></tr>';
-
-        expect(messageHandler.getCareerHTML(response)).to.equal(expected);
+        const expected = '<tr><td class="season stick-left">2000-01<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TM</td><td>20</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr><tr class="career">' +
+            '<td class="season stick-left">Career</td><td>-</td><td>-</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>';
+        expect(messageHandler.getCareerHTML(rows)).to.equal(expected);
       });
 
       it('should return empty string if player has no seasons', () => {
-        const response = {
-          "resource": "playercareerstats",
-          "parameters": {
-            "PerMode": "PerGame",
-            "PlayerID": 0,
-            "LeagueID": "00"
-          },
-          "resultSets": [{
-            "name": "SeasonTotalsRegularSeason",
-            "headers": [],
-            "rowSet": []
-          }, {
-            "name": "CareerTotalsRegularSeason",
-            "headers": [],
-            "rowSet": []
-          }, {
-            "name": "SeasonTotalsAllStarSeason",
-            "headers": [],
-            "rowSet": []
-          }, {
-            "name": "other"
-          }]
-        };
-
-        expect(messageHandler.getCareerHTML(response)).to.equal('');
+        const rows = [];
+        expect(messageHandler.getCareerHTML(rows)).to.equal('');
       });
 
     });
 
     describe('getProfileHTML', () => {
 
-      const response = {
-        resultSets: [
-          {
-            headers: [
-              'DRAFT_YEAR',
-              'DRAFT_ROUND',
-              'DRAFT_NUMBER',
-              'BIRTHDATE',
-              'WEIGHT',
-              'TEAM_ABBREVIATION',
-              'JERSEY',
-              'POSITION',
-              'HEIGHT',
-              'COUNTRY',
-              'SCHOOL',
-              'DISPLAY_FIRST_LAST'
-            ],
-            rowSet: [
-              ['draftYear',
-              'draftRound',
-              'draftNumber',
-              'birthDate',
-              'weight',
-              'teamAbbreviation',
-              'jersey',
-              'position',
-              'height',
-              'country',
-              'school',
-              'displayName']
-            ]
-          }
-        ]
+      const profile = {
+        DRAFT_YEAR: 'draftYear',
+        DRAFT_ROUND: 'draftRound',
+        DRAFT_NUMBER: 'draftNumber',
+        BIRTHDAY: 'birthday',
+        WEIGHT: 'weight',
+        TEAM_ABBREVIATION: 'teamAbbreviation',
+        NUMBER: 'number',
+        POSITION: 'position',
+        HEIGHT: 'height',
+        COUNTRY: 'country',
+        COLLEGE: 'college',
+        NAME: 'name'
       };
 
       let formatDraftStub;
@@ -1032,63 +867,44 @@ describe('Background Scripts', () => {
       });
 
       it('should return correctly formatted player info', () => {
-        const expected = '<img src ="imageUrl" alt="displayName" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">teamAbbreviation</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">country</div><div class="info-label">Number</div><div class="info-data">jersey</div><div class="info-label">Height</div><div class="info-data">height</div><div class="info-label">College</div><div class="info-data">school</div><div class="info-label">Position</div><div class="info-data">position</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">teamAbbreviation</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">country</div><div class="info-label">Number</div><div class="info-data">number</div><div class="info-label">Height</div><div class="info-data">height</div><div class="info-label">College</div><div class="info-data">college</div><div class="info-label">Position</div><div class="info-data">position</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
 
-        return(messageHandler.getProfileHTML(response))
+        return(messageHandler.getProfileHTML(profile))
           .then((result) => {
             expect(result).to.deep.equal(expected);
           });
       });
 
       it('should call formatting functions with correct values', () => {
-        messageHandler.getProfileHTML(response);
+        messageHandler.getProfileHTML(profile);
         expect(formatDraftStub.calledOnce).to.equal(true);
         expect(formatDraftStub.withArgs('draftYear', 'draftRound', 'draftNumber').calledOnce).to.equal(true);
         expect(formatBirthdayStub.calledOnce).to.equal(true);
-        expect(formatBirthdayStub.withArgs('birthDate').calledOnce).to.equal(true);
+        expect(formatBirthdayStub.withArgs('birthday').calledOnce).to.equal(true);
         expect(formatWeightStub.calledOnce).to.equal(true);
         expect(formatWeightStub.withArgs('weight').calledOnce).to.equal(true);
         expect(getPlayerImageUrlStub.calledOnce).to.equal(true);
-        expect(getPlayerImageUrlStub.withArgs('displayName').calledOnce).to.equal(true);
+        expect(getPlayerImageUrlStub.withArgs('name').calledOnce).to.equal(true);
       });
 
       it('should return \'n/a\' for unavailable values', () => {
-        const responseWithNullValues = {
-          resultSets: [
-            {
-              headers: [
-                'DRAFT_YEAR',
-                'DRAFT_ROUND',
-                'DRAFT_NUMBER',
-                'BIRTHDATE',
-                'WEIGHT',
-                'TEAM_ABBREVIATION',
-                'JERSEY',
-                'POSITION',
-                'HEIGHT',
-                'COUNTRY',
-                'SCHOOL',
-                'DISPLAY_FIRST_LAST'
-              ],
-              rowSet: [
-                ['draftYear',
-                  'draftRound',
-                  'draftNumber',
-                  'birthDate',
-                  'weight',
-                  null,
-                  null,
-                  null,
-                  null,
-                  null,
-                  null,
-                  'displayName']
-              ]
-            }
-          ]
+        const profile = {
+          DRAFT_YEAR: 'draftYear',
+          DRAFT_ROUND: 'draftRound',
+          DRAFT_NUMBER: 'draftNumber',
+          BIRTHDAY: 'birthday',
+          WEIGHT: 'weight',
+          TEAM_ABBREVIATION: null,
+          NUMBER: null,
+          POSITION: null,
+          HEIGHT: null,
+          COUNTRY: null,
+          COLLEGE: null,
+          NAME: 'name'
         };
-        const expected = '<img src ="imageUrl" alt="displayName" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">n/a</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">n/a</div><div class="info-label">Number</div><div class="info-data">n/a</div><div class="info-label">Height</div><div class="info-data">n/a</div><div class="info-label">College</div><div class="info-data">n/a</div><div class="info-label">Position</div><div class="info-data">n/a</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
-        return(messageHandler.getProfileHTML(responseWithNullValues))
+
+        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">n/a</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">n/a</div><div class="info-label">Number</div><div class="info-data">n/a</div><div class="info-label">Height</div><div class="info-data">n/a</div><div class="info-label">College</div><div class="info-data">n/a</div><div class="info-label">Position</div><div class="info-data">n/a</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+        return(messageHandler.getProfileHTML(profile))
           .then(result => {
             expect(result).to.equal(expected);
           });
