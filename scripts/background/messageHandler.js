@@ -222,7 +222,7 @@ function MessageHandler() {
       },
       {
         label: 'College',
-        value: profile['SCHOOL'] || 'n/a'
+        value: profile['COLLEGE'] || 'n/a'
       },
       {
         label: 'Position',
@@ -246,7 +246,7 @@ function MessageHandler() {
 
       for (let i = 0; i < formattedProfile.length; i++) {
         profileHTML += `<div class="info-label">${formattedProfile[i].label}</div>`;
-        profileHTML += `<div class="info-data"> ${formattedProfile[i].value}</div>`;
+        profileHTML += `<div class="info-data">${formattedProfile[i].value}</div>`;
       }
 
       profileHTML += '</div>';
