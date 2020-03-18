@@ -327,11 +327,17 @@ function ClickAndRoll() {
       this.closeOverlay();
     }
 
+    this.removeResultNodes();
+  };
+
+  this.removeResultNodes = () => {
     const resultNodes = document.getElementsByClassName('click-and-roll-wrapper');
 
     while (resultNodes.length) {
       const wrapper = resultNodes[0];
+      const parent = wrapper.parentNode;
       wrapper.replaceWith(wrapper.firstChild);
+      parent.normalize();
     }
   };
 
