@@ -33,6 +33,7 @@ function Utils() {
 
   this.messageActiveTab = (request) => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs.length === 0) return; // prevent tabs[0] undefined if using breakpoints in background script debug window
       chrome.tabs.sendMessage(tabs[0].id, request)
     });
   };

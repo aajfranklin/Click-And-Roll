@@ -115,6 +115,13 @@ describe('Utils', () => {
       expect(sendMessageSpy.firstCall.args).to.deep.equal([0, request]);
     });
 
+    it('should return before sending message if no tab is returned', () => {
+      const request = {message: 'test'};
+      chrome.tabs.query = (input, callback) => callback([]);
+      testUtils.messageActiveTab(request);
+      expect(sendMessageSpy.calledOnce).to.equal(false);
+    });
+
   });
 
   describe('saveToLocalStorage', () => {
