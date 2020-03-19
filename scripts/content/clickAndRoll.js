@@ -37,6 +37,8 @@ function ClickAndRoll() {
   this.run = () => {
     this.isRunning = true;
 
+    window.addEventListener('yt-navigate-start', this.onYtNavigate);
+
     return this.getPlayers()
       .then(players => {
         this.players = players.concat(nicknameMap);
@@ -58,6 +60,10 @@ function ClickAndRoll() {
         this.handleReportedEdgeCases();
         this.observeMutations();
       });
+  };
+
+  this.onYtNavigate = () => {
+    window.location.reload();
   };
 
   this.getPlayers = () => {
@@ -328,6 +334,7 @@ function ClickAndRoll() {
     }
 
     this.removeResultNodes();
+    window.removeEventListener('yt-navigate-start', this.onYtNavigate);
   };
 
   this.removeResultNodes = () => {
