@@ -170,33 +170,22 @@ function MessageHandler() {
 
   this.createRow = (season, isCareerRow) => {
     const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
+    const countingStats = ['GP','MIN','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','OREB','DREB','REB','AST','STL','BLK','TOV','PF','PTS'];
 
     let tableDataCells = `<td class="season stick-left">${season['SEASON_ID']}`
       + `${season['ALL_STAR'] ? allStarSeasonSpan : ''}</td>`
       + `<td>${isCareerRow ? '-' : season['TEAM_ABBREVIATION']  || 'n/a'}</td>`
-      + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`
-      + `<td>${season['GP']       || 'n/a'}</td>`
-      + `<td>${season['MIN']      || 'n/a'}</td>`
-      + `<td>${season['FGM']      || 'n/a'}</td>`
-      + `<td>${season['FGA']      || 'n/a'}</td>`
-      + `<td>${season['FG_PCT']   || 'n/a'}</td>`
-      + `<td>${season['FG3M']     || 'n/a'}</td>`
-      + `<td>${season['FG3A']     || 'n/a'}</td>`
-      + `<td>${season['FG3_PCT']  || 'n/a'}</td>`
-      + `<td>${season['FTM']      || 'n/a'}</td>`
-      + `<td>${season['FTA']      || 'n/a'}</td>`
-      + `<td>${season['FT_PCT']   || 'n/a'}</td>`
-      + `<td>${season['OREB']     || 'n/a'}</td>`
-      + `<td>${season['DREB']     || 'n/a'}</td>`
-      + `<td>${season['REB']      || 'n/a'}</td>`
-      + `<td>${season['AST']      || 'n/a'}</td>`
-      + `<td>${season['STL']      || 'n/a'}</td>`
-      + `<td>${season['BLK']      || 'n/a'}</td>`
-      + `<td>${season['TOV']      || 'n/a'}</td>`
-      + `<td>${season['PF']       || 'n/a'}</td>`
-      + `<td>${season['PTS']      || 'n/a'}</td>`;
+      + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`;
+
+    for (let stat of countingStats) {
+      tableDataCells += `<td>${this.parseStatToDisplayValue(season[stat])}</td>`
+    }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
+  };
+
+  this.parseStatToDisplayValue = (stat) => {
+    return stat === 0 ? 0 : (stat || 'n/a');
   };
 
   this.getProfileHTML = (profile) => {
