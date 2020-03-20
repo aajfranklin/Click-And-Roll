@@ -573,7 +573,7 @@ describe('Content Scripts', () => {
       let getFromLocalStorageStub;
       let sendRuntimeMessageStub;
       let saveToLocalStorageStub;
-      let result;
+      let dateNowStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
@@ -581,11 +581,13 @@ describe('Content Scripts', () => {
         getFromLocalStorageStub = sinon.stub(testClickAndRoll.utils, 'getFromLocalStorage');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         saveToLocalStorageStub = sinon.stub(testClickAndRoll.utils, 'saveToLocalStorage');
+        dateNowStub = sinon.stub(Date, 'now').returns(0);
 
         getFromLocalStorageStub.resolves(null);
       });
 
       afterEach(() => {
+        dateNowStub.returns(0);
         getFromLocalStorageStub.resolves(null);
 
         getFromLocalStorageStub.resetHistory();
@@ -597,10 +599,12 @@ describe('Content Scripts', () => {
         getFromLocalStorageStub.restore();
         sendRuntimeMessageStub.restore();
         saveToLocalStorageStub.restore();
+        dateNowStub.restore();
       });
 
-      it('should resolve players fetched from storage if present', () => {
-        getFromLocalStorageStub.resolves(['player']);
+      it('should resolve players fetched from storage if present and recently updated', () => {
+        getFromLocalStorageStub.onFirstCall().resolves(0);
+        getFromLocalStorageStub.onSecondCall().resolves(['player']);
         return testClickAndRoll.getPlayers()
           .then((result) => {
             expect(result).to.deep.equal(['player']);
@@ -612,6 +616,16 @@ describe('Content Scripts', () => {
         return testClickAndRoll.getPlayers()
           .then((result) => {
             expect(result).to.deep.equal(['player']);
+          })
+      });
+
+      it('should fetch and resolve players from background script if stored but not recently updated', () => {
+        getFromLocalStorageStub.onFirstCall().resolves(-(24 * 60 * 60 * 1000 + 1));
+        getFromLocalStorageStub.onSecondCall().resolves(['outDatedPlayers']);
+        sendRuntimeMessageStub.resolves(['fetchedPlayers']);
+        return testClickAndRoll.getPlayers()
+          .then((result) => {
+            expect(result).to.deep.equal(['fetchedPlayers']);
           })
       });
 

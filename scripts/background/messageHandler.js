@@ -44,6 +44,7 @@ function MessageHandler() {
   };
 
   this.handleFetchPlayers = (sendResponse) => {
+    this.utils.saveToLocalStorage('players-timestamp', Date.now());
     return this.apiGet('players', 'all')
       .then(response => {
         sendResponse([null, response]);

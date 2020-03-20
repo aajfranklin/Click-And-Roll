@@ -209,10 +209,15 @@ describe('Background Scripts', () => {
     describe('handleFetchPlayers', () => {
 
       let apiGetStub;
+      let dateNowStub;
+      let saveToLocalStorageStub;
       let sendResponseSpy;
 
       before(() => {
         apiGetStub = sinon.stub(messageHandler, 'apiGet');
+        dateNowStub = sinon.stub(Date, 'now').returns(0);
+        saveToLocalStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
+
         apiGetStub.resolves(null);
         sendResponseSpy = sinon.spy();
       });
@@ -220,11 +225,22 @@ describe('Background Scripts', () => {
       afterEach(() => {
         apiGetStub.resolves(null);
         apiGetStub.resetHistory();
+        saveToLocalStorageStub.resetHistory();
         sendResponseSpy.resetHistory();
       });
 
       after(() => {
         apiGetStub.restore();
+        dateNowStub.restore();
+        saveToLocalStorageStub.restore();
+      });
+
+      it('should save the time of this call to local storage', () => {
+        return messageHandler.handleFetchPlayers(sendResponseSpy)
+          .then(() => {
+            expect(saveToLocalStorageStub.calledOnce).to.equal(true);
+            expect(saveToLocalStorageStub.firstCall.args).to.deep.equal(['players-timestamp', 0]);
+          })
       });
 
       it('should call apiGet with correct args', () => {

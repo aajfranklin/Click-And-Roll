@@ -67,9 +67,16 @@ function ClickAndRoll() {
   };
 
   this.getPlayers = () => {
-    return this.utils.getFromLocalStorage('players')
+    let lastUpdated;
+
+    return this.utils.getFromLocalStorage('players-timestamp')
+      .then(timestamp => {
+        lastUpdated = timestamp || 0;
+        return this.utils.getFromLocalStorage('players');
+      })
       .then(players => {
-        if (players) return Promise.resolve(players);
+        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (24 * 60 * 60 * 1000);
+        if (players && playersUpdatedWithin24Hours) return Promise.resolve(players);
         return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
       })
       .then(fetchedPlayers => {
