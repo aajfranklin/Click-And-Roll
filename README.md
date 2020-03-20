@@ -24,8 +24,10 @@ Use the Click and Roll options menu to toggle it on or off, globally or for indi
 
 The order and number of features added will depend on user demand. Possible features include:
 
-- A postseason stats tab
-- An advanced stats tab
+- Postseason stats
+- Season totals
+- Per 36 stats
+- Advanced stats
 - Player accolades/awards in the player profile
 - Player bio in the player profile
 - Choice of player name highlight colour (including none)
