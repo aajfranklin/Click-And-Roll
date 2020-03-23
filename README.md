@@ -82,6 +82,19 @@ Sometimes you will recognise an NBA player's name, but Click and Roll won't. The
 - A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry and Magic Johnson. If you want to see a new nickname added, submit a feature request!
 - Split over multiple html elements, which makes it difficult to recognise. You might notice this when a player's name is split across two lines, or when one part of the name is in bold or italics.
 
+### Why am I getting an error when viewing a player?
+
+This could be for a few reasons:
+
+- Many users viewing players at once, overwhelming the server
+- Adverse network conditions on the user's side
+- Adverse network conditions on the server's side
+- The server is down for maintenance
+- Distance from user to the server (the click and roll server is in the UK)
+- Other unforeseen problems!
+
+It may be possible to increase the Click and Roll server's capacity and uptime in future. Whether or not that happens will depend on how popular the extension becomes and how affordable those improvements are.
+
 ### Who designed the Click and Roll icon?
 
 Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the Click and Roll icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
