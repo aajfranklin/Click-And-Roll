@@ -19,6 +19,7 @@ function ClickAndRoll() {
   this.resultSearch = new ResultSearch();
   this.scrollParent = null;
   this.hoverTimer = null;
+  this.reverse = false;
 
   this.utils = new Utils();
 
@@ -125,27 +126,25 @@ function ClickAndRoll() {
     this.resetFrame();
 
     const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
-    const isNetworkErrorShowing = this.getFrameDocument().getElementById('network-error')
-      && !this.getFrameDocument().getElementById('network-error').hidden;
 
-    if (newPlayerId !== this.currentPlayerId || isNetworkErrorShowing) {
-      this.setFrameLoading(newPlayerId);
-      this.addCloseOverlayListeners();
-      return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
-        .then(stats => {
-          // current player id may have been reassigned by a later hover, making these stats out of date
-          if (newPlayerId === this.currentPlayerId) {
-            this.dataReceived = true;
-            this.displayStats(stats, this.activeName.element.textContent)
-          }
-        })
-        .catch(() => {
-          this.displayNetworkError();
-        });
-    } else {
-      this.addCloseOverlayListeners();
-      this.displayStats();
-    }
+    this.setFrameLoading(newPlayerId);
+    this.addCloseOverlayListeners();
+
+    return this.utils.isSettingOn('reverse')
+      .then(reverse => {
+        this.reverse = reverse;
+        return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId});
+      })
+      .then(stats => {
+        // current player id may have been reassigned by a later hover, making these stats out of date
+        if (newPlayerId === this.currentPlayerId) {
+          this.dataReceived = true;
+          this.displayStats(stats, this.activeName.element.textContent)
+        }
+      })
+      .catch(() => {
+        this.displayNetworkError();
+      });
   };
 
   this.updateActiveName = (target) => {
@@ -285,7 +284,7 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
       if (stats.careerHTML.length) {
-        this.getFrameDocument().getElementById('season-averages-body').innerHTML += true ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
+        this.getFrameDocument().getElementById('season-averages-body').innerHTML += this.reverse ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
       } else {
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));

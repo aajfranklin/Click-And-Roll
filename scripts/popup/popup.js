@@ -12,6 +12,16 @@ function Popup() {
   };
 
   this.toggleSetting = (setting) => {
+    if (config.defaultOffSettings.indexOf(setting) !== -1) {
+      return this.utils.isSettingOn(setting)
+        .then(isSettingOn => {
+          if (isSettingOn) {
+            return this.utils.removeFromSyncStorage(setting);
+          }
+          return this.utils.saveToSyncStorage(setting, 'true');
+        })
+    }
+
     return this.utils.isSettingOn(setting)
       .then(isSettingOn => {
         if (isSettingOn) {
@@ -50,6 +60,10 @@ function Popup() {
       })
       .then(isOn => {
         if (isOn) this.toggleCheckbox('extension-toggle');
+        return this.utils.isSettingOn('reverse');
+      })
+      .then(isOn => {
+        if (isOn) this.toggleCheckbox('reverse-toggle');
       });
   };
 
@@ -66,7 +80,9 @@ function Popup() {
       }
 
       this.toggleCheckbox(id);
-      this.toggleSetting(id === 'extension-toggle' ? 'clickAndRoll' : this.utils.getTabUrl(this.tab));
+      if (id === 'domain-toggle') this.toggleSetting(this.utils.getTabUrl(this.tab));
+      if (id === 'extension-toggle') this.toggleSetting('clickAndRoll');
+      if (id === 'reverse-toggle') this.toggleSetting('reverse');
     }
 
     if (targetIsLink) chrome.tabs.create({url: e.target.href});

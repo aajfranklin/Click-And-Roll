@@ -12,6 +12,7 @@
       ],
       "js": [
         "./scripts/utils/jquery-3.4.1.js",
+        "./scripts/utils/config.js",
         "./scripts/utils/utils.js",
         "./scripts/content/nicknameMap.js",
         "./scripts/content/ahoCorasick.js",
@@ -27,6 +28,7 @@
   "background": {
     "scripts": [
       "./scripts/utils/jquery-3.4.1.js",
+      "./scripts/utils/config.js",
       "./scripts/utils/utils.js",
       "./scripts/background/playerImageRefMap.js",
       "./scripts/background/messageHandler.js",

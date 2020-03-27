@@ -772,6 +772,7 @@ describe('Content Scripts', () => {
       let addCloseOverlayListenersStub;
       let displayStatsStub;
       let getFrameDocumentStub;
+      let isSettingOnStub;
       let sendRuntimeMessageStub;
       let setFrameLoadingSpy;
 
@@ -793,6 +794,7 @@ describe('Content Scripts', () => {
         addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
         displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         setFrameLoadingSpy = sinon.spy(testClickAndRoll, 'setFrameLoading');
 
@@ -801,14 +803,18 @@ describe('Content Scripts', () => {
         networkErrorElement.hidden = true;
         document.body.appendChild(networkErrorElement);
         getFrameDocumentStub.returns(document);
+        isSettingOnStub.resolves(false);
       });
 
       afterEach(() => {
+        isSettingOnStub.resolves(false);
+
         updateActiveNameStub.resetHistory();
         resetFrameStub.resetHistory();
         addCloseOverlayListenersStub.resetHistory();
         displayStatsStub.resetHistory();
         getFrameDocumentStub.resetHistory();
+        isSettingOnStub.resetHistory();
         sendRuntimeMessageStub.resetHistory();
         setFrameLoadingSpy.resetHistory();
       });
@@ -819,46 +825,35 @@ describe('Content Scripts', () => {
         addCloseOverlayListenersStub.restore();
         displayStatsStub.restore();
         getFrameDocumentStub.restore();
+        isSettingOnStub.restore();
         sendRuntimeMessageStub.restore();
         setFrameLoadingSpy.restore();
 
         document.body.removeChild(networkErrorElement);
       });
 
-      it('should update active name and reset frame', () => {
+      it('should update active name, reset frame, set frame loading, and add close overlay listeners before fetching stats', () => {
         testClickAndRoll.currentPlayerId = '0';
-        testClickAndRoll.handleHover({target: 'test'});
-        expect(updateActiveNameStub.calledOnce).to.equal(true);
-        expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
-        expect(resetFrameStub.calledOnce).to.equal(true);
-      });
-
-      it('should add close overlay listeners and display stats if player id is unchanged and network error is not showing', () => {
-        testClickAndRoll.currentPlayerId = '0';
-        testClickAndRoll.handleHover({target: 'test'});
-        expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
-        expect(displayStatsStub.calledOnce).to.equal(true);
-      });
-
-      it('should set frame to loading, fetch stats, update player id, and display stats if new id', () => {
-        testClickAndRoll.currentPlayerId = '1';
-        sendRuntimeMessageStub.resolves('stats');
         return testClickAndRoll.handleHover({target: 'test'})
           .then(() => {
+            expect(updateActiveNameStub.calledOnce).to.equal(true);
+            expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
+            expect(resetFrameStub.calledOnce).to.equal(true);
             expect(setFrameLoadingSpy.calledOnce).to.equal(true);
-            expect(setFrameLoadingSpy.firstCall.args[0]).to.equal('0');
+            expect(setFrameLoadingSpy.firstCall.args).to.deep.equal(['0']);
             expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
-            expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
-            expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
-            expect(testClickAndRoll.dataReceived).to.equal(true);
-            expect(displayStatsStub.calledOnce).to.equal(true);
-            expect(displayStatsStub.firstCall.args).to.deep.equal(['stats', 'testName']);
           });
       });
 
-      it('should set frame to loading, fetch stats, update player id, and display stats if network error is showing', () => {
-        testClickAndRoll.currentPlayerId = '0';
-        networkErrorElement.hidden = false;
+      it('should set reverse to true if fetched setting is true', () => {
+        isSettingOnStub.resolves(true);
+        return testClickAndRoll.handleHover({target: 'test'})
+          .then(() => {
+            expect(testClickAndRoll.reverse).to.equal(true);
+          });
+      });
+
+      it('should set frame to loading, fetch stats, update player id, and display stats', () => {
         sendRuntimeMessageStub.resolves('stats');
         return testClickAndRoll.handleHover({target: 'test'})
           .then(() => {
