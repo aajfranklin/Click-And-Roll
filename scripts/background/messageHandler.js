@@ -171,7 +171,7 @@ function MessageHandler() {
 
   this.createRow = (season, isCareerRow) => {
     const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
-    const countingStats = ['GP','MIN','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','OREB','DREB','REB','AST','STL','BLK','TOV','PF','PTS'];
+    const countingStats = ['GP','MIN','PTS','OREB','DREB','REB','AST','TOV','STL','BLK','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','PF'];
 
     let tableDataCells = `<td class="season stick-left">${season['SEASON_ID']}`
       + `${season['ALL_STAR'] ? allStarSeasonSpan : ''}</td>`
