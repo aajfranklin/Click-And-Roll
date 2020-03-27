@@ -179,14 +179,27 @@ function MessageHandler() {
       + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`;
 
     for (let stat of countingStats) {
-      tableDataCells += `<td>${this.parseStatToDisplayValue(season[stat])}</td>`
+      tableDataCells += `<td>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
     }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
   };
 
-  this.parseStatToDisplayValue = (stat) => {
-    return stat === 0 ? 0 : (stat || 'n/a');
+  this.parseRawStatToDisplayString = (rawStat, isPct) => {
+    let displayString = `${rawStat === 0 ? 0 : (rawStat || 'n/a')}`;
+    if (isPct && displayString !== 'n/a') {
+      switch (displayString) {
+        case '1':
+          displayString = '1.000';
+          break;
+        case '0':
+          displayString = '.000';
+          break;
+        default:
+          displayString = displayString.padEnd(5, '0').substring(1);
+      }
+    }
+    return displayString;
   };
 
   this.getProfileHTML = (profile) => {
