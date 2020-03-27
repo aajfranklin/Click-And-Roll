@@ -18,6 +18,7 @@ function ClickAndRoll() {
   this.players = [];
   this.resultSearch = new ResultSearch();
   this.scrollParent = null;
+  this.hoverTimer = null;
 
   this.utils = new Utils();
 
@@ -89,7 +90,8 @@ function ClickAndRoll() {
     nodes.forEach(node => {
       node.style.color = 'teal';
       node.style.display = 'inline';
-      node.onmouseenter = this.handleHover;
+      node.onmouseenter = this.handleMouseEnter;
+      node.onmouseleave = this.handleMouseLeave;
     });
   };
 
@@ -110,8 +112,16 @@ function ClickAndRoll() {
     this.observer.observe(document.body, { childList: true, subtree: true });
   };
 
-  this.handleHover = (mouseEnterEvent) => {
-    this.updateActiveName(mouseEnterEvent.target);
+  this.handleMouseEnter = (mouseEnterEvent) => {
+    this.hoverTimer = setTimeout(() => this.handleHover(mouseEnterEvent), 500);
+  };
+
+  this.handleMouseLeave = () => {
+    clearTimeout(this.hoverTimer);
+  };
+
+  this.handleHover = (event) => {
+    this.updateActiveName(event.target);
     this.resetFrame();
 
     const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
@@ -141,10 +151,12 @@ function ClickAndRoll() {
   this.updateActiveName = (target) => {
     // reapply handle hover to previous element
     if (this.activeName.element) {
-      this.activeName.element.onmouseenter = this.handleHover
+      this.activeName.element.onmouseenter = this.handleMouseEnter;
+      this.activeName.element.onmouseleave = this.handleMouseLeave;
     }
     this.activeName.element = target;
     this.activeName.element.onmouseenter = null;
+    this.activeName.element.onmouseleave = null;
   };
 
   this.resetFrame = () => {
@@ -253,7 +265,8 @@ function ClickAndRoll() {
   };
 
   this.closeOverlay = () => {
-    this.activeName.element.onmouseenter = this.handleHover;
+    this.activeName.element.onmouseenter = this.handleMouseEnter;
+    this.activeName.element.onmouseleave = this.handleMouseLeave;
     this.frameContainer.hidden = true;
     this.scrollParent.removeEventListener('scroll', this.positionFrameContainer);
     document.removeEventListener('click', this.closeOverlay);

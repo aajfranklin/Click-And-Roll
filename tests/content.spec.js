@@ -728,10 +728,12 @@ describe('Content Scripts', () => {
         testClickAndRoll.highlight(nodes);
         expect(nodes[0].style.color).to.equal('teal');
         expect(nodes[0].style.display).to.equal('inline');
-        expect(nodes[0].onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(nodes[0].onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(nodes[0].onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
         expect(nodes[1].style.color).to.equal('teal');
         expect(nodes[1].style.display).to.equal('inline');
-        expect(nodes[1].onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(nodes[1].onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(nodes[1].onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
     });
@@ -892,7 +894,8 @@ describe('Content Scripts', () => {
         previous.id = 'previous';
         testClickAndRoll.activeName.element = previous;
         testClickAndRoll.updateActiveName(target);
-        expect(previous.onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(previous.onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(previous.onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
       it('should update active element to new target and remove handleHover', () => {
@@ -1363,7 +1366,8 @@ describe('Content Scripts', () => {
       });
 
       it('should add handleHover to active name element', () => {
-        expect(testClickAndRoll.activeName.element.onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(testClickAndRoll.activeName.element.onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(testClickAndRoll.activeName.element.onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
       it('should hide frame container', () => {
