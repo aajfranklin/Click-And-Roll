@@ -53,14 +53,15 @@ describe('Content Scripts', () => {
         expect(searchTextStub.withArgs('textContent').calledOnce).to.equal(true);
       });
 
-      it('should pass search text hits to filterOverLappingStrings', () => {
+      it('should pass search text hits to filterOverlappingStrings', () => {
         expect(filterOverlappingStringsStub.calledOnce).to.equal(true);
         expect(filterOverlappingStringsStub.withArgs('hits').calledOnce).to.equal(true);
       });
 
       it('should pass node and filtered hits to mapHitsToResultNodes', () => {
         expect(mapHitsToResultNodesStub.calledOnce).to.equal(true);
-        expect(mapHitsToResultNodesStub.withArgs(rootNode, 'filteredHits').calledOnce).to.equal(true);      });
+        expect(mapHitsToResultNodesStub.withArgs(rootNode, 'filteredHits').calledOnce).to.equal(true);
+      });
 
     });
 
@@ -79,7 +80,7 @@ describe('Content Scripts', () => {
 
     describe('filterOverlappingStrings', () => {
 
-      it('should remove sub strings', () => {
+      it('should remove hits that are substrings of other hits', () => {
         const hits = [
           {start: 2, end: 14, text: 'Marcus Cousin'},
           {start: 0, end: 15, text: 'DeMarcus Cousins'}
@@ -113,6 +114,7 @@ describe('Content Scripts', () => {
       let createResultNodeStub;
       let createTreeWalkerStub;
       let isEditableStub;
+      let isNestedStringStub;
       let nextHitStub;
       let nextNodeStub;
       let parentNodeIsValidStub;
@@ -133,6 +135,7 @@ describe('Content Scripts', () => {
         createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
         createTreeWalkerStub.returns(mockTreeWalker);
         isEditableStub = sinon.stub(testResultSearch, 'isEditable');
+        isNestedStringStub = sinon.stub(testResultSearch,'isNestedString');
         nextHitStub = sinon.stub(hits, 'shift');
         nextNodeStub = sinon.stub(mockTreeWalker, 'nextNode');
         parentNodeIsValidStub = sinon.stub(testResultSearch, 'parentNodeIsValid');
@@ -147,12 +150,14 @@ describe('Content Scripts', () => {
         createResultNodeStub.resetHistory();
         createTreeWalkerStub.resetHistory();
         isEditableStub.resetHistory();
+        isNestedStringStub.resetHistory();
         nextHitStub.resetHistory();
         nextNodeStub.resetHistory();
         parentNodeIsValidStub.resetHistory();
 
         createResultNodeStub.returns(null);
         isEditableStub.returns(null);
+        isNestedStringStub.returns(null);
         nextHitStub.returns(null);
         nextNodeStub.returns(null);
         parentNodeIsValidStub.returns(null);
@@ -162,6 +167,7 @@ describe('Content Scripts', () => {
         createResultNodeStub.restore();
         createTreeWalkerStub.restore();
         isEditableStub.restore();
+        isNestedStringStub.restore();
         nextHitStub.restore();
         nextNodeStub.restore();
         parentNodeIsValidStub.restore();
@@ -247,16 +253,27 @@ describe('Content Scripts', () => {
           expect(isEditableStub.withArgs(mockTreeWalker.currentNode).calledOnce).to.equal(true);
         });
 
+        it('should check if hit is nested string within node', () => {
+          parentNodeIsValidStub.returns(true);
+          isEditableStub.returns(false);
+          isNestedStringStub.returns(false);
+          testResultSearch.mapHitsToResultNodes('', hits);
+          expect(isNestedStringStub.calledOnce).to.equal(true);
+          expect(isNestedStringStub.firstCall.args).to.deep.equal([hit, mockTreeWalker.currentNode.textContent, 0]);
+        });
+
         it('should get the next result', () => {
           parentNodeIsValidStub.returns(false);
           testResultSearch.mapHitsToResultNodes('', hits);
           expect(nextHitStub.calledTwice).to.equal(true);
         });
 
-        describe('if the parent node is valid and node is not editable', () => {
+        describe('if the parent node is valid, node is not editable, and hit is not nested string', () => {
 
           it('should highlight the result', () => {
             parentNodeIsValidStub.returns(true);
+            isEditableStub.returns(false);
+            isNestedStringStub.returns(false);
             testResultSearch.mapHitsToResultNodes('', hits);
             expect(createResultNodeStub.calledOnce).to.equal(true);
             expect(createResultNodeStub.withArgs(hit, mockTreeWalker.currentNode, 0).calledOnce).to.equal(true);
@@ -283,7 +300,19 @@ describe('Content Scripts', () => {
             expect(createResultNodeStub.notCalled).to.equal(true);
           });
 
-        })
+        });
+
+        describe('if the hit is a nested string', () => {
+
+          it('should not highlight the result', () => {
+            parentNodeIsValidStub.returns(true);
+            isEditableStub.returns(false);
+            isNestedStringStub.returns(true);
+            testResultSearch.mapHitsToResultNodes('', hits);
+            expect(createResultNodeStub.notCalled).to.equal(true);
+          });
+
+        });
 
       });
 
@@ -392,19 +421,76 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('isNestedString', () => {
+
+      it('should return true for substrings of longer names', () => {
+        const hit = {start: 0, end: 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloomberg';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      });
+
+      it('should return true if next char is accented character', () => {
+        const hit = {start: 0, end: 'Mike Barr'.length - 1, text: 'Mike Barr'};
+        const nodeText = 'Mike Barré';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      });
+
+      it('should return false when next char is punctuation or space', () => {
+        const hit = {start: 0, end: 'Mike Barr'.length - 1, text: 'Mike Barr'};
+        const currentTextIndex = 0;
+
+        let result = testResultSearch.isNestedString(hit, `Mike Barr.`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr,`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr?`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr!`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr:`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr;`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr'`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr"`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr `, currentTextIndex);
+        expect(result).to.equal(false);
+      });
+      
+      it('should return false when there is no next char', () => {
+        const hit = {start: 0, end: 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloom';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(false);
+      });
+
+      it('should correctly account for current text index', () => {
+        const hit = {start: 4, end: 4 + 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloomberg';
+        const currentTextIndex = 4;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      })
+
+    });
+
     describe('createResultNode', () => {
 
       let hit;
 
       before(() => {
-        hit = {start: 0, end: 11, text: 'LeBronJames'};
-      });
-
-      describe('if hit is not fully contained by passed in node', () => {
-        it('should return null', () => {
-          expect(testResultSearch.createResultNode(hit, '', 1)).to.equal(null);
-        });
-
+        hit = {start: 0, end: 11, text: 'LeBron James'};
       });
 
       describe('if hit is fully contained by passed in node', () => {
