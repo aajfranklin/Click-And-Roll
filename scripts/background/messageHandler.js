@@ -222,7 +222,7 @@ function MessageHandler() {
       },
       {
         label: 'Height',
-        value: profile['HEIGHT'] || 'n/a'
+        value: this.formatHeight(profile['HEIGHT']) || 'n/a'
       },
       {
         label: 'College',
@@ -284,8 +284,16 @@ function MessageHandler() {
     return birthday ? birthday.split('T')[0] : 'n/a'
   };
 
+  this.formatHeight = (height) => {
+    if (height) {
+      const metricHeight = Math.round(height[0] * 30.48 + height.substring(2) * 2.54);
+      return `${height} (${Math.floor(metricHeight / 100)}.${(metricHeight % 100).toString().padStart(2, '0')} m)`;
+    }
+    return 'n/a';
+  };
+
   this.formatWeight = (weight) => {
-    return weight ? weight + ' lb' : 'n/a';
+    return weight ? `${weight} lb (${Math.round(weight * 0.45359237)} kg)` : 'n/a';
   };
 
   this.getPlayerImageUrl = (fullName) => {

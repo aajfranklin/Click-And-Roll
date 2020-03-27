@@ -854,17 +854,20 @@ describe('Background Scripts', () => {
 
       let formatDraftStub;
       let formatBirthdayStub;
+      let formatHeightStub;
       let formatWeightStub;
       let getPlayerImageUrlStub;
 
       before(() => {
         formatDraftStub = sinon.stub(messageHandler, 'formatDraft');
         formatBirthdayStub = sinon.stub(messageHandler, 'formatBirthday');
+        formatHeightStub = sinon.stub(messageHandler, 'formatHeight');
         formatWeightStub = sinon.stub(messageHandler, 'formatWeight');
         getPlayerImageUrlStub = sinon.stub(messageHandler, 'getPlayerImageUrl');
 
         formatDraftStub.returns('formattedDraft');
         formatBirthdayStub.returns('formattedBirthday');
+        formatHeightStub.returns('formattedHeight');
         formatWeightStub.returns('formattedWeight');
         getPlayerImageUrlStub.returns('imageUrl');
       });
@@ -872,6 +875,7 @@ describe('Background Scripts', () => {
       afterEach(() => {
         formatDraftStub.resetHistory();
         formatBirthdayStub.resetHistory();
+        formatHeightStub.resetHistory();
         formatWeightStub.resetHistory();
         getPlayerImageUrlStub.resetHistory();
       });
@@ -879,12 +883,13 @@ describe('Background Scripts', () => {
       after(() => {
         formatDraftStub.restore();
         formatBirthdayStub.restore();
+        formatHeightStub.restore();
         formatWeightStub.restore();
         getPlayerImageUrlStub.restore();
       });
 
       it('should return correctly formatted player info', () => {
-        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">teamAbbreviation</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">country</div><div class="info-label">Number</div><div class="info-data">number</div><div class="info-label">Height</div><div class="info-data">height</div><div class="info-label">College</div><div class="info-data">college</div><div class="info-label">Position</div><div class="info-data">position</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">teamAbbreviation</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">country</div><div class="info-label">Number</div><div class="info-data">number</div><div class="info-label">Height</div><div class="info-data">formattedHeight</div><div class="info-label">College</div><div class="info-data">college</div><div class="info-label">Position</div><div class="info-data">position</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
 
         return(messageHandler.getProfileHTML(profile))
           .then((result) => {
@@ -914,13 +919,13 @@ describe('Background Scripts', () => {
           TEAM_ABBREVIATION: null,
           NUMBER: null,
           POSITION: null,
-          HEIGHT: null,
+          HEIGHT: 'height',
           COUNTRY: null,
           COLLEGE: null,
           NAME: 'name'
         };
 
-        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">n/a</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">n/a</div><div class="info-label">Number</div><div class="info-data">n/a</div><div class="info-label">Height</div><div class="info-data">n/a</div><div class="info-label">College</div><div class="info-data">n/a</div><div class="info-label">Position</div><div class="info-data">n/a</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
+        const expected = '<img src ="imageUrl" alt="name" id="player-profile-image"/><div id="player-profile-info"><div class="info-label">Team</div><div class="info-data">n/a</div><div class="info-label">Birthday</div><div class="info-data">formattedBirthday</div><div class="info-label">Country</div><div class="info-data">n/a</div><div class="info-label">Number</div><div class="info-data">n/a</div><div class="info-label">Height</div><div class="info-data">formattedHeight</div><div class="info-label">College</div><div class="info-data">n/a</div><div class="info-label">Position</div><div class="info-data">n/a</div><div class="info-label">Weight</div><div class="info-data">formattedWeight</div><div class="info-label">Draft</div><div class="info-data">formattedDraft</div></div>';
         return(messageHandler.getProfileHTML(profile))
           .then(result => {
             expect(result).to.equal(expected);
@@ -979,22 +984,26 @@ describe('Background Scripts', () => {
 
     });
 
-    describe('formatWeight', () => {
+    describe('formatHeight', () => {
 
-      describe('if weight is available', () => {
-
-        it('should return formatted weight', () => {
-          expect(messageHandler.formatWeight('200')).to.equal('200 lb');
-        });
-
+      it('should return formatted height if available', () => {
+        expect(messageHandler.formatHeight('6-7')).to.equal('6-7 (2.01 m)');
       });
 
-      describe('if weight is unavailable', () => {
+      it('should return \'n/a\' if unavailable', () => {
+        expect(messageHandler.formatHeight(null)).to.equal('n/a');
+      });
 
-        it('should return \'n/a\'', () => {
-          expect(messageHandler.formatWeight(null)).to.equal('n/a');
-        });
+    });
 
+    describe('formatWeight', () => {
+
+      it('should return formatted weight if available', () => {
+        expect(messageHandler.formatWeight('200')).to.equal('200 lb (91 kg)');
+      });
+
+      it('should return \'n/a\' if unavailable', () => {
+        expect(messageHandler.formatWeight(null)).to.equal('n/a');
       });
 
     });
