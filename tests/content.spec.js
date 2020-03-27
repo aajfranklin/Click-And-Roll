@@ -1475,6 +1475,16 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('reverseCareer', () => {
+
+      it('should reverse the rows of the career table', () => {
+        const career = '<tr><td>1</td></tr><tr><td>2</td></tr><tr><td>3</td></tr><tr class="career"><td>4</td></tr>';
+        const reversed = '<tr class="career"><td>4</td></tr><tr><td>3</td></tr><tr><td>2</td></tr><tr><td>1</td></tr>';
+        expect(testClickAndRoll.reverseCareer(career)).to.equal(reversed);
+      })
+
+    });
+
     describe('checkContentHeight', () => {
 
       let getFrameDocumentStub;

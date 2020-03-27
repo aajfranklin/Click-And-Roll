@@ -285,7 +285,7 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
       if (stats.careerHTML.length) {
-        this.getFrameDocument().getElementById('season-averages-body').innerHTML += stats.careerHTML;
+        this.getFrameDocument().getElementById('season-averages-body').innerHTML += true ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
       } else {
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
         this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
@@ -295,6 +295,10 @@ function ClickAndRoll() {
     if (!this.frameContainer.hidden) {
       this.checkContentHeight();
     }
+  };
+
+  this.reverseCareer = (careerHTML) => {
+    return careerHTML.replace(/<tr/g, ',<tr').split(',').reverse().join('');
   };
 
   this.checkContentHeight = () => {
