@@ -60,7 +60,7 @@ function MessageHandler() {
         method: 'GET',
         headers: {'x-click-and-roll': 'true'},
         cache: false,
-        timeout: 10000
+        timeout: config.networkTimeout
       })
   };
 
@@ -93,7 +93,7 @@ function MessageHandler() {
           this.utils.saveToLocalStorage('cache-records', []);
           return [];
         }
-        return cacheRecords.length >= 100 ? this.cleanCache(cacheRecords) : cacheRecords;
+        return cacheRecords.length >= config.maxCachedPlayers ? this.cleanCache(cacheRecords) : cacheRecords;
       });
   };
 
@@ -106,7 +106,7 @@ function MessageHandler() {
 
   this.statsInCacheAndCurrent = (cacheRecords, id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
-    return player !== null && (!player.active || Date.now() - player.timestamp < (3 * 60 * 60 * 1000));
+    return player !== null && (!player.active || Date.now() - player.timestamp < (config.playerUpdateInterval));
   };
 
   this.fetchNonCachedStats = (id) => {
@@ -138,7 +138,7 @@ function MessageHandler() {
     return this.utils.getFromLocalStorage('timestamp')
       .then(timestamp => {
         return new Promise(resolve => {
-          const timeout = Math.max(0, 1000 - (Date.now() - timestamp));
+          const timeout = Math.max(0, config.requestRateLimit - (Date.now() - timestamp));
           setTimeout(resolve, timeout);
         });
       });
@@ -287,14 +287,14 @@ function MessageHandler() {
 
   this.formatHeight = (height) => {
     if (height) {
-      const metricHeight = Math.round(height[0] * 30.48 + height.substring(2) * 2.54);
+      const metricHeight = Math.round(height[0] * config.cmPerFeet + height.substring(2) * config.cmPerInch);
       return `${height} (${Math.floor(metricHeight / 100)}.${(metricHeight % 100).toString().padStart(2, '0')} m)`;
     }
     return 'n/a';
   };
 
   this.formatWeight = (weight) => {
-    return weight ? `${weight} lb (${Math.round(weight * 0.45359237)} kg)` : 'n/a';
+    return weight ? `${weight} lb (${Math.round(weight * config.kgPerLb)} kg)` : 'n/a';
   };
 
   this.getPlayerImageUrl = (fullName) => {

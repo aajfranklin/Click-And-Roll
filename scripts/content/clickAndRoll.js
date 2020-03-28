@@ -77,7 +77,7 @@ function ClickAndRoll() {
         return this.utils.getFromLocalStorage('players');
       })
       .then(players => {
-        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (24 * 60 * 60 * 1000);
+        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (config.playersUpdateInterval);
         if (players && playersUpdatedWithin24Hours) return Promise.resolve(players);
         return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
       })
@@ -114,7 +114,7 @@ function ClickAndRoll() {
   };
 
   this.handleMouseEnter = (mouseEnterEvent) => {
-    this.hoverTimer = setTimeout(() => this.handleHover(mouseEnterEvent), 500);
+    this.hoverTimer = setTimeout(() => this.handleHover(mouseEnterEvent), config.hoverTimeout);
   };
 
   this.handleMouseLeave = () => {
@@ -228,7 +228,7 @@ function ClickAndRoll() {
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = this.activeName.isInLeftHalf
       ? rect.left + scrollX - 2
-      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
+      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - config.maxFrameContainerWidth, 0);
 
     const overlayTop = this.activeName.isInTopHalf
       ? rect.top + scrollY + rect.height
@@ -301,9 +301,8 @@ function ClickAndRoll() {
 
   this.checkContentHeight = () => {
     const frameContent = this.getFrameDocument().getElementById('content');
-    const playerHeaderHeight = 37;
 
-    if (frameContent.scrollHeight + playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
+    if (frameContent.scrollHeight + config.playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
       frameContent.classList.add('short-career');
     }
   };
