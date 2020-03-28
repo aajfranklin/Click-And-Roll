@@ -18,6 +18,8 @@ function ClickAndRoll() {
   this.players = [];
   this.resultSearch = new ResultSearch();
   this.scrollParent = null;
+  this.hoverTimer = null;
+  this.reverse = false;
 
   this.utils = new Utils();
 
@@ -75,7 +77,7 @@ function ClickAndRoll() {
         return this.utils.getFromLocalStorage('players');
       })
       .then(players => {
-        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (24 * 60 * 60 * 1000);
+        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (config.playersUpdateInterval);
         if (players && playersUpdatedWithin24Hours) return Promise.resolve(players);
         return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
       })
@@ -89,7 +91,8 @@ function ClickAndRoll() {
     nodes.forEach(node => {
       node.style.color = 'teal';
       node.style.display = 'inline';
-      node.onmouseenter = this.handleHover;
+      node.onmouseenter = this.handleMouseEnter;
+      node.onmouseleave = this.handleMouseLeave;
     });
   };
 
@@ -110,41 +113,49 @@ function ClickAndRoll() {
     this.observer.observe(document.body, { childList: true, subtree: true });
   };
 
-  this.handleHover = (mouseEnterEvent) => {
-    this.updateActiveName(mouseEnterEvent.target);
+  this.handleMouseEnter = (mouseEnterEvent) => {
+    this.hoverTimer = setTimeout(() => this.handleHover(mouseEnterEvent), config.hoverTimeout);
+  };
+
+  this.handleMouseLeave = () => {
+    clearTimeout(this.hoverTimer);
+  };
+
+  this.handleHover = (event) => {
+    this.updateActiveName(event.target);
     this.resetFrame();
 
     const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
-    const isNetworkErrorShowing = this.getFrameDocument().getElementById('network-error')
-      && !this.getFrameDocument().getElementById('network-error').hidden;
 
-    if (newPlayerId !== this.currentPlayerId || isNetworkErrorShowing) {
-      this.setFrameLoading(newPlayerId);
-      this.addCloseOverlayListeners();
-      return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
-        .then(stats => {
-          // current player id may have been reassigned by a later hover, making these stats out of date
-          if (newPlayerId === this.currentPlayerId) {
-            this.dataReceived = true;
-            this.displayStats(stats, this.activeName.element.textContent)
-          }
-        })
-        .catch(() => {
-          this.displayNetworkError();
-        });
-    } else {
-      this.addCloseOverlayListeners();
-      this.displayStats();
-    }
+    this.setFrameLoading(newPlayerId);
+    this.addCloseOverlayListeners();
+
+    return this.utils.isSettingOn('reverse')
+      .then(reverse => {
+        this.reverse = reverse;
+        return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId});
+      })
+      .then(stats => {
+        // current player id may have been reassigned by a later hover, making these stats out of date
+        if (newPlayerId === this.currentPlayerId) {
+          this.dataReceived = true;
+          this.displayStats(stats, this.activeName.element.textContent)
+        }
+      })
+      .catch(() => {
+        this.displayNetworkError();
+      });
   };
 
   this.updateActiveName = (target) => {
     // reapply handle hover to previous element
     if (this.activeName.element) {
-      this.activeName.element.onmouseenter = this.handleHover
+      this.activeName.element.onmouseenter = this.handleMouseEnter;
+      this.activeName.element.onmouseleave = this.handleMouseLeave;
     }
     this.activeName.element = target;
     this.activeName.element.onmouseenter = null;
+    this.activeName.element.onmouseleave = null;
   };
 
   this.resetFrame = () => {
@@ -217,11 +228,11 @@ function ClickAndRoll() {
     // 2 pixel left offset to accommodate box shadow of frame's inner elements
     const overlayLeft = this.activeName.isInLeftHalf
       ? rect.left + scrollX - 2
-      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - 800, 0);
+      : rect.left + scrollX - 2 - this.getHalfViewWidth() + rect.width + Math.max(this.getHalfViewWidth() - config.maxFrameContainerWidth, 0);
 
     const overlayTop = this.activeName.isInTopHalf
       ? rect.top + scrollY + rect.height
-      : rect.top + scrollY - this.getHalfViewHeight();
+      : rect.top + scrollY - this.getHalfViewHeight() + Math.max(this.getHalfViewHeight() - config.maxFrameContainerHeight, 0);
 
     return {
       left: overlayLeft,
@@ -253,7 +264,8 @@ function ClickAndRoll() {
   };
 
   this.closeOverlay = () => {
-    this.activeName.element.onmouseenter = this.handleHover;
+    this.activeName.element.onmouseenter = this.handleMouseEnter;
+    this.activeName.element.onmouseleave = this.handleMouseLeave;
     this.frameContainer.hidden = true;
     this.scrollParent.removeEventListener('scroll', this.positionFrameContainer);
     document.removeEventListener('click', this.closeOverlay);
@@ -272,23 +284,25 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
       if (stats.careerHTML.length) {
-        this.getFrameDocument().getElementById('season-averages-body').innerHTML += stats.careerHTML;
+        this.getFrameDocument().getElementById('season-averages-body').innerHTML += this.reverse ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
       } else {
-        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
-        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
+        this.getFrameDocument().getElementById('career-stats').removeChild(this.getFrameDocument().getElementById('regular-season-averages-table'));
       }
     }
 
-    if (!this.frameContainer.hidden) {
+    if (!this.frameContainer.hidden && stats.careerHTML.length !== 0) {
       this.checkContentHeight();
     }
   };
 
+  this.reverseCareer = (careerHTML) => {
+    return careerHTML.replace(/<tr/g, ',<tr').split(',').reverse().join('');
+  };
+
   this.checkContentHeight = () => {
     const frameContent = this.getFrameDocument().getElementById('content');
-    const playerHeaderHeight = 37;
 
-    if (frameContent.scrollHeight + playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
+    if (frameContent.scrollHeight + config.playerHeaderHeight < (this.getHalfViewHeight()) - 2) {
       frameContent.classList.add('short-career');
     }
   };

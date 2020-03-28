@@ -319,7 +319,16 @@ describe('Utils', () => {
         });
     });
 
-    it('should resolve true if chrome storage value is empty object', () => {
+    it('should resolve false if chrome storage value is empty object and setting defaults to off', () => {
+      result = {};
+
+      return testUtils.isSettingOn('reverse')
+        .then((response) => {
+          expect(response).to.equal(false);
+        });
+    });
+
+    it('should resolve true if chrome storage value is empty object and setting defaults to on', () => {
       result = {};
 
       return testUtils.isSettingOn('test')

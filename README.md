@@ -20,6 +20,20 @@ Use the Click and Roll options menu to toggle it on or off, globally or for indi
 
 ![Click and Roll toggle demo](assets/animated/demo3.gif)
 
+## Latest Release Notes
+
+1.2.0 Release Notes:
+
+- Moved most important stats (PTS, REB, AST, TOV, BLK, STL) into view without scrolling
+- Added ability to reverse career rows, so that career totals and more recent seasons are at the top
+- Added metric system heights and weights
+- Set stats to only show after hovering on a name for half a second, to prevent accidental openings
+- Removed leading zero from percentage stats, for consistency with most stats sites
+- Fixed issue where nested names would highlight e.g. Mike Bloom was highlighting within the name Mike Bloomberg
+- Fixed issue where un-capped stat window height created huge amounts of white space when viewing players with short careers on very high resolution monitors
+- Fixed error when viewing stats for players with no career games (e.g. recently drafted players)
+- Other code enhancements
+
 ## Future Features
 
 The order and number of features added will depend on user demand. Possible features include:

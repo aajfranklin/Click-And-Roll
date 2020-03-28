@@ -60,7 +60,7 @@ function MessageHandler() {
         method: 'GET',
         headers: {'x-click-and-roll': 'true'},
         cache: false,
-        timeout: 10000
+        timeout: config.networkTimeout
       })
   };
 
@@ -93,7 +93,7 @@ function MessageHandler() {
           this.utils.saveToLocalStorage('cache-records', []);
           return [];
         }
-        return cacheRecords.length >= 100 ? this.cleanCache(cacheRecords) : cacheRecords;
+        return cacheRecords.length >= config.maxCachedPlayers ? this.cleanCache(cacheRecords) : cacheRecords;
       });
   };
 
@@ -106,7 +106,10 @@ function MessageHandler() {
 
   this.statsInCacheAndCurrent = (cacheRecords, id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
-    return player !== null && (!player.active || Date.now() - player.timestamp < (3 * 60 * 60 * 1000));
+    return player !== null
+      && player.version !== undefined
+      && player.version === config.currentCacheRecordVersion
+      && (!player.active || Date.now() - player.timestamp < (config.playerUpdateInterval));
   };
 
   this.fetchNonCachedStats = (id) => {
@@ -129,7 +132,7 @@ function MessageHandler() {
   };
 
   this.cacheStats = (stats, id, records) => {
-    const newRecord = [{id, timestamp: Date.now(), active: stats.active}];
+    const newRecord = [{id, timestamp: Date.now(), active: stats.active, version: config.currentCacheRecordVersion}];
     this.utils.saveToLocalStorage(`player-${id}`, stats);
     this.utils.saveToLocalStorage('cache-records', records.filter(player => player.id !== id).concat(newRecord));
   };
@@ -138,13 +141,14 @@ function MessageHandler() {
     return this.utils.getFromLocalStorage('timestamp')
       .then(timestamp => {
         return new Promise(resolve => {
-          const timeout = Math.max(0, 1000 - (Date.now() - timestamp));
+          const timeout = Math.max(0, config.requestRateLimit - (Date.now() - timestamp));
           setTimeout(resolve, timeout);
         });
       });
   };
 
   this.getActive = (rows) => {
+    if (rows.length === 0) return true;
     const lastActiveSeason = rows[rows.length - 2];
     const lastActiveYear = parseInt(lastActiveSeason['SEASON_ID'].slice(0,4));
     const currentYear = new Date().getFullYear();
@@ -171,7 +175,7 @@ function MessageHandler() {
 
   this.createRow = (season, isCareerRow) => {
     const allStarSeasonSpan = '<span style="color:gold; padding-left: 8px">&#9733;</span>';
-    const countingStats = ['GP','MIN','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','OREB','DREB','REB','AST','STL','BLK','TOV','PF','PTS'];
+    const countingStats = ['GP','MIN','PTS','OREB','DREB','REB','AST','TOV','STL','BLK','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','PF'];
 
     let tableDataCells = `<td class="season stick-left">${season['SEASON_ID']}`
       + `${season['ALL_STAR'] ? allStarSeasonSpan : ''}</td>`
@@ -179,14 +183,27 @@ function MessageHandler() {
       + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`;
 
     for (let stat of countingStats) {
-      tableDataCells += `<td>${this.parseStatToDisplayValue(season[stat])}</td>`
+      tableDataCells += `<td>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
     }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
   };
 
-  this.parseStatToDisplayValue = (stat) => {
-    return stat === 0 ? 0 : (stat || 'n/a');
+  this.parseRawStatToDisplayString = (rawStat, isPct) => {
+    let displayString = `${rawStat === 0 ? 0 : (rawStat || 'n/a')}`;
+    if (isPct && displayString !== 'n/a') {
+      switch (displayString) {
+        case '1':
+          displayString = '1.000';
+          break;
+        case '0':
+          displayString = '.000';
+          break;
+        default:
+          displayString = displayString.padEnd(5, '0').substring(1);
+      }
+    }
+    return displayString;
   };
 
   this.getProfileHTML = (profile) => {
@@ -209,7 +226,7 @@ function MessageHandler() {
       },
       {
         label: 'Height',
-        value: profile['HEIGHT'] || 'n/a'
+        value: this.formatHeight(profile['HEIGHT']) || 'n/a'
       },
       {
         label: 'College',
@@ -271,8 +288,16 @@ function MessageHandler() {
     return birthday ? birthday.split('T')[0] : 'n/a'
   };
 
+  this.formatHeight = (height) => {
+    if (height) {
+      const metricHeight = Math.round(height[0] * config.cmPerFeet + height.substring(2) * config.cmPerInch);
+      return `${height} (${Math.floor(metricHeight / 100)}.${(metricHeight % 100).toString().padStart(2, '0')} m)`;
+    }
+    return 'n/a';
+  };
+
   this.formatWeight = (weight) => {
-    return weight ? weight + ' lb' : 'n/a';
+    return weight ? `${weight} lb (${Math.round(weight * config.kgPerLb)} kg)` : 'n/a';
   };
 
   this.getPlayerImageUrl = (fullName) => {

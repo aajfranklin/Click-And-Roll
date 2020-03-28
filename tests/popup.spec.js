@@ -114,48 +114,74 @@ describe('Popup', () => {
       testPopup.tab = null;
     });
 
-    it('should save setting as \'\', send \'stop\' message, and set inactive icon if setting is on', () => {
-      isSettingOnStub.resolves(true);
-      saveToSyncStorageStub.resolves(true);
-      return testPopup.toggleSetting('testSetting')
-        .then(() => {
-          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
-          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', '']);
-          expect(messageActiveTabStub.calledOnce).to.equal(true);
-          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
-          expect(chromeSetIconStub.calledOnce).to.equal(true);
-          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
-        })
+    describe('if setting is off by default', () => {
+
+      it('should remove setting if it was on', () => {
+        isSettingOnStub.resolves(true);
+        return testPopup.toggleSetting('reverse')
+          .then(() => {
+            expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+            expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['reverse']);
+          })
+      });
+
+      it('should save setting as true if it was off', () => {
+        isSettingOnStub.resolves(false);
+        return testPopup.toggleSetting('reverse')
+          .then(() => {
+            expect(saveToSyncStorageStub.calledOnce).to.equal(true);
+            expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['reverse', 'true']);
+          })
+      });
+
     });
 
-    it('should remove setting, send \'start\' message, and set active icon if setting is off and extension is on', () => {
-      isSettingOnStub.resolves(false);
-      isExtensionOnStub.resolves(true);
-      return testPopup.toggleSetting('testSetting')
-        .then(() => {
-          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
-          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
-          expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
-          expect(messageActiveTabStub.calledOnce).to.equal(true);
-          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
-          expect(chromeSetIconStub.calledOnce).to.equal(true);
-          expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
-        });
-    });
+    describe('if setting is on by default', () => {
 
-    it('should remove setting and send no message if setting is off and extension is off', () => {
-      isSettingOnStub.resolves(false);
-      isExtensionOnStub.resolves(false);
-      return testPopup.toggleSetting('testSetting')
-        .then(() => {
-          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
-          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
-          expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
-          expect(messageActiveTabStub.notCalled).to.equal(true);
-          expect(chromeSetIconStub.notCalled).to.equal(true);
-        });
+      it('should save setting as \'\', send \'stop\' message, and set inactive icon if setting is on', () => {
+        isSettingOnStub.resolves(true);
+        saveToSyncStorageStub.resolves(true);
+        return testPopup.toggleSetting('testSetting')
+          .then(() => {
+            expect(saveToSyncStorageStub.calledOnce).to.equal(true);
+            expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', '']);
+            expect(messageActiveTabStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
+            expect(chromeSetIconStub.calledOnce).to.equal(true);
+            expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
+          })
+      });
+
+      it('should remove setting, send \'start\' message, and set active icon if setting is off and extension is on', () => {
+        isSettingOnStub.resolves(false);
+        isExtensionOnStub.resolves(true);
+        return testPopup.toggleSetting('testSetting')
+          .then(() => {
+            expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+            expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
+            expect(isExtensionOnStub.calledOnce).to.equal(true);
+            expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
+            expect(messageActiveTabStub.calledOnce).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
+            expect(chromeSetIconStub.calledOnce).to.equal(true);
+            expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
+          });
+      });
+
+      it('should remove setting and send no message if setting is off and extension is off', () => {
+        isSettingOnStub.resolves(false);
+        isExtensionOnStub.resolves(false);
+        return testPopup.toggleSetting('testSetting')
+          .then(() => {
+            expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+            expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
+            expect(isExtensionOnStub.calledOnce).to.equal(true);
+            expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
+            expect(messageActiveTabStub.notCalled).to.equal(true);
+            expect(chromeSetIconStub.notCalled).to.equal(true);
+          });
+      });
+
     });
 
   });
@@ -216,43 +242,15 @@ describe('Popup', () => {
         })
     });
 
-    it('should toggle both toggles if both are on', () => {
+    it('should visually toggle settings which are on', () => {
       isSettingOnStub.withArgs('www.test.com').resolves(true);
       isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('reverse').resolves(false);
       return testPopup.initialiseSettings()
         .then(() => {
           expect(toggleCheckboxStub.calledTwice).to.equal(true);
           expect(toggleCheckboxStub.firstCall.args[0]).to.equal('domain-toggle');
           expect(toggleCheckboxStub.secondCall.args[0]).to.equal('extension-toggle');
-        })
-    });
-
-    it('should only toggle domain toggle if only domain setting is on', () => {
-      isSettingOnStub.withArgs('www.test.com').resolves(true);
-      isSettingOnStub.withArgs('clickAndRoll').resolves(false);
-      return testPopup.initialiseSettings()
-        .then(() => {
-          expect(toggleCheckboxStub.calledOnce).to.equal(true);
-          expect(toggleCheckboxStub.firstCall.args[0]).to.equal('domain-toggle');
-        })
-    });
-
-    it('should only toggle extension toggle if only extension setting is on', () => {
-      isSettingOnStub.withArgs('www.test.com').resolves(false);
-      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
-      return testPopup.initialiseSettings()
-        .then(() => {
-          expect(toggleCheckboxStub.calledOnce).to.equal(true);
-          expect(toggleCheckboxStub.firstCall.args[0]).to.equal('extension-toggle');
-        })
-    });
-
-    it('should not toggle either setting if both are off', () => {
-      isSettingOnStub.withArgs('www.test.com').resolves(false);
-      isSettingOnStub.withArgs('clickAndRoll').resolves(false);
-      return testPopup.initialiseSettings()
-        .then(() => {
-          expect(toggleCheckboxStub.notCalled).to.equal(true);
         })
     });
 
@@ -353,6 +351,25 @@ describe('Popup', () => {
       expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-toggle']);
       expect(toggleSettingStub.calledOnce).to.equal(true);
       expect(toggleSettingStub.firstCall.args).to.deep.equal(['www.test.com']);
+    });
+
+    it('should toggle reverse slider and setting if target is reverse toggle', () => {
+      const e = {
+        target: {
+          id: 'reverse-toggle',
+          nextElementSibling: {
+            classList: {
+              contains: () => false
+            }
+          }
+        }
+      };
+
+      testPopup.handleClick(e);
+      expect(toggleCheckboxStub.calledOnce).to.equal(true);
+      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['reverse-toggle']);
+      expect(toggleSettingStub.calledOnce).to.equal(true);
+      expect(toggleSettingStub.firstCall.args).to.deep.equal(['reverse']);
     });
 
     it('should open target href in new tab if target is not a toggle and has an href', () => {

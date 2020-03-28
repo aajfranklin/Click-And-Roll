@@ -48,9 +48,8 @@ function ResultSearch() {
       const nodeIncludesNextHit = currentTextIndex + nodeTextLength >= nextHit.end;
 
       if (nodeIncludesNextHit) {
-        if (this.parentNodeIsValid(currentNode) && !this.isEditable(currentNode)) {
-          const resultNode = this.createResultNode(nextHit, currentNode, currentTextIndex);
-          if (resultNode !== null) resultNodes.push(resultNode);
+        if (this.isValidHitAndNode(currentNode, nextHit, currentTextIndex)) {
+          resultNodes.push(this.createResultNode(nextHit, currentNode, currentTextIndex));
         }
         nextHit = hits.shift();
       } else {
@@ -60,6 +59,13 @@ function ResultSearch() {
     }
 
     return resultNodes;
+  };
+
+  this.isValidHitAndNode = (node, hit, currentTextIndex) => {
+    return this.parentNodeIsValid(node)
+      && !this.isEditable(node)
+      && !this.isNestedString(hit, node.textContent, currentTextIndex)
+      && !(hit.start < currentTextIndex);
   };
 
   this.parentNodeIsValid = (currentNode) => {
@@ -72,16 +78,16 @@ function ResultSearch() {
     return true;
   };
 
+  this.isNestedString = (hit, nodeText, currentTextIndex) => {
+    let nextChar = nodeText[hit.end - currentTextIndex + 1];
+    return nextChar ? !!nextChar.match(/(?!(?:×|÷))[a-zA-Z\u00c0-\u017f]/) : false;
+  };
+
   this.isEditable = (node) => {
     return node instanceof HTMLInputElement || node.isContentEditable;
   };
 
   this.createResultNode = (hit, hitNode, currentTextIndex) => {
-    // ignore hits split across multiple nodes
-    if (hit.start < currentTextIndex) {
-      return null;
-    }
-
     const range = document.createRange();
     range.setStart(hitNode, hit.start - currentTextIndex);
     range.setEnd(hitNode, hit.end - currentTextIndex + 1);

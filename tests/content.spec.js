@@ -53,14 +53,15 @@ describe('Content Scripts', () => {
         expect(searchTextStub.withArgs('textContent').calledOnce).to.equal(true);
       });
 
-      it('should pass search text hits to filterOverLappingStrings', () => {
+      it('should pass search text hits to filterOverlappingStrings', () => {
         expect(filterOverlappingStringsStub.calledOnce).to.equal(true);
         expect(filterOverlappingStringsStub.withArgs('hits').calledOnce).to.equal(true);
       });
 
       it('should pass node and filtered hits to mapHitsToResultNodes', () => {
         expect(mapHitsToResultNodesStub.calledOnce).to.equal(true);
-        expect(mapHitsToResultNodesStub.withArgs(rootNode, 'filteredHits').calledOnce).to.equal(true);      });
+        expect(mapHitsToResultNodesStub.withArgs(rootNode, 'filteredHits').calledOnce).to.equal(true);
+      });
 
     });
 
@@ -79,7 +80,7 @@ describe('Content Scripts', () => {
 
     describe('filterOverlappingStrings', () => {
 
-      it('should remove sub strings', () => {
+      it('should remove hits that are substrings of other hits', () => {
         const hits = [
           {start: 2, end: 14, text: 'Marcus Cousin'},
           {start: 0, end: 15, text: 'DeMarcus Cousins'}
@@ -113,6 +114,7 @@ describe('Content Scripts', () => {
       let createResultNodeStub;
       let createTreeWalkerStub;
       let isEditableStub;
+      let isNestedStringStub;
       let nextHitStub;
       let nextNodeStub;
       let parentNodeIsValidStub;
@@ -133,6 +135,7 @@ describe('Content Scripts', () => {
         createTreeWalkerStub = sinon.stub(document, 'createTreeWalker');
         createTreeWalkerStub.returns(mockTreeWalker);
         isEditableStub = sinon.stub(testResultSearch, 'isEditable');
+        isNestedStringStub = sinon.stub(testResultSearch,'isNestedString');
         nextHitStub = sinon.stub(hits, 'shift');
         nextNodeStub = sinon.stub(mockTreeWalker, 'nextNode');
         parentNodeIsValidStub = sinon.stub(testResultSearch, 'parentNodeIsValid');
@@ -147,12 +150,14 @@ describe('Content Scripts', () => {
         createResultNodeStub.resetHistory();
         createTreeWalkerStub.resetHistory();
         isEditableStub.resetHistory();
+        isNestedStringStub.resetHistory();
         nextHitStub.resetHistory();
         nextNodeStub.resetHistory();
         parentNodeIsValidStub.resetHistory();
 
         createResultNodeStub.returns(null);
         isEditableStub.returns(null);
+        isNestedStringStub.returns(null);
         nextHitStub.returns(null);
         nextNodeStub.returns(null);
         parentNodeIsValidStub.returns(null);
@@ -162,6 +167,7 @@ describe('Content Scripts', () => {
         createResultNodeStub.restore();
         createTreeWalkerStub.restore();
         isEditableStub.restore();
+        isNestedStringStub.restore();
         nextHitStub.restore();
         nextNodeStub.restore();
         parentNodeIsValidStub.restore();
@@ -247,16 +253,27 @@ describe('Content Scripts', () => {
           expect(isEditableStub.withArgs(mockTreeWalker.currentNode).calledOnce).to.equal(true);
         });
 
+        it('should check if hit is nested string within node', () => {
+          parentNodeIsValidStub.returns(true);
+          isEditableStub.returns(false);
+          isNestedStringStub.returns(false);
+          testResultSearch.mapHitsToResultNodes('', hits);
+          expect(isNestedStringStub.calledOnce).to.equal(true);
+          expect(isNestedStringStub.firstCall.args).to.deep.equal([hit, mockTreeWalker.currentNode.textContent, 0]);
+        });
+
         it('should get the next result', () => {
           parentNodeIsValidStub.returns(false);
           testResultSearch.mapHitsToResultNodes('', hits);
           expect(nextHitStub.calledTwice).to.equal(true);
         });
 
-        describe('if the parent node is valid and node is not editable', () => {
+        describe('if the parent node is valid, node is not editable, and hit is not nested string', () => {
 
           it('should highlight the result', () => {
             parentNodeIsValidStub.returns(true);
+            isEditableStub.returns(false);
+            isNestedStringStub.returns(false);
             testResultSearch.mapHitsToResultNodes('', hits);
             expect(createResultNodeStub.calledOnce).to.equal(true);
             expect(createResultNodeStub.withArgs(hit, mockTreeWalker.currentNode, 0).calledOnce).to.equal(true);
@@ -283,7 +300,19 @@ describe('Content Scripts', () => {
             expect(createResultNodeStub.notCalled).to.equal(true);
           });
 
-        })
+        });
+
+        describe('if the hit is a nested string', () => {
+
+          it('should not highlight the result', () => {
+            parentNodeIsValidStub.returns(true);
+            isEditableStub.returns(false);
+            isNestedStringStub.returns(true);
+            testResultSearch.mapHitsToResultNodes('', hits);
+            expect(createResultNodeStub.notCalled).to.equal(true);
+          });
+
+        });
 
       });
 
@@ -392,19 +421,76 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('isNestedString', () => {
+
+      it('should return true for substrings of longer names', () => {
+        const hit = {start: 0, end: 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloomberg';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      });
+
+      it('should return true if next char is accented character', () => {
+        const hit = {start: 0, end: 'Mike Barr'.length - 1, text: 'Mike Barr'};
+        const nodeText = 'Mike Barré';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      });
+
+      it('should return false when next char is punctuation or space', () => {
+        const hit = {start: 0, end: 'Mike Barr'.length - 1, text: 'Mike Barr'};
+        const currentTextIndex = 0;
+
+        let result = testResultSearch.isNestedString(hit, `Mike Barr.`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr,`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr?`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr!`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr:`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr;`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr'`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr"`, currentTextIndex);
+        expect(result).to.equal(false);
+        result = testResultSearch.isNestedString(hit, `Mike Barr `, currentTextIndex);
+        expect(result).to.equal(false);
+      });
+      
+      it('should return false when there is no next char', () => {
+        const hit = {start: 0, end: 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloom';
+        const currentTextIndex = 0;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(false);
+      });
+
+      it('should correctly account for current text index', () => {
+        const hit = {start: 4, end: 4 + 'Mike Bloom'.length - 1, text: 'Mike Bloom'};
+        const nodeText = 'Mike Bloomberg';
+        const currentTextIndex = 4;
+
+        const result = testResultSearch.isNestedString(hit, nodeText, currentTextIndex);
+        expect(result).to.equal(true);
+      })
+
+    });
+
     describe('createResultNode', () => {
 
       let hit;
 
       before(() => {
-        hit = {start: 0, end: 11, text: 'LeBronJames'};
-      });
-
-      describe('if hit is not fully contained by passed in node', () => {
-        it('should return null', () => {
-          expect(testResultSearch.createResultNode(hit, '', 1)).to.equal(null);
-        });
-
+        hit = {start: 0, end: 11, text: 'LeBron James'};
       });
 
       describe('if hit is fully contained by passed in node', () => {
@@ -642,10 +728,12 @@ describe('Content Scripts', () => {
         testClickAndRoll.highlight(nodes);
         expect(nodes[0].style.color).to.equal('teal');
         expect(nodes[0].style.display).to.equal('inline');
-        expect(nodes[0].onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(nodes[0].onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(nodes[0].onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
         expect(nodes[1].style.color).to.equal('teal');
         expect(nodes[1].style.display).to.equal('inline');
-        expect(nodes[1].onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(nodes[1].onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(nodes[1].onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
     });
@@ -684,6 +772,7 @@ describe('Content Scripts', () => {
       let addCloseOverlayListenersStub;
       let displayStatsStub;
       let getFrameDocumentStub;
+      let isSettingOnStub;
       let sendRuntimeMessageStub;
       let setFrameLoadingSpy;
 
@@ -705,6 +794,7 @@ describe('Content Scripts', () => {
         addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
         displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         setFrameLoadingSpy = sinon.spy(testClickAndRoll, 'setFrameLoading');
 
@@ -713,14 +803,18 @@ describe('Content Scripts', () => {
         networkErrorElement.hidden = true;
         document.body.appendChild(networkErrorElement);
         getFrameDocumentStub.returns(document);
+        isSettingOnStub.resolves(false);
       });
 
       afterEach(() => {
+        isSettingOnStub.resolves(false);
+
         updateActiveNameStub.resetHistory();
         resetFrameStub.resetHistory();
         addCloseOverlayListenersStub.resetHistory();
         displayStatsStub.resetHistory();
         getFrameDocumentStub.resetHistory();
+        isSettingOnStub.resetHistory();
         sendRuntimeMessageStub.resetHistory();
         setFrameLoadingSpy.resetHistory();
       });
@@ -731,46 +825,35 @@ describe('Content Scripts', () => {
         addCloseOverlayListenersStub.restore();
         displayStatsStub.restore();
         getFrameDocumentStub.restore();
+        isSettingOnStub.restore();
         sendRuntimeMessageStub.restore();
         setFrameLoadingSpy.restore();
 
         document.body.removeChild(networkErrorElement);
       });
 
-      it('should update active name and reset frame', () => {
+      it('should update active name, reset frame, set frame loading, and add close overlay listeners before fetching stats', () => {
         testClickAndRoll.currentPlayerId = '0';
-        testClickAndRoll.handleHover({target: 'test'});
-        expect(updateActiveNameStub.calledOnce).to.equal(true);
-        expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
-        expect(resetFrameStub.calledOnce).to.equal(true);
-      });
-
-      it('should add close overlay listeners and display stats if player id is unchanged and network error is not showing', () => {
-        testClickAndRoll.currentPlayerId = '0';
-        testClickAndRoll.handleHover({target: 'test'});
-        expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
-        expect(displayStatsStub.calledOnce).to.equal(true);
-      });
-
-      it('should set frame to loading, fetch stats, update player id, and display stats if new id', () => {
-        testClickAndRoll.currentPlayerId = '1';
-        sendRuntimeMessageStub.resolves('stats');
         return testClickAndRoll.handleHover({target: 'test'})
           .then(() => {
+            expect(updateActiveNameStub.calledOnce).to.equal(true);
+            expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
+            expect(resetFrameStub.calledOnce).to.equal(true);
             expect(setFrameLoadingSpy.calledOnce).to.equal(true);
-            expect(setFrameLoadingSpy.firstCall.args[0]).to.equal('0');
+            expect(setFrameLoadingSpy.firstCall.args).to.deep.equal(['0']);
             expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
-            expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
-            expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
-            expect(testClickAndRoll.dataReceived).to.equal(true);
-            expect(displayStatsStub.calledOnce).to.equal(true);
-            expect(displayStatsStub.firstCall.args).to.deep.equal(['stats', 'testName']);
           });
       });
 
-      it('should set frame to loading, fetch stats, update player id, and display stats if network error is showing', () => {
-        testClickAndRoll.currentPlayerId = '0';
-        networkErrorElement.hidden = false;
+      it('should set reverse to true if fetched setting is true', () => {
+        isSettingOnStub.resolves(true);
+        return testClickAndRoll.handleHover({target: 'test'})
+          .then(() => {
+            expect(testClickAndRoll.reverse).to.equal(true);
+          });
+      });
+
+      it('should set frame to loading, fetch stats, update player id, and display stats', () => {
         sendRuntimeMessageStub.resolves('stats');
         return testClickAndRoll.handleHover({target: 'test'})
           .then(() => {
@@ -806,7 +889,8 @@ describe('Content Scripts', () => {
         previous.id = 'previous';
         testClickAndRoll.activeName.element = previous;
         testClickAndRoll.updateActiveName(target);
-        expect(previous.onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(previous.onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(previous.onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
       it('should update active element to new target and remove handleHover', () => {
@@ -1277,7 +1361,8 @@ describe('Content Scripts', () => {
       });
 
       it('should add handleHover to active name element', () => {
-        expect(testClickAndRoll.activeName.element.onmouseenter).to.equal(testClickAndRoll.handleHover);
+        expect(testClickAndRoll.activeName.element.onmouseenter).to.equal(testClickAndRoll.handleMouseEnter);
+        expect(testClickAndRoll.activeName.element.onmouseleave).to.equal(testClickAndRoll.handleMouseLeave);
       });
 
       it('should hide frame container', () => {
@@ -1328,7 +1413,7 @@ describe('Content Scripts', () => {
         expect(checkContentHeightStub.notCalled).to.equal(true);
       });
 
-      it('should set player name text content, player profile, and career stat rows if stats are present', () => {
+      it('should set player name text content, player profile, career stat rows, and check content height if player has career rows', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
 
@@ -1343,45 +1428,45 @@ describe('Content Scripts', () => {
         expect(nameElement.textContent).to.equal('testName');
         expect(testProfile.innerHTML).to.equal('testProfile');
         expect(testTable.innerHTML).to.equal('<tbody id="season-averages-body">testCareer</tbody>');
+        expect(checkContentHeightStub.calledOnce).to.equal(true);
 
         document.body.removeChild(testProfile);
         document.body.removeChild(testTable);
       });
 
-      it('should remove career profile section if player has no stats', () => {
+      it('should remove career stats table and not check content height if player has no career rows', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
         document.body.appendChild(testProfile);
 
-        let testContent = document.createElement('div');
-        let testCareerHeading = document.createElement('h2');
         let testCareerSection = document.createElement('section');
-
-        testContent.id = 'content';
-        testContent.appendChild(testCareerHeading);
-        testContent.appendChild(testCareerSection);
-        document.body.appendChild(testContent);
-        testCareerHeading.outerHTML = '<h2 id="career-heading" class="sub-heading stick-left">Career Stats:</h2>';
-        testCareerSection.outerHTML = '<section id="career-stats"><table><tbody id="season-averages-body"></tbody></table></section>';
+        testCareerSection.id = 'career-stats';
+        testCareerSection.innerHTML = '<table id="regular-season-averages-table"><tbody><tr><td>Table</td></tr></tbody></table>';
+        document.body.appendChild(testCareerSection);
 
         testClickAndRoll.dataReceived = true;
-        expect(document.getElementById('career-heading')).to.not.equal(null);
         expect(document.getElementById('career-stats')).to.not.equal(null);
+        expect(document.getElementById('regular-season-averages-table')).to.not.equal(null);
 
         testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: ''}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
-        expect(document.getElementById('career-heading')).to.equal(null);
-        expect(document.getElementById('career-stats')).to.equal(null);
+        expect(document.getElementById('regular-season-averages-table')).to.equal(null);
+        expect(document.getElementById('career-stats')).to.not.equal(null);
+        expect(checkContentHeightStub.calledOnce).to.equal(false);
 
         document.body.removeChild(testProfile);
-        document.body.removeChild(testContent);
+        document.body.removeChild(testCareerSection);
       });
 
-      it('should resize frame content if frame container is not hidden', () => {
-        testClickAndRoll.frameContainer.hidden = false;
-        testClickAndRoll.displayStats();
-        expect(checkContentHeightStub.calledOnce).to.equal(true);
-      });
+    });
+
+    describe('reverseCareer', () => {
+
+      it('should reverse the rows of the career table', () => {
+        const career = '<tr><td>1</td></tr><tr><td>2</td></tr><tr><td>3</td></tr><tr class="career"><td>4</td></tr>';
+        const reversed = '<tr class="career"><td>4</td></tr><tr><td>3</td></tr><tr><td>2</td></tr><tr><td>1</td></tr>';
+        expect(testClickAndRoll.reverseCareer(career)).to.equal(reversed);
+      })
 
     });
 

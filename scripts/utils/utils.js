@@ -71,7 +71,7 @@ function Utils() {
     return new Promise(resolve => {
       chrome.storage.sync.get(setting, result => {
         if ($.isEmptyObject(result)) {
-          return resolve(true);
+          return resolve(config.defaultOffSettings.indexOf(setting) === -1);
         }
         return resolve(!!result[setting]);
       });
