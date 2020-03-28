@@ -561,23 +561,33 @@ describe('Background Scripts', () => {
         expect(result).to.equal(false);
       });
 
-      it('should return true if cache has records and player, timestamp is under three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, active: false}], 1);
+      it('should return false if cache has records, current player, but player has no version number', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, active: false}]);
+        expect(result).to.equal(false);
+      });
+
+      it('should return false if cache has records, current player, but version is incorrect', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.1.0', active: false}]);
+        expect(result).to.equal(false);
+      });
+
+      it('should return true if cache has records and player, record is correct version, timestamp is under three hours old, and player is inactive', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
-      it('should return true if cache has records and player, timestamp is under three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, active: true}], 1);
+      it('should return true if cache has records and player, record is current version, timestamp is under three hours old, and player is active', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: true}], 1);
         expect(result).to.equal(true);
       });
 
-      it('should return true if cache has records and player, timestamp is over three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, active: false}], 1);
+      it('should return true if cache has records and player, record is current version, timestamp is over three hours old, and player is inactive', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
-      it('should return false if cache has records and player, timestamp is over three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, active: true}], 1);
+      it('should return false if cache has records and player, record is current version, timestamp is over three hours old, and player is active', () => {
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: true}], 1);
         expect(result).to.equal(false);
       });
 
@@ -732,9 +742,9 @@ describe('Background Scripts', () => {
         expect(saveToLocalStorageStub.firstCall.args).to.deep.equal(['player-1', 'stats']);
       });
 
-      it('should save cache records to storage with new player and timestamp added', () => {
+      it('should save cache records to storage with new player, version, and timestamp added', () => {
         messageHandler.cacheStats({active: true}, 1, []);
-        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, active: true}]]);
+        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, version: '1.2.0', active: true}]]);
       });
 
     });

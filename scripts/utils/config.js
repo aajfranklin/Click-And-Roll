@@ -1,6 +1,7 @@
 const config = {
   cmPerFeet: 30.48,
   cmPerInch: 2.54,
+  currentCacheRecordVersion: '1.2.0',
   defaultOffSettings: ['reverse'],
   hoverTimeout: 500,
   kgPerLb: 0.45359237,

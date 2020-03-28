@@ -106,7 +106,10 @@ function MessageHandler() {
 
   this.statsInCacheAndCurrent = (cacheRecords, id) => {
     const player = cacheRecords.filter(player => player.id === id)[0] || null;
-    return player !== null && (!player.active || Date.now() - player.timestamp < (config.playerUpdateInterval));
+    return player !== null
+      && player.version !== undefined
+      && player.version === config.currentCacheRecordVersion
+      && (!player.active || Date.now() - player.timestamp < (config.playerUpdateInterval));
   };
 
   this.fetchNonCachedStats = (id) => {
@@ -129,7 +132,7 @@ function MessageHandler() {
   };
 
   this.cacheStats = (stats, id, records) => {
-    const newRecord = [{id, timestamp: Date.now(), active: stats.active}];
+    const newRecord = [{id, timestamp: Date.now(), active: stats.active, version: config.currentCacheRecordVersion}];
     this.utils.saveToLocalStorage(`player-${id}`, stats);
     this.utils.saveToLocalStorage('cache-records', records.filter(player => player.id !== id).concat(newRecord));
   };
