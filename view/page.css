@@ -1,5 +1,6 @@
 #click-and-roll-frame-container {
   height: calc(50vh + 2px);
+  max-height: 500px;
   max-width: 825px;
   position: absolute;
   width: calc(50vw + 2px);

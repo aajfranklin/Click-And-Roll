@@ -5,6 +5,7 @@ const config = {
   hoverTimeout: 500,
   kgPerLb: 0.45359237,
   maxCachedPlayers: 100,
+  maxFrameContainerHeight: 500,
   maxFrameContainerWidth: 825,
   networkTimeout: 10 * 1000,
   playerHeaderHeight: 37,

@@ -232,7 +232,7 @@ function ClickAndRoll() {
 
     const overlayTop = this.activeName.isInTopHalf
       ? rect.top + scrollY + rect.height
-      : rect.top + scrollY - this.getHalfViewHeight();
+      : rect.top + scrollY - this.getHalfViewHeight() + Math.max(this.getHalfViewHeight() - config.maxFrameContainerHeight, 0);
 
     return {
       left: overlayLeft,
