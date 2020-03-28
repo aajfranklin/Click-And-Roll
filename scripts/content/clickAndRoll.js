@@ -286,12 +286,11 @@ function ClickAndRoll() {
       if (stats.careerHTML.length) {
         this.getFrameDocument().getElementById('season-averages-body').innerHTML += this.reverse ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
       } else {
-        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-heading'));
-        this.getFrameDocument().getElementById('content').removeChild(this.getFrameDocument().getElementById('career-stats'));
+        this.getFrameDocument().getElementById('career-stats').removeChild(this.getFrameDocument().getElementById('regular-season-averages-table'));
       }
     }
 
-    if (!this.frameContainer.hidden) {
+    if (!this.frameContainer.hidden && stats.careerHTML.length !== 0) {
       this.checkContentHeight();
     }
   };

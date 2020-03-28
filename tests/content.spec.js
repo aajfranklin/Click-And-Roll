@@ -1413,7 +1413,7 @@ describe('Content Scripts', () => {
         expect(checkContentHeightStub.notCalled).to.equal(true);
       });
 
-      it('should set player name text content, player profile, and career stat rows if stats are present', () => {
+      it('should set player name text content, player profile, career stat rows, and check content height if player has career rows', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
 
@@ -1428,44 +1428,34 @@ describe('Content Scripts', () => {
         expect(nameElement.textContent).to.equal('testName');
         expect(testProfile.innerHTML).to.equal('testProfile');
         expect(testTable.innerHTML).to.equal('<tbody id="season-averages-body">testCareer</tbody>');
+        expect(checkContentHeightStub.calledOnce).to.equal(true);
 
         document.body.removeChild(testProfile);
         document.body.removeChild(testTable);
       });
 
-      it('should remove career profile section if player has no stats', () => {
+      it('should remove career stats table and not check content height if player has no career rows', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
         document.body.appendChild(testProfile);
 
-        let testContent = document.createElement('div');
-        let testCareerHeading = document.createElement('h2');
         let testCareerSection = document.createElement('section');
-
-        testContent.id = 'content';
-        testContent.appendChild(testCareerHeading);
-        testContent.appendChild(testCareerSection);
-        document.body.appendChild(testContent);
-        testCareerHeading.outerHTML = '<h2 id="career-heading" class="sub-heading stick-left">Career Stats:</h2>';
-        testCareerSection.outerHTML = '<section id="career-stats"><table><tbody id="season-averages-body"></tbody></table></section>';
+        testCareerSection.id = 'career-stats';
+        testCareerSection.innerHTML = '<table id="regular-season-averages-table"><tbody><tr><td>Table</td></tr></tbody></table>';
+        document.body.appendChild(testCareerSection);
 
         testClickAndRoll.dataReceived = true;
-        expect(document.getElementById('career-heading')).to.not.equal(null);
         expect(document.getElementById('career-stats')).to.not.equal(null);
+        expect(document.getElementById('regular-season-averages-table')).to.not.equal(null);
 
         testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: ''}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
-        expect(document.getElementById('career-heading')).to.equal(null);
-        expect(document.getElementById('career-stats')).to.equal(null);
+        expect(document.getElementById('regular-season-averages-table')).to.equal(null);
+        expect(document.getElementById('career-stats')).to.not.equal(null);
+        expect(checkContentHeightStub.calledOnce).to.equal(false);
 
         document.body.removeChild(testProfile);
-        document.body.removeChild(testContent);
-      });
-
-      it('should resize frame content if frame container is not hidden', () => {
-        testClickAndRoll.frameContainer.hidden = false;
-        testClickAndRoll.displayStats();
-        expect(checkContentHeightStub.calledOnce).to.equal(true);
+        document.body.removeChild(testCareerSection);
       });
 
     });

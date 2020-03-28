@@ -801,6 +801,11 @@ describe('Background Scripts', () => {
         dateStub.restore();
       });
 
+      it('should return true if player has no seasons (they have just been drafted)', () => {
+        const seasons = [];
+        expect(messageHandler.getActive(seasons)).to.equal(true);
+      });
+
       it('should return true if last season id starts with previous year', () => {
         const seasons = [{SEASON_ID: '2019-20'}, {}];
         expect(messageHandler.getActive(seasons)).to.equal(true);

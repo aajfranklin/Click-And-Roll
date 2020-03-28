@@ -145,6 +145,7 @@ function MessageHandler() {
   };
 
   this.getActive = (rows) => {
+    if (rows.length === 0) return true;
     const lastActiveSeason = rows[rows.length - 2];
     const lastActiveYear = parseInt(lastActiveSeason['SEASON_ID'].slice(0,4));
     const currentYear = new Date().getFullYear();
