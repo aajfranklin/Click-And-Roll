@@ -588,7 +588,7 @@ describe('Content Scripts', () => {
       before(() => {
         testClickAndRoll = new ClickAndRoll();
 
-        chrome.extension = {
+        browser.runtime = {
           getURL: () => {}
         };
 
@@ -770,13 +770,10 @@ describe('Content Scripts', () => {
       let updateActiveNameStub;
       let resetFrameStub;
       let addCloseOverlayListenersStub;
-      let displayStatsStub;
       let getFrameDocumentStub;
-      let isSettingOnStub;
-      let sendRuntimeMessageStub;
       let setFrameLoadingSpy;
-
-      let networkErrorElement;
+      let isFirefoxStub;
+      let getStatsStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
@@ -789,82 +786,133 @@ describe('Content Scripts', () => {
 
         testClickAndRoll.players = [{NAME: 'testName', PLAYER_ID: '0'}];
 
+        testClickAndRoll.frame = {
+          contentWindow: {
+            addEventListener: (type, callback) => callback()
+          }
+        };
+
         updateActiveNameStub = sinon.stub(testClickAndRoll, 'updateActiveName');
         resetFrameStub = sinon.stub(testClickAndRoll, 'resetFrame');
         addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
-        displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn');
-        sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
         setFrameLoadingSpy = sinon.spy(testClickAndRoll, 'setFrameLoading');
+        isFirefoxStub = sinon.stub(testClickAndRoll, 'isFirefox');
+        getStatsStub = sinon.stub(testClickAndRoll, 'getStats');
+        addEventListenerSpy = sinon.spy(testClickAndRoll.frame.contentWindow, 'addEventListener');
 
-        networkErrorElement = document.createElement('div');
-        networkErrorElement.id = 'network-error';
-        networkErrorElement.hidden = true;
-        document.body.appendChild(networkErrorElement);
-        getFrameDocumentStub.returns(document);
-        isSettingOnStub.resolves(false);
+        isFirefoxStub.returns(false);
       });
 
       afterEach(() => {
-        isSettingOnStub.resolves(false);
+        isFirefoxStub.returns(false);
 
         updateActiveNameStub.resetHistory();
         resetFrameStub.resetHistory();
         addCloseOverlayListenersStub.resetHistory();
-        displayStatsStub.resetHistory();
         getFrameDocumentStub.resetHistory();
-        isSettingOnStub.resetHistory();
-        sendRuntimeMessageStub.resetHistory();
         setFrameLoadingSpy.resetHistory();
+        isFirefoxStub.resetHistory();
+        getStatsStub.resetHistory();
+        addEventListenerSpy.resetHistory();
       });
 
       after(() => {
         updateActiveNameStub.restore();
         resetFrameStub.restore();
         addCloseOverlayListenersStub.restore();
-        displayStatsStub.restore();
         getFrameDocumentStub.restore();
-        isSettingOnStub.restore();
-        sendRuntimeMessageStub.restore();
         setFrameLoadingSpy.restore();
-
-        document.body.removeChild(networkErrorElement);
+        isFirefoxStub.restore();
+        getStatsStub.restore();
+        addEventListenerSpy.restore();
       });
 
-      it('should update active name, reset frame, set frame loading, and add close overlay listeners before fetching stats', () => {
-        testClickAndRoll.currentPlayerId = '0';
-        return testClickAndRoll.handleHover({target: 'test'})
-          .then(() => {
-            expect(updateActiveNameStub.calledOnce).to.equal(true);
-            expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
-            expect(resetFrameStub.calledOnce).to.equal(true);
-            expect(setFrameLoadingSpy.calledOnce).to.equal(true);
-            expect(setFrameLoadingSpy.firstCall.args).to.deep.equal(['0']);
-            expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
-          });
+      it('should set current player id to the passed in id', () => {
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(testClickAndRoll.currentPlayerId).to.equal('0');
       });
 
-      it('should set reverse to true if fetched setting is true', () => {
-        isSettingOnStub.resolves(true);
-        return testClickAndRoll.handleHover({target: 'test'})
-          .then(() => {
-            expect(testClickAndRoll.reverse).to.equal(true);
-          });
+      it('should set data received to false', () => {
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(testClickAndRoll.dataReceived).to.equal(false);
       });
 
-      it('should set frame to loading, fetch stats, update player id, and display stats', () => {
+      it('should update active name', () => {
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(updateActiveNameStub.calledOnce).to.equal(true);
+        expect(updateActiveNameStub.firstCall.args[0]).to.equal('test');
+      });
+
+      it('should reset frame', () => {
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(resetFrameStub.calledOnce).to.equal(true);
+      });
+
+      it('should directly get stats if browser other than firefox', () => {
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(addEventListenerSpy.notCalled).to.equal(true);
+        expect(getStatsStub.calledOnce).to.equal(true);
+        expect(getStatsStub.firstCall.args[0]).to.equal('0');
+      });
+
+      it('should add event listener to get stats on iframe load event if browser if firefox', () => {
+        isFirefoxStub.returns(true);
+        testClickAndRoll.handleHover({target: 'test'});
+        expect(addEventListenerSpy.calledOnce).to.equal(true);
+        expect(getStatsStub.calledOnce).to.equal(true);
+        expect(getStatsStub.firstCall.args[0]).to.equal('0');
+      });
+
+    });
+
+    describe('getStats', () => {
+
+      let sendRuntimeMessageStub;
+      let displayStatsStub;
+      let isSettingOnStub;
+
+      before(() => {
+        displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
+        sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
+        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn');
+
+        isSettingOnStub.resolves(false);
+      });
+
+      afterEach(() => {
+        isSettingOnStub.resolves(false);
+
+        sendRuntimeMessageStub.resetHistory();
+        displayStatsStub.resetHistory();
+        isSettingOnStub.resetHistory();
+      });
+
+      after(() => {
+        sendRuntimeMessageStub.restore();
+        displayStatsStub.restore();
+        isSettingOnStub.restore();
+      });
+
+      it('get reverse setting value, fetch stats, update player id, and display stats', () => {
         sendRuntimeMessageStub.resolves('stats');
-        return testClickAndRoll.handleHover({target: 'test'})
+        return testClickAndRoll.getStats('0')
           .then(() => {
-            expect(setFrameLoadingSpy.calledOnce).to.equal(true);
-            expect(setFrameLoadingSpy.firstCall.args[0]).to.equal('0');
-            expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
+            expect(isSettingOnStub.calledOnce).to.equal(true);
+            expect(isSettingOnStub.firstCall.args[0]).to.equal('reverse');
             expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
             expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
             expect(testClickAndRoll.dataReceived).to.equal(true);
             expect(displayStatsStub.calledOnce).to.equal(true);
             expect(displayStatsStub.firstCall.args).to.deep.equal(['stats', 'testName']);
+          });
+      });
+
+      it('should set reverse to true if fetched setting is true', () => {
+        isSettingOnStub.resolves(true);
+        return testClickAndRoll.getStats({target: 'test'})
+          .then(() => {
+            expect(testClickAndRoll.reverse).to.equal(true);
           });
       });
 
@@ -912,6 +960,9 @@ describe('Content Scripts', () => {
       let positionFrameContainerStub;
       let frameDocumentBodyStub;
       let appendChildStub;
+      let isFirefoxStub;
+      let addCloseOverlayListenersStub;
+      let setFrameLoadingStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
@@ -921,6 +972,9 @@ describe('Content Scripts', () => {
         applyScrollRuleStub = sinon.stub(testClickAndRoll, 'applyScrollRule');
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         positionFrameContainerStub = sinon.stub(testClickAndRoll, 'positionFrameContainer');
+        isFirefoxStub = sinon.stub(testClickAndRoll, 'isFirefox');
+        addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
+        setFrameLoadingStub = sinon.stub(testClickAndRoll, 'setFrameLoading');
 
         frameDocumentBodyStub = {
           body: {
@@ -931,15 +985,21 @@ describe('Content Scripts', () => {
 
         appendChildStub = sinon.stub(frameDocumentBodyStub.body, 'appendChild');
         getFrameDocumentStub.returns(frameDocumentBodyStub);
+        isFirefoxStub.returns(false);
       });
 
       afterEach(() => {
+        isFirefoxStub.returns(false);
+
         attachFrameStub.resetHistory();
         appendChildStub.resetHistory();
         applyFrameStylesStub.resetHistory();
         applyScrollRuleStub.resetHistory();
         getFrameDocumentStub.resetHistory();
         positionFrameContainerStub.resetHistory();
+        isFirefoxStub.resetHistory();
+        addCloseOverlayListenersStub.resetHistory();
+        setFrameLoadingStub.resetHistory();
       });
 
       after(() => {
@@ -949,6 +1009,9 @@ describe('Content Scripts', () => {
         applyScrollRuleStub.restore();
         getFrameDocumentStub.restore();
         positionFrameContainerStub.restore();
+        isFirefoxStub.restore();
+        addCloseOverlayListenersStub.restore();
+        setFrameLoadingStub.restore();
       });
 
       it('should attach frame', () => {
@@ -976,6 +1039,16 @@ describe('Content Scripts', () => {
         testClickAndRoll.resetFrame();
         expect(appendChildStub.calledOnce).to.equal(true);
         expect(appendChildStub.firstCall.args[0]).to.equal(testClickAndRoll.frameContent);
+      });
+
+      it('should set frame loading', () => {
+        testClickAndRoll.resetFrame();
+        expect(setFrameLoadingStub.calledOnce).to.equal(true);
+      });
+
+      it('should add close overlay listeners', () => {
+        testClickAndRoll.resetFrame();
+        expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
       });
 
     });
@@ -1290,14 +1363,6 @@ describe('Content Scripts', () => {
         expect(testClickAndRoll.frameContent.classList.contains('loading')).to.equal(true);
         expect(testClickAndRoll.frameContent.innerHTML).to.equal('testTemplate');
       });
-
-      it('should set current player id to the passed in id', () => {
-        expect(testClickAndRoll.currentPlayerId).to.equal('testId');
-      });
-
-      it('should set data received to false', () => {
-        expect(testClickAndRoll.dataReceived).to.equal(false);
-      })
 
     });
 
