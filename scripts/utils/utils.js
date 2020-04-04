@@ -24,8 +24,11 @@ function Utils() {
   this.getTabUrl = (tab) => {
     const isEmptyTab = tab === undefined
       || tab.url === ''
-      || tab.url === ('chrome://new-tab-page/')
-      || tab.url === 'chrome://newtab/';
+      || tab.url === 'chrome://new-tab-page/'
+      || tab.url === 'chrome://newtab/'
+      || tab.url === 'about:newtab'
+      || tab.url === 'edge://newtab/'
+      || tab.url === 'chrome://startpageshared/';
     return isEmptyTab
       ? 'browser://newtab/'
       : (new URL(tab.url)).hostname

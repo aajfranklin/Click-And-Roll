@@ -80,6 +80,9 @@ describe('Utils', () => {
       expect(testUtils.getTabUrl({url: ''})).to.equal('browser://newtab/');
       expect(testUtils.getTabUrl({url: 'chrome://newtab/'})).to.equal('browser://newtab/');
       expect(testUtils.getTabUrl({url: 'chrome://new-tab-page/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'edge://newtab/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'about:newtab'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://startpageshared/'})).to.equal('browser://newtab/');
       expect(testUtils.getTabUrl(undefined)).to.equal('browser://newtab/');
     });
 
