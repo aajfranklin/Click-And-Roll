@@ -51,5 +51,10 @@
   "web_accessible_resources": [
     "view/frame.html",
     "view/frame.css"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extension@clickandroll.co.uk"
+    }
+  }
 }
