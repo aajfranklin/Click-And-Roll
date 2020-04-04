@@ -4,8 +4,8 @@ function MessageHandler() {
 
   this.addListeners = () => {
     // pass in anon function invoking handleLoad, rather than handleLoad itself, so that we don't pass onActivated result to handleLoad
-    chrome.tabs.onActivated.addListener(() => this.handleLoad());
-    chrome.runtime.onMessage.addListener(this.handleMessage);
+    browser.tabs.onActivated.addListener(() => this.handleLoad());
+    browser.runtime.onMessage.addListener(this.handleMessage);
   };
 
   this.handleMessage = (request, sender, sendResponse) => {
@@ -34,10 +34,10 @@ function MessageHandler() {
       .then(isExtensionOnForDomain => {
         if (isExtensionOnForDomain) {
           this.utils.messageActiveTab({message: 'start'});
-          chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: activeTab.id});
+          browser.browserAction.setIcon({path: '../assets/static/active32.png', tabId: activeTab.id});
         } else {
           this.utils.messageActiveTab({message: 'stop'});
-          chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: activeTab.id});
+          browser.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: activeTab.id});
         }
         if (sendResponse) sendResponse([null, null]);
       });

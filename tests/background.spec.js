@@ -11,12 +11,12 @@ describe('Background Scripts', () => {
 
       before(() => {
 
-        chrome.runtime.onMessage = {addListener: () => {}};
-        chrome.tabs = {onActivated: {addListener: () => {}}};
+        browser.runtime.onMessage = {addListener: () => {}};
+        browser.tabs = {onActivated: {addListener: () => {}}};
 
         handleLoadStub = sinon.stub(messageHandler, 'handleLoad');
-        onMessageStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
-        onActivatedStub = sinon.stub(chrome.tabs.onActivated, 'addListener');
+        onMessageStub = sinon.stub(browser.runtime.onMessage, 'addListener');
+        onActivatedStub = sinon.stub(browser.tabs.onActivated, 'addListener');
 
         handleLoadStub.returns(null);
         onMessageStub.returns(null);
@@ -35,7 +35,7 @@ describe('Background Scripts', () => {
         onActivatedStub.restore();
       });
 
-      it('should call chrome runtime on message add listener with correct listener', () => {
+      it('should call browser runtime on message add listener with correct listener', () => {
         messageHandler.addListeners();
         expect(onMessageStub.calledOnce).to.equal(true);
         expect(onMessageStub.firstCall.args[0]).to.equal(messageHandler.handleMessage);
@@ -135,7 +135,7 @@ describe('Background Scripts', () => {
       let testTab;
 
       before(() => {
-        chrome.browserAction = {
+        browser.browserAction = {
           setIcon: () => {}
         };
 
@@ -147,7 +147,7 @@ describe('Background Scripts', () => {
         getActiveTabStub = sinon.stub(messageHandler.utils, 'getActiveTab');
         isExtensionOnStub = sinon.stub(messageHandler.utils, 'isExtensionOn');
         messageActiveTabStub = sinon.stub(messageHandler.utils, 'messageActiveTab');
-        setIconStub = sinon.stub(chrome.browserAction, 'setIcon');
+        setIconStub = sinon.stub(browser.browserAction, 'setIcon');
 
         getActiveTabStub.resolves(testTab);
       });

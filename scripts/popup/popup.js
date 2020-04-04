@@ -28,7 +28,7 @@ function Popup() {
           return this.utils.saveToSyncStorage(setting, '')
             .then(() => {
               this.utils.messageActiveTab({message: 'stop'});
-              chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: this.tab.id});
+              browser.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: this.tab.id});
             })
         } else {
           this.utils.removeFromSyncStorage(setting);
@@ -36,7 +36,7 @@ function Popup() {
             .then(isExtensionOnForDomain => {
               if (isExtensionOnForDomain) {
                 this.utils.messageActiveTab({message: 'start'});
-                chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: this.tab.id});
+                browser.browserAction.setIcon({path: '../assets/static/active32.png', tabId: this.tab.id});
               }
             });
         }
@@ -85,6 +85,6 @@ function Popup() {
       if (id === 'reverse-toggle') this.toggleSetting('reverse');
     }
 
-    if (targetIsLink) chrome.tabs.create({url: e.target.href});
+    if (targetIsLink) browser.tabs.create({url: e.target.href});
   };
 }
