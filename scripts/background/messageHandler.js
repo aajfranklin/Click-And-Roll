@@ -101,6 +101,7 @@ function MessageHandler() {
     cacheRecords.splice(0, Math.floor(cacheRecords.length / 2)).map(record => {
       this.utils.removeFromLocalStorage(`player-${record.id}`)
     });
+    this.utils.saveToLocalStorage('cache-records', cacheRecords);
     return cacheRecords;
   };
 

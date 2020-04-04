@@ -514,22 +514,35 @@ describe('Background Scripts', () => {
     describe('cleanCache', () => {
 
       let removeFromLocalStorageStub;
+      let saveToLocalStorageStub;
 
       before(() => {
         removeFromLocalStorageStub = sinon.stub(messageHandler.utils, 'removeFromLocalStorage');
+        saveToLocalStorageStub = sinon.stub(messageHandler.utils, 'saveToLocalStorage');
       });
 
       afterEach(() => {
         removeFromLocalStorageStub.resetHistory();
+        saveToLocalStorageStub.resetHistory();
       });
 
       after(() => {
         removeFromLocalStorageStub.restore();
+        saveToLocalStorageStub.restore();
       });
 
       it('should call remove from local storage as many times as half the length of the records', () => {
-        messageHandler.cleanCache([0,1,2,3,4,5,6]);
+        messageHandler.cleanCache([{id: 0},{id: 1},{id: 2},{id:3},{id:4},{id:5},{id:6}]);
         expect(removeFromLocalStorageStub.calledThrice).to.equal(true);
+        expect(removeFromLocalStorageStub.firstCall.args).to.deep.equal(['player-0']);
+        expect(removeFromLocalStorageStub.secondCall.args).to.deep.equal(['player-1']);
+        expect(removeFromLocalStorageStub.thirdCall.args).to.deep.equal(['player-2']);
+      });
+
+      it('should save the second half of the array to local storage under cache-records', () => {
+        messageHandler.cleanCache([0,1,2,3,4,5,6]);
+        expect(saveToLocalStorageStub.calledOnce).to.equal(true);
+        expect(saveToLocalStorageStub.firstCall.args).to.deep.equal(['cache-records', [3,4,5,6]])
       });
 
       it('should return records from second half of the array', () => {
