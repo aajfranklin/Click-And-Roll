@@ -301,7 +301,7 @@ function ClickAndRoll() {
   this.addTabListeners = () => {
     const tabs = this.getFrameDocument().getElementsByClassName('tab');
     for (let tab of tabs) {
-      tab.addEventListener('click', this.updateActiveTab)
+      tab.onclick = this.updateActiveTab;
     }
   };
 
@@ -336,7 +336,7 @@ function ClickAndRoll() {
       this.applySeasonTable(stats.postSeasonHTML, 'post');
     }
 
-    if (!this.frameContainer.hidden && stats.regularSeasonHTML.length !== 0) {
+    if (!this.frameContainer.hidden) {
       this.checkContentHeight();
     }
   };

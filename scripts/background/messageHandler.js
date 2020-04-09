@@ -122,7 +122,7 @@ function MessageHandler() {
         return this.apiGet('player', id);
       })
       .then(response => {
-        stats.active = this.getActive(response.rows);
+        stats.active = this.getActive(response.regularSeasonRows);
         stats.regularSeasonHTML = this.getCareerHTML(response.regularSeasonRows);
         stats.postSeasonHTML = this.getCareerHTML(response.postSeasonRows);
         return this.getProfileHTML(response.profile);

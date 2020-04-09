@@ -585,22 +585,22 @@ describe('Background Scripts', () => {
       });
 
       it('should return true if cache has records and player, record is correct version, timestamp is under three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: false}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '2.0.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return true if cache has records and player, record is current version, timestamp is under three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: true}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '2.0.0', active: true}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return true if cache has records and player, record is current version, timestamp is over three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: false}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '2.0.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return false if cache has records and player, record is current version, timestamp is over three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: true}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '2.0.0', active: true}], 1);
         expect(result).to.equal(false);
       });
 
@@ -616,7 +616,8 @@ describe('Background Scripts', () => {
       let saveToStorageStub;
 
       const getStatsResponse = {
-        rows: 'rows',
+        regularSeasonRows: 'regularRows',
+        postSeasonRows: 'postRows',
         profile: 'profile'
       };
 
@@ -683,11 +684,12 @@ describe('Background Scripts', () => {
 
       describe('if apiGet resolves', () => {
 
-        it('should call getCareerHTML with returned rows', () => {
+        it('should call getCareerHTML twice, once for regular and once for post rows', () => {
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
-              expect(getCareerHTMLStub.calledOnce).to.equal(true);
-              expect(getCareerHTMLStub.withArgs('rows').calledOnce).to.equal(true);
+              expect(getCareerHTMLStub.calledTwice).to.equal(true);
+              expect(getCareerHTMLStub.firstCall.args).to.deep.equal(['regularRows']);
+              expect(getCareerHTMLStub.secondCall.args).to.deep.equal(['postRows']);
             })
         });
 
@@ -695,7 +697,7 @@ describe('Background Scripts', () => {
           return messageHandler.fetchNonCachedStats(1)
               .then(() => {
                 expect(getActiveStub.calledOnce).to.equal(true);
-                expect(getActiveStub.withArgs('rows').calledOnce).to.equal(true);
+                expect(getActiveStub.withArgs('regularRows').calledOnce).to.equal(true);
               })
         });
 
@@ -710,11 +712,12 @@ describe('Background Scripts', () => {
         describe('if getProfileHTML resolves', () => {
 
           it('should return stats with active flag, profile and career html', () => {
-            getCareerHTMLStub.returns('careerStats');
+            getCareerHTMLStub.onFirstCall().returns('regularRows');
+            getCareerHTMLStub.onSecondCall().returns('postRows');
             getProfileHTMLStub.resolves('profileStats');
             return messageHandler.fetchNonCachedStats(1)
               .then(result => {
-                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: true});
+                expect(result).to.deep.equal({id: 1, regularSeasonHTML: 'regularRows', postSeasonHTML: 'postRows', profileHTML: 'profileStats', active: true});
               });
           });
 
@@ -757,7 +760,7 @@ describe('Background Scripts', () => {
 
       it('should save cache records to storage with new player, version, and timestamp added', () => {
         messageHandler.cacheStats({active: true}, 1, []);
-        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, version: '1.2.0', active: true}]]);
+        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, version: '2.0.0', active: true}]]);
       });
 
     });
