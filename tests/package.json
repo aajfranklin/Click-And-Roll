@@ -1,7 +1,7 @@
 {
   "name": "tests",
   "version": "1.0.0",
-  "description": "Unit tests for click and roll chrome extension",
+  "description": "Unit tests for click and roll browser extension",
   "main": "index.js",
   "devDependencies": {
     "@types/chai": "^4.2.0",

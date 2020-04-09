@@ -2,7 +2,7 @@ function Utils() {
 
   this.sendRuntimeMessage = (request) => {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(request, (response => {
+      browser.runtime.sendMessage(request, (response => {
         const [err, res] = response;
         if (err != null) {
           reject(err);
@@ -15,7 +15,7 @@ function Utils() {
 
   this.getActiveTab = () => {
     return new Promise(resolve => {
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) =>{
+      browser.tabs.query({active: true, currentWindow: true}, (tabs) =>{
         return resolve(tabs[0]);
       });
     });
@@ -24,52 +24,55 @@ function Utils() {
   this.getTabUrl = (tab) => {
     const isEmptyTab = tab === undefined
       || tab.url === ''
-      || tab.url === ('chrome://new-tab-page/')
-      || tab.url === 'chrome://newtab/';
+      || tab.url === 'chrome://new-tab-page/'
+      || tab.url === 'chrome://newtab/'
+      || tab.url === 'about:newtab'
+      || tab.url === 'edge://newtab/'
+      || tab.url === 'chrome://startpageshared/';
     return isEmptyTab
-      ? 'chrome://newtab/'
+      ? 'browser://newtab/'
       : (new URL(tab.url)).hostname
   };
 
   this.messageActiveTab = (request) => {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    browser.tabs.query({active: true, currentWindow: true}, (tabs) => {
       if (tabs.length === 0) return; // prevent tabs[0] undefined if using breakpoints in background script debug window
-      chrome.tabs.sendMessage(tabs[0].id, request)
+      browser.tabs.sendMessage(tabs[0].id, request)
     });
   };
 
   this.saveToLocalStorage = (name, value) => {
-    chrome.storage.local.set({[name]: value}, () => {});
+    browser.storage.local.set({[name]: value}, () => {});
   };
 
 
   this.getFromLocalStorage = (name) => {
     return new Promise(resolve => {
-      chrome.storage.local.get([name], result => {
+      browser.storage.local.get([name], result => {
         return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
       })
     })
   };
 
   this.removeFromLocalStorage = (name) => {
-    chrome.storage.local.remove([name], () => {})
+    browser.storage.local.remove([name], () => {})
   };
 
   this.saveToSyncStorage = (name, value) => {
     return new Promise(resolve => {
-      chrome.storage.sync.set({[name]: value}, () => {
+      browser.storage.sync.set({[name]: value}, () => {
         return resolve();
       });
     });
   };
 
   this.removeFromSyncStorage = (name) => {
-    chrome.storage.sync.remove([name], () => {})
+    browser.storage.sync.remove([name], () => {})
   };
 
   this.isSettingOn = (setting) => {
     return new Promise(resolve => {
-      chrome.storage.sync.get(setting, result => {
+      browser.storage.sync.get(setting, result => {
         if ($.isEmptyObject(result)) {
           return resolve(config.defaultOffSettings.indexOf(setting) === -1);
         }

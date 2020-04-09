@@ -4,42 +4,42 @@ describe('Utils', () => {
 
   describe('sendRuntimeMessage', () => {
 
-    let chromeSendMessageStub;
+    let browserSendMessageStub;
     let request = {message: 'testRequest'};
     let response;
 
     before(() => {
       response = [null, 'res'];
-      chromeSendMessageStub = sinon.stub(chrome.runtime, 'sendMessage');
-      chromeSendMessageStub.callsArgWith(1, response);
+      browserSendMessageStub = sinon.stub(browser.runtime, 'sendMessage');
+      browserSendMessageStub.callsArgWith(1, response);
     });
 
     afterEach(() => {
-      chromeSendMessageStub.resetHistory();
+      browserSendMessageStub.resetHistory();
     });
 
     after(() => {
-      chromeSendMessageStub.restore();
+      browserSendMessageStub.restore();
     });
 
-    it('should send a message to chrome runtime with passed in request', () => {
+    it('should send a message to browser runtime with passed in request', () => {
       return testUtils.sendRuntimeMessage(request)
         .then(() => {
-          expect(chromeSendMessageStub.calledOnce).to.equal(true);
-          expect(chromeSendMessageStub.withArgs(request).calledOnce).to.equal(true);
+          expect(browserSendMessageStub.calledOnce).to.equal(true);
+          expect(browserSendMessageStub.withArgs(request).calledOnce).to.equal(true);
         });
     });
 
-    it('should resolve response if chrome returns no error', () => {
+    it('should resolve response if browser returns no error', () => {
       return testUtils.sendRuntimeMessage(request)
         .then((res) => {
           expect(res).to.equal('res');
         });
     });
 
-    it('should reject if chrome returns an error', () => {
+    it('should reject if browser returns an error', () => {
       response = ['err', null];
-      chromeSendMessageStub.callsArgWith(1, response);
+      browserSendMessageStub.callsArgWith(1, response);
 
       return testUtils.sendRuntimeMessage(request)
         .catch((err) => {
@@ -52,13 +52,13 @@ describe('Utils', () => {
   describe('getActiveTab', () => {
 
     before(() => {
-      chrome.tabs = {
+      browser.tabs = {
         query: (input, callback) => callback([{id: 0}])
       }
     });
 
     after(() => {
-      delete chrome.tabs;
+      delete browser.tabs;
     });
 
     it('should resolve first returned tab', () => {
@@ -76,11 +76,14 @@ describe('Utils', () => {
       expect(testUtils.getTabUrl({url: 'https://www.testhost.com/etc'})).to.equal('www.testhost.com');
     });
 
-    it('should return \'chrome://newtab/\' if empty tab', () => {
-      expect(testUtils.getTabUrl({url: ''})).to.equal('chrome://newtab/');
-      expect(testUtils.getTabUrl({url: 'chrome://newtab/'})).to.equal('chrome://newtab/');
-      expect(testUtils.getTabUrl({url: 'chrome://new-tab-page/'})).to.equal('chrome://newtab/');
-      expect(testUtils.getTabUrl(undefined)).to.equal('chrome://newtab/');
+    it('should return \'browser://newtab/\' if empty tab', () => {
+      expect(testUtils.getTabUrl({url: ''})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://newtab/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://new-tab-page/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'edge://newtab/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'about:newtab'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl({url: 'chrome://startpageshared/'})).to.equal('browser://newtab/');
+      expect(testUtils.getTabUrl(undefined)).to.equal('browser://newtab/');
     });
 
   });
@@ -90,12 +93,12 @@ describe('Utils', () => {
     let sendMessageSpy;
 
     before(() => {
-      chrome.tabs = {
+      browser.tabs = {
         sendMessage: () => {},
         query: (input, callback) => callback([{id: 0}])
       };
 
-      sendMessageSpy = sinon.spy(chrome.tabs, 'sendMessage');
+      sendMessageSpy = sinon.spy(browser.tabs, 'sendMessage');
     });
 
     afterEach(() => {
@@ -104,7 +107,7 @@ describe('Utils', () => {
 
     after(() => {
       sendMessageSpy.restore();
-      delete chrome.tabs;
+      delete browser.tabs;
     });
 
 
@@ -117,7 +120,7 @@ describe('Utils', () => {
 
     it('should return before sending message if no tab is returned', () => {
       const request = {message: 'test'};
-      chrome.tabs.query = (input, callback) => callback([]);
+      browser.tabs.query = (input, callback) => callback([]);
       testUtils.messageActiveTab(request);
       expect(sendMessageSpy.calledOnce).to.equal(false);
     });
@@ -126,31 +129,31 @@ describe('Utils', () => {
 
   describe('saveToLocalStorage', () => {
 
-    let chromeStorageLocalSetSpy;
+    let browserStorageLocalSetSpy;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         local: {
           set: (input, callback) => callback()
         }
       };
 
-      chromeStorageLocalSetSpy = sinon.spy(chrome.storage.local, 'set');
+      browserStorageLocalSetSpy = sinon.spy(browser.storage.local, 'set');
     });
 
     afterEach(() => {
-      chromeStorageLocalSetSpy.resetHistory();
+      browserStorageLocalSetSpy.resetHistory();
     });
 
     after(() => {
-      chromeStorageLocalSetSpy.restore();
-      delete chrome.storage;
+      browserStorageLocalSetSpy.restore();
+      delete browser.storage;
     });
 
-    it('should call set on chrome local storage with passed in name and values', () => {
+    it('should call set on browser local storage with passed in name and values', () => {
       testUtils.saveToLocalStorage('testName', ['testValues']);
-      expect(chromeStorageLocalSetSpy.calledOnce).to.equal(true);
-      expect(chromeStorageLocalSetSpy.withArgs({['testName']: ['testValues']}).calledOnce).to.equal(true);
+      expect(browserStorageLocalSetSpy.calledOnce).to.equal(true);
+      expect(browserStorageLocalSetSpy.withArgs({['testName']: ['testValues']}).calledOnce).to.equal(true);
     });
 
   });
@@ -158,32 +161,32 @@ describe('Utils', () => {
 
   describe('getFromLocalStorage', () => {
 
-    let chromeStorageLocalGetSpy;
+    let browserStorageLocalGetSpy;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         local: {
           get: (input, callback) => callback()
         }
       };
 
-      chromeStorageLocalGetSpy = sinon.spy(chrome.storage.local, 'get');
+      browserStorageLocalGetSpy = sinon.spy(browser.storage.local, 'get');
     });
 
     afterEach(() => {
-      chromeStorageLocalGetSpy.resetHistory();
+      browserStorageLocalGetSpy.resetHistory();
     });
 
     after(() => {
-      chromeStorageLocalGetSpy.restore();
-      delete chrome.storage;
+      browserStorageLocalGetSpy.restore();
+      delete browser.storage;
     });
 
-    it('should call get on chrome local storage with passed in name', () => {
+    it('should call get on browser local storage with passed in name', () => {
       return testUtils.getFromLocalStorage('testName')
         .then(result => {
-          expect(chromeStorageLocalGetSpy.calledOnce).to.equal(true);
-          expect(chromeStorageLocalGetSpy.withArgs(['testName']).calledOnce).to.equal(true);
+          expect(browserStorageLocalGetSpy.calledOnce).to.equal(true);
+          expect(browserStorageLocalGetSpy.withArgs(['testName']).calledOnce).to.equal(true);
           expect(result).to.equal(null);
         });
     });
@@ -192,63 +195,63 @@ describe('Utils', () => {
 
   describe('removeFromLocalStorage', () => {
 
-    let chromeStorageLocalSpy;
+    let browserStorageLocalSpy;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         local: {
           remove: (input, callback) => callback()
         }
       };
 
-      chromeStorageLocalSpy = sinon.spy(chrome.storage.local, 'remove');
+      browserStorageLocalSpy = sinon.spy(browser.storage.local, 'remove');
     });
 
     afterEach(() => {
-      chromeStorageLocalSpy.resetHistory();
+      browserStorageLocalSpy.resetHistory();
     });
 
     after(() => {
-      chromeStorageLocalSpy.restore();
-      delete chrome.storage;
+      browserStorageLocalSpy.restore();
+      delete browser.storage;
     });
 
-    it('should call remove on chrome sync storage with passed in name', () => {
+    it('should call remove on browser sync storage with passed in name', () => {
       testUtils.removeFromLocalStorage('testName');
-      expect(chromeStorageLocalSpy.calledOnce).to.equal(true);
-      expect(chromeStorageLocalSpy.withArgs(['testName']).calledOnce).to.equal(true);
+      expect(browserStorageLocalSpy.calledOnce).to.equal(true);
+      expect(browserStorageLocalSpy.withArgs(['testName']).calledOnce).to.equal(true);
     });
 
   });
 
   describe('saveToSyncStorage', () => {
 
-    let chromeStorageSyncSpy;
+    let browserStorageSyncSpy;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         sync: {
           set: (input, callback) => callback()
         }
       };
 
-      chromeStorageSyncSpy = sinon.spy(chrome.storage.sync, 'set');
+      browserStorageSyncSpy = sinon.spy(browser.storage.sync, 'set');
     });
 
     afterEach(() => {
-      chromeStorageSyncSpy.resetHistory();
+      browserStorageSyncSpy.resetHistory();
     });
 
     after(() => {
-      chromeStorageSyncSpy.restore();
-      delete chrome.storage;
+      browserStorageSyncSpy.restore();
+      delete browser.storage;
     });
 
-    it('should call set on chrome sync storage with passed in name and values', () => {
+    it('should call set on browser sync storage with passed in name and values', () => {
       return testUtils.saveToSyncStorage('testName', 'testValue')
         .then(() => {
-          expect(chromeStorageSyncSpy.calledOnce).to.equal(true);
-          expect(chromeStorageSyncSpy.withArgs({testName: 'testValue'}).calledOnce).to.equal(true);
+          expect(browserStorageSyncSpy.calledOnce).to.equal(true);
+          expect(browserStorageSyncSpy.withArgs({testName: 'testValue'}).calledOnce).to.equal(true);
         });
     });
 
@@ -256,31 +259,31 @@ describe('Utils', () => {
 
   describe('removeFromSyncStorage', () => {
 
-    let chromeStorageSyncSpy;
+    let browserStorageSyncSpy;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         sync: {
           remove: (input, callback) => callback()
         }
       };
 
-      chromeStorageSyncSpy = sinon.spy(chrome.storage.sync, 'remove');
+      browserStorageSyncSpy = sinon.spy(browser.storage.sync, 'remove');
     });
 
     afterEach(() => {
-      chromeStorageSyncSpy.resetHistory();
+      browserStorageSyncSpy.resetHistory();
     });
 
     after(() => {
-      chromeStorageSyncSpy.restore();
-      delete chrome.storage;
+      browserStorageSyncSpy.restore();
+      delete browser.storage;
     });
 
-    it('should call remove on chrome sync storage with passed in name', () => {
+    it('should call remove on browser sync storage with passed in name', () => {
       testUtils.removeFromSyncStorage('testName');
-      expect(chromeStorageSyncSpy.calledOnce).to.equal(true);
-      expect(chromeStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
+      expect(browserStorageSyncSpy.calledOnce).to.equal(true);
+      expect(browserStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
     });
 
   });
@@ -290,7 +293,7 @@ describe('Utils', () => {
     let result;
 
     before(() => {
-      chrome.storage = {
+      browser.storage = {
         sync: {
           get: (input, callback) => callback(result)
         }
@@ -298,10 +301,10 @@ describe('Utils', () => {
     });
 
     after(() => {
-      delete chrome.storage;
+      delete browser.storage;
     });
 
-    it('should resolve false if chrome storage value is empty string', () => {
+    it('should resolve false if browser storage value is empty string', () => {
       result = {test: ''};
 
       return testUtils.isSettingOn('test')
@@ -310,7 +313,7 @@ describe('Utils', () => {
         });
     });
 
-    it('should resolve true if chrome storage value is \'true\'', () => {
+    it('should resolve true if browser storage value is \'true\'', () => {
       result = {test: 'true'};
 
       return testUtils.isSettingOn('test')
@@ -319,7 +322,7 @@ describe('Utils', () => {
         });
     });
 
-    it('should resolve false if chrome storage value is empty object and setting defaults to off', () => {
+    it('should resolve false if browser storage value is empty object and setting defaults to off', () => {
       result = {};
 
       return testUtils.isSettingOn('reverse')
@@ -328,7 +331,7 @@ describe('Utils', () => {
         });
     });
 
-    it('should resolve true if chrome storage value is empty object and setting defaults to on', () => {
+    it('should resolve true if browser storage value is empty object and setting defaults to on', () => {
       result = {};
 
       return testUtils.isSettingOn('test')

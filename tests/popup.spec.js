@@ -66,7 +66,7 @@ describe('Popup', () => {
     let messageActiveTabStub;
     let saveToSyncStorageStub;
     let removeFromSyncStorageStub;
-    let chromeSetIconStub;
+    let browserSetIconStub;
     let testTab;
 
     before(() => {
@@ -77,7 +77,7 @@ describe('Popup', () => {
 
       testPopup.tab = testTab;
 
-      chrome.browserAction = {
+      browser.browserAction = {
         setIcon: () => {}
       };
 
@@ -86,7 +86,7 @@ describe('Popup', () => {
       messageActiveTabStub = sinon.stub(testPopup.utils, 'messageActiveTab');
       saveToSyncStorageStub = sinon.stub(testPopup.utils, 'saveToSyncStorage');
       removeFromSyncStorageStub = sinon.stub(testPopup.utils, 'removeFromSyncStorage');
-      chromeSetIconStub = sinon.stub(chrome.browserAction, 'setIcon');
+      browserSetIconStub = sinon.stub(browser.browserAction, 'setIcon');
     });
 
     afterEach(() => {
@@ -95,7 +95,7 @@ describe('Popup', () => {
       messageActiveTabStub.resetHistory();
       saveToSyncStorageStub.resetHistory();
       removeFromSyncStorageStub.resetHistory();
-      chromeSetIconStub.resetHistory();
+      browserSetIconStub.resetHistory();
 
       isExtensionOnStub.resolves(null);
       isSettingOnStub.resolves(null);
@@ -108,9 +108,9 @@ describe('Popup', () => {
       messageActiveTabStub.restore();
       saveToSyncStorageStub.restore();
       removeFromSyncStorageStub.restore();
-      chromeSetIconStub.restore();
+      browserSetIconStub.restore();
 
-      delete chrome.browserAction;
+      delete browser.browserAction;
       testPopup.tab = null;
     });
 
@@ -147,8 +147,8 @@ describe('Popup', () => {
             expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', '']);
             expect(messageActiveTabStub.calledOnce).to.equal(true);
             expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
-            expect(chromeSetIconStub.calledOnce).to.equal(true);
-            expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
+            expect(browserSetIconStub.calledOnce).to.equal(true);
+            expect(browserSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
           })
       });
 
@@ -163,8 +163,8 @@ describe('Popup', () => {
             expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
             expect(messageActiveTabStub.calledOnce).to.equal(true);
             expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
-            expect(chromeSetIconStub.calledOnce).to.equal(true);
-            expect(chromeSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
+            expect(browserSetIconStub.calledOnce).to.equal(true);
+            expect(browserSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
           });
       });
 
@@ -178,7 +178,7 @@ describe('Popup', () => {
             expect(isExtensionOnStub.calledOnce).to.equal(true);
             expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
             expect(messageActiveTabStub.notCalled).to.equal(true);
-            expect(chromeSetIconStub.notCalled).to.equal(true);
+            expect(browserSetIconStub.notCalled).to.equal(true);
           });
       });
 
@@ -261,12 +261,12 @@ describe('Popup', () => {
     let addToggleAnimationStub;
     let toggleCheckboxStub;
     let toggleSettingStub;
-    let chromeCreateTabStub;
+    let browserCreateTabStub;
 
     let testTab;
 
     before(() => {
-      chrome.tabs = {
+      browser.tabs = {
         create: () => {}
       };
 
@@ -280,21 +280,21 @@ describe('Popup', () => {
       addToggleAnimationStub = sinon.stub(testPopup, 'addToggleAnimation');
       toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
       toggleSettingStub = sinon.stub(testPopup, 'toggleSetting');
-      chromeCreateTabStub = sinon.stub(chrome.tabs, 'create');
+      browserCreateTabStub = sinon.stub(browser.tabs, 'create');
     });
 
     afterEach(() => {
       addToggleAnimationStub.resetHistory();
       toggleCheckboxStub.resetHistory();
       toggleSettingStub.resetHistory();
-      chromeCreateTabStub.resetHistory();
+      browserCreateTabStub.resetHistory();
     });
 
     after(() => {
       addToggleAnimationStub.restore();
       toggleCheckboxStub.restore();
       toggleSettingStub.restore();
-      chromeCreateTabStub.restore();
+      browserCreateTabStub.restore();
 
       testPopup.tab = null;
     });
@@ -384,8 +384,8 @@ describe('Popup', () => {
       expect(addToggleAnimationStub.notCalled).to.equal(true);
       expect(toggleCheckboxStub.notCalled).to.equal(true);
       expect(toggleSettingStub.notCalled).to.equal(true);
-      expect(chromeCreateTabStub.calledOnce).to.equal(true);
-      expect(chromeCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.test.com/test'}]);
+      expect(browserCreateTabStub.calledOnce).to.equal(true);
+      expect(browserCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.test.com/test'}]);
     });
 
   });

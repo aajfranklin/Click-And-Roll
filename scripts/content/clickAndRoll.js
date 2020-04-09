@@ -44,11 +44,11 @@ function ClickAndRoll() {
     return this.getPlayers()
       .then(players => {
         this.players = players.concat(nicknameMap);
-        return $.ajax(chrome.extension.getURL('view/frame.html'), {method: 'GET'});
+        return $.ajax(browser.runtime.getURL('view/frame.html'), {method: 'GET', dataType: 'text'});
       })
       .then(response => {
         this.statTemplate = response;
-        return $.ajax(chrome.extension.getURL('view/frame.css'), {method: 'GET'})
+        return $.ajax(browser.runtime.getURL('view/frame.css'), {method: 'GET', dataType: 'text'});
       })
       .then(response => {
         this.frameStyle = response;
@@ -123,13 +123,28 @@ function ClickAndRoll() {
 
   this.handleHover = (event) => {
     this.updateActiveName(event.target);
-    this.resetFrame();
 
     const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
+    this.currentPlayerId = newPlayerId;
+    this.dataReceived = false;
 
-    this.setFrameLoading(newPlayerId);
-    this.addCloseOverlayListeners();
+    this.resetFrame();
 
+    if (this.isFirefox()) {
+      this.frame.contentWindow.addEventListener('load', () => {
+        this.getStats(newPlayerId);
+      });
+      return;
+    }
+
+    this.getStats(newPlayerId);
+  };
+
+  this.isFirefox = () => {
+    return navigator.userAgent.toLowerCase().indexOf('firefox') !== -1;
+  };
+
+  this.getStats = (newPlayerId) => {
     return this.utils.isSettingOn('reverse')
       .then(reverse => {
         this.reverse = reverse;
@@ -160,18 +175,30 @@ function ClickAndRoll() {
 
   this.resetFrame = () => {
     this.attachFrame();
-    this.applyScrollRule();
-    this.applyFrameStyles();
-    this.getFrameDocument().body.innerHTML = '';
-    this.positionFrameContainer();
-    this.applyAnimationClass();
-    this.getFrameDocument().body.appendChild(this.frameContent);
+
+    if (this.isFirefox()) {
+      this.frame.contentWindow.addEventListener('load', this.initialiseFrame);
+      return;
+    }
+
+    this.initialiseFrame();
   };
 
   this.attachFrame = () => {
     if (this.frameContainer.parentNode) this.frameContainer.parentNode.removeChild(this.frameContainer);
     document.body.appendChild(this.frameContainer);
     this.frameContainer.appendChild(this.frame);
+  };
+
+  this.initialiseFrame = () => {
+    this.applyScrollRule();
+    this.applyFrameStyles();
+    this.getFrameDocument().body.innerHTML = '';
+    this.positionFrameContainer();
+    this.applyAnimationClass();
+    this.getFrameDocument().body.appendChild(this.frameContent);
+    this.setFrameLoading();
+    this.addCloseOverlayListeners();
   };
 
   this.applyFrameStyles = () => {
@@ -250,12 +277,10 @@ function ClickAndRoll() {
     }
   };
 
-  this.setFrameLoading = (newPlayerId) => {
+  this.setFrameLoading = () => {
     this.frameContent.classList.remove('loaded');
     this.frameContent.classList.add('loading');
     this.frameContent.innerHTML = this.statTemplate;
-    this.currentPlayerId = newPlayerId;
-    this.dataReceived = false;
   };
 
   this.addCloseOverlayListeners = () => {
