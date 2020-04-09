@@ -136,10 +136,6 @@ section {
   height: 100%;
 }
 
-.short-career #career-stats {
-  margin: auto;
-}
-
 .stick-left {
   left: 0;
   position: sticky;
@@ -228,7 +224,12 @@ nav .tab:first-child {
 table {
   border-collapse: separate;
   border-spacing: 0;
+  display: none;
   font-size: 12px;
+}
+
+table.active {
+  display: block;
 }
 
 table td {
@@ -270,6 +271,10 @@ table th {
   z-index: 1;
 }
 
+th:first-child {
+  padding: 8px 10px;
+}
+
 .season {
   background: inherit;
   border-right: solid 1px lightgrey;
@@ -280,6 +285,6 @@ table th {
   font-weight: bold;
 }
 
-#season-header {
+.season-header {
   z-index: 2 !important;
 }

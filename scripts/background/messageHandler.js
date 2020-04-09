@@ -123,7 +123,8 @@ function MessageHandler() {
       })
       .then(response => {
         stats.active = this.getActive(response.rows);
-        stats.careerHTML = this.getCareerHTML(response.rows);
+        stats.regularSeasonHTML = this.getCareerHTML(response.regularSeasonRows);
+        stats.postSeasonHTML = this.getCareerHTML(response.postSeasonRows);
         return this.getProfileHTML(response.profile);
       })
       .then(profileHTML => {

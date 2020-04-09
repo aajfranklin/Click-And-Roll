@@ -311,6 +311,14 @@ function ClickAndRoll() {
       tab.classList.remove('active');
     }
     e.target.classList.add('active');
+
+    const tables = this.getFrameDocument().getElementsByTagName('table');
+    for (let table of tables) {
+      table.classList.remove('active');
+    }
+
+    const seasonType = e.target.id;
+    this.getFrameDocument().getElementById(`${seasonType}-season-table`).classList.add('active');
   };
 
   this.displayStats = (stats, name) => {
@@ -324,15 +332,22 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-name').textContent = name;
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
-      if (stats.careerHTML.length) {
-        this.getFrameDocument().getElementById('season-averages-body').innerHTML += this.reverse ? this.reverseCareer(stats.careerHTML) : stats.careerHTML;
-      } else {
-        this.getFrameDocument().getElementById('career-stats').removeChild(this.getFrameDocument().getElementById('regular-season-averages-table'));
-      }
+      this.applySeasonTable(stats.regularSeasonHTML, 'regular');
+      this.applySeasonTable(stats.postSeasonHTML, 'post');
     }
 
-    if (!this.frameContainer.hidden && stats.careerHTML.length !== 0) {
+    if (!this.frameContainer.hidden && stats.regularSeasonHTML.length !== 0) {
       this.checkContentHeight();
+    }
+  };
+
+  this.applySeasonTable = (careerHTML, seasonType) => {
+    const tableBody = this.getFrameDocument().getElementById(`${seasonType}-season-body`);
+
+    if (careerHTML.length) {
+      tableBody.innerHTML += this.reverse ? this.reverseCareer(careerHTML) : careerHTML;
+    } else {
+      tableBody.innerHTML += config.emptyRowString;
     }
   };
 

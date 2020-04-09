@@ -3,6 +3,7 @@ const config = {
   cmPerInch: 2.54,
   currentCacheRecordVersion: '1.2.0',
   defaultOffSettings: ['reverse'],
+  emptyRowString: '<tr><td class="season stick-left">n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>',
   hoverTimeout: 500,
   kgPerLb: 0.45359237,
   maxCachedPlayers: 100,
