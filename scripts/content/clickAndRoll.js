@@ -199,6 +199,7 @@ function ClickAndRoll() {
     this.getFrameDocument().body.appendChild(this.frameContent);
     this.setFrameLoading();
     this.addCloseOverlayListeners();
+    this.addTabListeners();
   };
 
   this.applyFrameStyles = () => {
@@ -295,6 +296,21 @@ function ClickAndRoll() {
     this.scrollParent.removeEventListener('scroll', this.positionFrameContainer);
     document.removeEventListener('click', this.closeOverlay);
     this.getFrameDocument().getElementById('dismiss').onclick = null;
+  };
+
+  this.addTabListeners = () => {
+    const tabs = this.getFrameDocument().getElementsByClassName('tab');
+    for (let tab of tabs) {
+      tab.addEventListener('click', this.updateActiveTab)
+    }
+  };
+
+  this.updateActiveTab = (e) => {
+    const tabs = this.getFrameDocument().getElementsByClassName('tab');
+    for (let tab of tabs) {
+      tab.classList.remove('active');
+    }
+    e.target.classList.add('active');
   };
 
   this.displayStats = (stats, name) => {
