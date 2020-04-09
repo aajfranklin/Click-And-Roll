@@ -962,6 +962,7 @@ describe('Content Scripts', () => {
       let appendChildStub;
       let isFirefoxStub;
       let addCloseOverlayListenersStub;
+      let addTabListenersStub;
       let setFrameLoadingStub;
 
       before(() => {
@@ -974,6 +975,7 @@ describe('Content Scripts', () => {
         positionFrameContainerStub = sinon.stub(testClickAndRoll, 'positionFrameContainer');
         isFirefoxStub = sinon.stub(testClickAndRoll, 'isFirefox');
         addCloseOverlayListenersStub = sinon.stub(testClickAndRoll, 'addCloseOverlayListeners');
+        addTabListenersStub = sinon.stub(testClickAndRoll, 'addTabListeners');
         setFrameLoadingStub = sinon.stub(testClickAndRoll, 'setFrameLoading');
 
         frameDocumentBodyStub = {
@@ -999,6 +1001,7 @@ describe('Content Scripts', () => {
         positionFrameContainerStub.resetHistory();
         isFirefoxStub.resetHistory();
         addCloseOverlayListenersStub.resetHistory();
+        addTabListenersStub.resetHistory();
         setFrameLoadingStub.resetHistory();
       });
 
@@ -1011,6 +1014,7 @@ describe('Content Scripts', () => {
         positionFrameContainerStub.restore();
         isFirefoxStub.restore();
         addCloseOverlayListenersStub.restore();
+        addTabListenersStub.restore();
         setFrameLoadingStub.restore();
       });
 
@@ -1050,6 +1054,11 @@ describe('Content Scripts', () => {
         testClickAndRoll.resetFrame();
         expect(addCloseOverlayListenersStub.calledOnce).to.equal(true);
       });
+
+      it('should add tab listeners', () => {
+        testClickAndRoll.resetFrame();
+        expect(addTabListenersStub.calledOnce).to.equal(true);
+      })
 
     });
 
@@ -1440,6 +1449,85 @@ describe('Content Scripts', () => {
 
     });
 
+    describe('addTabListeners', () => {
+
+      let getFrameDocumentStub;
+      let tab;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        getFrameDocumentStub.returns(document);
+
+        tab = document.createElement('div');
+        tab.classList.add('tab');
+        document.body.appendChild(tab);
+      });
+
+      after(() => {
+        document.body.removeChild(tab);
+      });
+
+      it('should add click listeners with updateActiveTab as handler to all tabs', () => {
+        testClickAndRoll.addTabListeners();
+        expect(tab.onclick).to.equal(testClickAndRoll.updateActiveTab);
+      })
+
+    });
+
+    describe('updateActiveTab', () => {
+      let getFrameDocumentStub;
+      let regularTab;
+      let postTab;
+      let regularTable;
+      let postTable;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        getFrameDocumentStub.returns(document);
+
+        regularTab = document.createElement('div');
+        postTab = document.createElement('div');
+        regularTab.classList.add('tab');
+        regularTab.id = 'regular';
+        postTab.classList.add('tab');
+        postTab.id = 'post';
+        document.body.appendChild(regularTab);
+        document.body.appendChild(postTab);
+
+        regularTable = document.createElement('table');
+        regularTable.id = 'regular-season-table';
+        postTable = document.createElement('table');
+        postTable.id = 'post-season-table';
+        document.body.appendChild(regularTable);
+        document.body.appendChild(postTable);
+      });
+
+      after(() => {
+        document.body.removeChild(regularTab);
+        document.body.removeChild(postTab);
+        document.body.removeChild(regularTable);
+        document.body.removeChild(postTable);
+      });
+
+      it('should add active class to correct tab and table', () => {
+        testClickAndRoll.updateActiveTab({target: postTab});
+        expect(postTab.classList.contains('active')).to.equal(true);
+        expect(regularTab.classList.contains('active')).to.equal(false);
+        expect(postTable.classList.contains('active')).to.equal(true);
+        expect(regularTable.classList.contains('active')).to.equal(false);
+        testClickAndRoll.updateActiveTab({target: regularTab});
+        expect(postTab.classList.contains('active')).to.equal(false);
+        expect(regularTab.classList.contains('active')).to.equal(true);
+        expect(postTable.classList.contains('active')).to.equal(false);
+        expect(regularTable.classList.contains('active')).to.equal(true);
+      });
+
+    });
+
     describe('displayStats', () => {
       let getFrameDocumentStub;
       let checkContentHeightStub;
@@ -1482,42 +1570,45 @@ describe('Content Scripts', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
 
-        let testTable = document.createElement('table');
-        testTable.innerHTML = '<tbody id="season-averages-body"></tbody>';
+        let testRegularTable = document.createElement('table');
+        let testPostTable = document.createElement('table');
+        testRegularTable.innerHTML = '<tbody id="regular-season-body"></tbody>';
+        testPostTable.innerHTML = '<tbody id="post-season-body"></tbody>';
 
         document.body.appendChild(testProfile);
-        document.body.appendChild(testTable);
+        document.body.appendChild(testRegularTable);
+        document.body.append(testPostTable);
 
         testClickAndRoll.dataReceived = true;
-        testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: 'testCareer'}, 'testName');
+        testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: 'testRegular', postSeasonHTML: 'testPost'}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
         expect(testProfile.innerHTML).to.equal('testProfile');
-        expect(testTable.innerHTML).to.equal('<tbody id="season-averages-body">testCareer</tbody>');
+        expect(testRegularTable.innerHTML).to.equal('<tbody id="regular-season-body">testRegular</tbody>');
+        expect(testPostTable.innerHTML).to.equal('<tbody id="post-season-body">testPost</tbody>');
         expect(checkContentHeightStub.calledOnce).to.equal(true);
 
         document.body.removeChild(testProfile);
-        document.body.removeChild(testTable);
+        document.body.removeChild(testRegularTable);
+        document.body.removeChild(testPostTable);
       });
 
-      it('should remove career stats table and not check content height if player has no career rows', () => {
+      it('should add empty row if season type has no rows', () => {
         let testProfile = document.createElement('div');
         testProfile.id = 'player-profile-content';
         document.body.appendChild(testProfile);
 
         let testCareerSection = document.createElement('section');
         testCareerSection.id = 'career-stats';
-        testCareerSection.innerHTML = '<table id="regular-season-averages-table"><tbody><tr><td>Table</td></tr></tbody></table>';
+        testCareerSection.innerHTML = '<table><tbody id="regular-season-body"></tbody></table><table><tbody id="post-season-body"></tbody></table>';
         document.body.appendChild(testCareerSection);
 
         testClickAndRoll.dataReceived = true;
-        expect(document.getElementById('career-stats')).to.not.equal(null);
-        expect(document.getElementById('regular-season-averages-table')).to.not.equal(null);
 
-        testClickAndRoll.displayStats({profileHTML: 'testProfile', careerHTML: ''}, 'testName');
+        testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: [], postSeasonHTML: []}, 'testName');
         expect(nameElement.textContent).to.equal('testName');
-        expect(document.getElementById('regular-season-averages-table')).to.equal(null);
-        expect(document.getElementById('career-stats')).to.not.equal(null);
-        expect(checkContentHeightStub.calledOnce).to.equal(false);
+        expect(document.getElementById('regular-season-body').innerHTML).to.equal(config.emptyRowString);
+        expect(document.getElementById('post-season-body').innerHTML).to.equal(config.emptyRowString);
+        expect(checkContentHeightStub.calledOnce).to.equal(true);
 
         document.body.removeChild(testProfile);
         document.body.removeChild(testCareerSection);

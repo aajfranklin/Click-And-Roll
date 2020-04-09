@@ -120,6 +120,10 @@ h1#player-name {
 
 /* Content section styles */
 
+section {
+  margin-top: 1em;
+}
+
 #content {
   border-radius: 5px;
   display: flex;
@@ -130,19 +134,6 @@ h1#player-name {
 
 .short-career {
   height: 100%;
-}
-
-.short-career #career-stats {
-  margin: auto;
-}
-
-h2.sub-heading {
-  color: teal;
-  font-size: 14px;
-  margin: 0;
-  padding: 12px 0 12px 8px;
-  width: fit-content;
-  width: -moz-fit-content;
 }
 
 .stick-left {
@@ -188,12 +179,57 @@ h2.sub-heading {
   margin-right: 8px;
 }
 
+/* Tab styles */
+
+nav {
+  width: fit-content;
+  width: -moz-fit-content;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tab {
+  background: whitesmoke;
+  border: solid 1px whitesmoke;
+  border-bottom: none;
+  color: lightslategray;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0.5em;
+}
+
+.tab:hover {
+  background: teal;
+  color: whitesmoke;
+}
+
+.tab.active {
+  background: white;
+  border: solid 1px lightgrey;
+  border-bottom: none;
+  color: teal
+}
+
+nav .tab:first-child {
+  border-left: none;
+}
+
 /* Table styles */
 
 table {
   border-collapse: separate;
   border-spacing: 0;
+  display: none;
   font-size: 12px;
+}
+
+table.active {
+  display: block;
 }
 
 table td {
@@ -235,6 +271,10 @@ table th {
   z-index: 1;
 }
 
+th:first-child {
+  padding: 8px 10px;
+}
+
 .season {
   background: inherit;
   border-right: solid 1px lightgrey;
@@ -245,6 +285,6 @@ table th {
   font-weight: bold;
 }
 
-#season-header {
+.season-header {
   z-index: 2 !important;
 }
