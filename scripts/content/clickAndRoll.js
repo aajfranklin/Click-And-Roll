@@ -209,7 +209,11 @@ function ClickAndRoll() {
     style.textContent = this.frameStyle;
     style.title = 'click-and-roll';
     this.getFrameDocument().head.appendChild(style);
-    this.frameContainer.style.height = 'calc(50vh + 2px)';
+    return this.utils.isSettingOn('dark')
+      .then(isOn => {
+        if (isOn) this.getFrameDocument().body.classList.add('dark-mode');
+        this.frameContainer.style.height = 'calc(50vh + 2px)';
+      });
   };
 
   this.applyScrollRule = () => {

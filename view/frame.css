@@ -1,13 +1,35 @@
 /* Body and outer styles */
 
+:root {
+  --main-background-color: white;
+  --alt-background-color: whitesmoke;
+  --header-background-color: teal;
+  --main-text-color: black;
+  --alt-text-color: lightslategrey;
+  --header-text-color: whitesmoke;
+  --hover-text-color: whitesmoke;
+  --active-tab-text-color: teal;
+  --box-shadow-color: darkslategrey;
+  --border-color: lightgrey;
+}
+
+.dark-mode {
+  --main-background-color: #3d4144;
+  --alt-background-color: #27292b;
+  --main-text-color: whitesmoke;
+  --alt-text-color: lightgrey;
+  --active-tab-text-color: whitesmoke;
+  --border-color: slategrey;
+}
+
 #frame-body {
   margin: 0;
 }
 
 #frame-content {
-  background: white;
+  background: var(--main-background-color);
   border-radius: 5px;
-  box-shadow: darkslategrey 0 1px 2px;
+  box-shadow: var(--box-shadow-color) 0 1px 2px;
   flex-direction: column;
   display: flex;
   font-family: Helvetica, Arial, sans-serif;
@@ -47,10 +69,10 @@
 /* Header styles */
 
 .player-header {
-  background: teal;
-  box-shadow: darkslategrey 0 1px 2px;
+  background: var(--header-background-color);
+  box-shadow: var(--box-shadow-color) 0 1px 2px;
   border-radius: 5px 5px 0 0;
-  color: whitesmoke;
+  color: var(--header-text-color);
   display: flex;
   font-weight: normal;
   justify-content: space-between;
@@ -65,13 +87,13 @@ h1#player-name {
 }
 
 #dismiss {
-  background: teal;
+  background: var(--header-background-color);
   border-radius: 50%;
   height: 20px;
   opacity: 0.3;
   margin: 8px;
   padding: 0;
-  color: whitesmoke;
+  color: var(--header-text-color);
   width: 20px;
 }
 
@@ -94,10 +116,10 @@ h1#player-name {
 }
 
 #loading-graphic {
-  border: 5px solid whitesmoke;
+  border: 5px solid var(--alt-background-color);
   border-radius: 50%;
-  border-top: 5px solid teal;
-  border-bottom: 5px solid teal;
+  border-top: 5px solid var(--header-background-color);
+  border-bottom: 5px solid var(--header-background-color);
   width: 30px;
   height: 30px;
   animation: spin 1s linear infinite;
@@ -148,7 +170,7 @@ section {
 }
 
 #player-profile-image {
-  border: solid 1px lightgrey;
+  border: solid 1px var(--border-color);
   height: 120px;
   margin-left: 8px;
   width: 85px;
@@ -171,11 +193,11 @@ section {
 }
 
 .info-label {
-  color: lightslategrey;
+  color: var(--alt-text-color);
 }
 
 .info-data {
-  color: black;
+  color: var(--main-text-color);
   margin-right: 8px;
 }
 
@@ -194,25 +216,25 @@ nav ul {
 }
 
 .tab {
-  background: whitesmoke;
-  border: solid 1px whitesmoke;
+  background: var(--alt-background-color);
+  border: solid 1px var(--alt-background-color);
   border-bottom: none;
-  color: lightslategray;
+  color: var(--alt-text-color);
   font-size: 14px;
   font-weight: bold;
   padding: 0.5em;
 }
 
 .tab:hover {
-  background: teal;
-  color: whitesmoke;
+  background: var(--header-background-color);
+  color: var(--hover-text-color);
 }
 
 .tab.active {
-  background: white;
-  border: solid 1px lightgrey;
+  background: var(--main-background-color);
+  border: solid 1px var(--border-color);
   border-bottom: none;
-  color: teal
+  color: var(--active-tab-text-color)
 }
 
 nav .tab:first-child {
@@ -224,6 +246,7 @@ nav .tab:first-child {
 table {
   border-collapse: separate;
   border-spacing: 0;
+  color: var(--main-text-color);
   display: none;
   font-size: 12px;
 }
@@ -241,30 +264,30 @@ table tr {
 }
 
 table tr:nth-child(even) {
-  background-color: whitesmoke;
+  background-color: var(--alt-background-color);
 }
 
 table tr:nth-child(odd) {
-  background-color: white;
+  background-color: var(--main-background-color);
 }
 
 table tr:hover {
-  background-color: teal;
-  color: white;
+  background-color: var(--header-background-color);
+  color: var(--hover-text-color);
 }
 
 table tr:first-child:hover {
-  background-color: white;
-  color: lightslategrey;
+  background-color: var(--main-background-color);
+  color: var(--alt-text-color);
 }
 
 table th {
-  border-bottom: solid 1px lightgrey;
-  color: lightslategrey;
+  border-bottom: solid 1px var(--border-color);
+  color: var(--alt-text-color);
   font-size: 10px;
   font-weight: bold;
   padding: 8px 0 10px 8px;
-  background: white;
+  background: var(--main-background-color);
   position: sticky;
   text-align: left;
   top: 0;
@@ -277,7 +300,7 @@ th:first-child {
 
 .season {
   background: inherit;
-  border-right: solid 1px lightgrey;
+  border-right: solid 1px var(--border-color);
   font-weight: bold;
 }
 

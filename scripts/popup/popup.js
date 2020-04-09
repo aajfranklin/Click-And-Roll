@@ -11,17 +11,7 @@ function Popup() {
     }
   };
 
-  this.toggleSetting = (setting) => {
-    if (config.defaultOffSettings.indexOf(setting) !== -1) {
-      return this.utils.isSettingOn(setting)
-        .then(isSettingOn => {
-          if (isSettingOn) {
-            return this.utils.removeFromSyncStorage(setting);
-          }
-          return this.utils.saveToSyncStorage(setting, 'true');
-        })
-    }
-
+  this.toggleOnOffSetting = (setting) => {
     return this.utils.isSettingOn(setting)
       .then(isSettingOn => {
         if (isSettingOn) {
@@ -41,6 +31,18 @@ function Popup() {
             });
         }
       });
+  };
+
+  this.toggleSetting = (setting) => {
+    if (config.defaultOffSettings.indexOf(setting) !== -1) {
+      return this.utils.isSettingOn(setting)
+        .then(isSettingOn => {
+          if (isSettingOn) {
+            return this.utils.removeFromSyncStorage(setting);
+          }
+          return this.utils.saveToSyncStorage(setting, 'true');
+        })
+    }
   };
 
   this.addToggleAnimation = (slider) => {
@@ -64,6 +66,10 @@ function Popup() {
       })
       .then(isOn => {
         if (isOn) this.toggleCheckbox('reverse-toggle');
+        return this.utils.isSettingOn('dark');
+      })
+      .then(isOn => {
+        if (isOn) this.toggleCheckbox('dark-toggle');
       });
   };
 
@@ -80,9 +86,10 @@ function Popup() {
       }
 
       this.toggleCheckbox(id);
-      if (id === 'domain-toggle') this.toggleSetting(this.utils.getTabUrl(this.tab));
-      if (id === 'extension-toggle') this.toggleSetting('clickAndRoll');
+      if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab));
+      if (id === 'extension-toggle') this.toggleOnOffSetting('clickAndRoll');
       if (id === 'reverse-toggle') this.toggleSetting('reverse');
+      if (id === 'dark-toggle') this.toggleSetting('dark');
     }
 
     if (targetIsLink) browser.tabs.create({url: e.target.href});
