@@ -1,13 +1,35 @@
 /* Body and outer styles */
 
+:root {
+  --main-background-color: white;
+  --alt-background-color: whitesmoke;
+  --header-background-color: teal;
+  --main-text-color: black;
+  --alt-text-color: lightslategrey;
+  --header-text-color: whitesmoke;
+  --hover-text-color: whitesmoke;
+  --active-tab-text-color: teal;
+  --box-shadow-color: darkslategrey;
+  --border-color: lightgrey;
+}
+
+.dark-mode {
+  --main-background-color: #3d4144;
+  --alt-background-color: #27292b;
+  --main-text-color: whitesmoke;
+  --alt-text-color: lightgrey;
+  --active-tab-text-color: whitesmoke;
+  --border-color: slategrey;
+}
+
 #frame-body {
   margin: 0;
 }
 
 #frame-content {
-  background: white;
+  background: var(--main-background-color);
   border-radius: 5px;
-  box-shadow: darkslategrey 0 1px 2px;
+  box-shadow: var(--box-shadow-color) 0 1px 2px;
   flex-direction: column;
   display: flex;
   font-family: Helvetica, Arial, sans-serif;
@@ -17,9 +39,10 @@
   text-align: left;
   vertical-align: middle;
   width: calc(100vw - 4px);
+  height: calc(100vh - 2px);
 }
 
-.reveal-from-top, .reveal-from-bottom, .resize {
+.reveal-from-top, .reveal-from-bottom {
   animation-duration: 0.5s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.25, 0.75, 0.25, 1);
@@ -31,10 +54,6 @@
 
 .reveal-from-bottom {
   animation-name: reveal-from-bottom;
-}
-
-.resize {
-  animation-name: resize;
 }
 
 @keyframes reveal-from-top {
@@ -50,10 +69,10 @@
 /* Header styles */
 
 .player-header {
-  background: teal;
-  box-shadow: darkslategrey 0 1px 2px;
+  background: var(--header-background-color);
+  box-shadow: var(--box-shadow-color) 0 1px 2px;
   border-radius: 5px 5px 0 0;
-  color: whitesmoke;
+  color: var(--header-text-color);
   display: flex;
   font-weight: normal;
   justify-content: space-between;
@@ -68,13 +87,13 @@ h1#player-name {
 }
 
 #dismiss {
-  background: teal;
+  background: var(--header-background-color);
   border-radius: 50%;
   height: 20px;
   opacity: 0.3;
   margin: 8px;
   padding: 0;
-  color: whitesmoke;
+  color: var(--header-text-color);
   width: 20px;
 }
 
@@ -97,10 +116,10 @@ h1#player-name {
 }
 
 #loading-graphic {
-  border: 5px solid whitesmoke;
+  border: 5px solid var(--alt-background-color);
   border-radius: 50%;
-  border-top: 5px solid teal;
-  border-bottom: 5px solid teal;
+  border-top: 5px solid var(--header-background-color);
+  border-bottom: 5px solid var(--header-background-color);
   width: 30px;
   height: 30px;
   animation: spin 1s linear infinite;
@@ -123,6 +142,10 @@ h1#player-name {
 
 /* Content section styles */
 
+section {
+  margin-top: 1em;
+}
+
 #content {
   border-radius: 5px;
   display: flex;
@@ -133,18 +156,6 @@ h1#player-name {
 
 .short-career {
   height: 100%;
-}
-
-.short-career #career-stats {
-  margin: auto;
-}
-
-h2.sub-heading {
-  color: teal;
-  font-size: 14px;
-  margin: 0;
-  padding: 12px 0 12px 8px;
-  width: fit-content;
 }
 
 .stick-left {
@@ -159,7 +170,7 @@ h2.sub-heading {
 }
 
 #player-profile-image {
-  border: solid 1px lightgrey;
+  border: solid 1px var(--border-color);
   height: 120px;
   margin-left: 8px;
   width: 85px;
@@ -182,12 +193,52 @@ h2.sub-heading {
 }
 
 .info-label {
-  color: lightslategrey;
+  color: var(--alt-text-color);
 }
 
 .info-data {
-  color: black;
+  color: var(--main-text-color);
   margin-right: 8px;
+}
+
+/* Tab styles */
+
+nav {
+  width: fit-content;
+  width: -moz-fit-content;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tab {
+  background: var(--alt-background-color);
+  border: solid 1px var(--alt-background-color);
+  border-bottom: none;
+  color: var(--alt-text-color);
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0.5em;
+}
+
+.tab:hover {
+  background: var(--header-background-color);
+  color: var(--hover-text-color);
+}
+
+.tab.active {
+  background: var(--main-background-color);
+  border: solid 1px var(--border-color);
+  border-bottom: none;
+  color: var(--active-tab-text-color)
+}
+
+nav .tab:first-child {
+  border-left: none;
 }
 
 /* Table styles */
@@ -195,7 +246,13 @@ h2.sub-heading {
 table {
   border-collapse: separate;
   border-spacing: 0;
+  color: var(--main-text-color);
+  display: none;
   font-size: 12px;
+}
+
+table.active {
+  display: block;
 }
 
 table td {
@@ -206,40 +263,40 @@ table tr {
   white-space: nowrap;
 }
 
-table tr:nth-child(even) {
-  background-color: whitesmoke;
+tbody tr:nth-child(odd) {
+  background-color: var(--alt-background-color);
 }
 
-table tr:nth-child(odd) {
-  background-color: white;
+tbody tr:nth-child(even) {
+  background-color: var(--main-background-color);
 }
 
-table tr:hover {
-  background-color: teal;
-  color: white;
-}
-
-table tr:first-child:hover {
-  background-color: white;
-  color: lightslategrey;
+tbody tr:hover {
+  background-color: var(--header-background-color);
+  color: var(--hover-text-color);
 }
 
 table th {
-  border-bottom: solid 1px lightgrey;
-  color: lightslategrey;
+  border-bottom: solid 1px var(--border-color);
+  color: var(--alt-text-color);
   font-size: 10px;
   font-weight: bold;
   padding: 8px 0 10px 8px;
-  background: white;
+  background: var(--main-background-color);
   position: sticky;
   text-align: left;
   top: 0;
   z-index: 1;
 }
 
+th:first-child {
+  border-right: solid 1px var(--border-color);
+  padding: 8px 10px;
+}
+
 .season {
   background: inherit;
-  border-right: solid 1px lightgrey;
+  border-right: solid 1px var(--border-color);
   font-weight: bold;
 }
 
@@ -247,6 +304,6 @@ table th {
   font-weight: bold;
 }
 
-#season-header {
+.season-header {
   z-index: 2 !important;
 }

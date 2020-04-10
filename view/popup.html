@@ -4,7 +4,9 @@
         <meta charset="UTF-8">
         <title>Click and Roll</title>
         <link rel = "stylesheet" type = "text/css" href = "./popup.css" />
+        <link href="https://fonts.googleapis.com/css?family=Montserrat&amp;display=swap" rel="stylesheet">
         <script src="../scripts/utils/jquery-3.4.1.js"></script>
+        <script src="../scripts/utils/browser-polyfill.js"></script>
         <script src="../scripts/utils/config.js"></script>
         <script src="../scripts/utils/utils.js"></script>
         <script src="../scripts/popup/popup.js"></script>
@@ -37,6 +39,13 @@
                         <span class="slider-initial"></span>
                     </label>
                 </div>
+                <div class="toggle-group">
+                    <div class="toggle-text">Dark mode</div>
+                    <label class="toggle">
+                        <input type="checkbox" id="dark-toggle">
+                        <span class="slider-initial"></span>
+                    </label>
+                </div>
             </section>
             <section id="links">
                 <a href="https://github.com/aajfranklin/Click-And-Roll">GitHub</a>
@@ -44,7 +53,6 @@
                 <a href="https://paypal.me/clickandroll">Donate</a>
             </section>
         </main>
-        <footer>Icon by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></footer>
     </body>
 </html>
 

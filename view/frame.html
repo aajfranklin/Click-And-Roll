@@ -15,39 +15,74 @@
 </div>
 <main id="content">
     <section id="player-profile" class="stick-left">
-        <h2 class="sub-heading">Player Profile:</h2>
         <div id="player-profile-content"></div>
     </section>
     <section id="career-stats">
-        <h2 id="career-heading" class="sub-heading stick-left">Career Stats:</h2>
-        <table id="regular-season-averages-table">
-            <tbody id="season-averages-body">
-            <tr id="stat-headings">
-                <th id="season-header" class="season stick-left">Season</th>
-                <th>Team</th>
-                <th>Age</th>
-                <th>GP</th>
-                <th>MIN</th>
-                <th>PTS</th>
-                <th>OREB</th>
-                <th>DREB</th>
-                <th>REB</th>
-                <th>AST</th>
-                <th>TOV</th>
-                <th>STL</th>
-                <th>BLK</th>
-                <th>FGM</th>
-                <th>FGA</th>
-                <th>FG%</th>
-                <th>FG3M</th>
-                <th>FG3A</th>
-                <th>FG3%</th>
-                <th>FTM</th>
-                <th>FTA</th>
-                <th>FT%</th>
-                <th>PF</th>
-            </tr>
-            </tbody>
+        <nav class="stick-left">
+            <ul>
+                <li id="regular" class="active tab">Regular Season</li>
+                <li id="post" class="tab">Postseason</li>
+            </ul>
+        </nav>
+        <table id="regular-season-table" class="active">
+            <thead>
+                <tr class="stat-headings">
+                    <th class="season-header stick-left">Season</th>
+                    <th>Team</th>
+                    <th>Age</th>
+                    <th>GP</th>
+                    <th>MIN</th>
+                    <th>PTS</th>
+                    <th>OREB</th>
+                    <th>DREB</th>
+                    <th>REB</th>
+                    <th>AST</th>
+                    <th>TOV</th>
+                    <th>STL</th>
+                    <th>BLK</th>
+                    <th>FGM</th>
+                    <th>FGA</th>
+                    <th>FG%</th>
+                    <th>FG3M</th>
+                    <th>FG3A</th>
+                    <th>FG3%</th>
+                    <th>FTM</th>
+                    <th>FTA</th>
+                    <th>FT%</th>
+                    <th>PF</th>
+                </tr>
+            </thead>
+            <tbody id="regular-season-body"></tbody>
+        </table>
+        <table id="post-season-table">
+            <thead>
+                <tr class="stat-headings">
+                    <th class="season-header stick-left">Season</th>
+                    <th>Team</th>
+                    <th>Age</th>
+                    <th>GP</th>
+                    <th>MIN</th>
+                    <th>PTS</th>
+                    <th>OREB</th>
+                    <th>DREB</th>
+                    <th>REB</th>
+                    <th>AST</th>
+                    <th>TOV</th>
+                    <th>STL</th>
+                    <th>BLK</th>
+                    <th>FGM</th>
+                    <th>FGA</th>
+                    <th>FG%</th>
+                    <th>FG3M</th>
+                    <th>FG3A</th>
+                    <th>FG3%</th>
+                    <th>FTM</th>
+                    <th>FTA</th>
+                    <th>FT%</th>
+                    <th>PF</th>
+                </tr>
+            </thead>
+            <tbody id="post-season-body"></tbody>
         </table>
     </section>
 </main>

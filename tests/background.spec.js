@@ -11,12 +11,12 @@ describe('Background Scripts', () => {
 
       before(() => {
 
-        chrome.runtime.onMessage = {addListener: () => {}};
-        chrome.tabs = {onActivated: {addListener: () => {}}};
+        browser.runtime.onMessage = {addListener: () => {}};
+        browser.tabs = {onActivated: {addListener: () => {}}};
 
         handleLoadStub = sinon.stub(messageHandler, 'handleLoad');
-        onMessageStub = sinon.stub(chrome.runtime.onMessage, 'addListener');
-        onActivatedStub = sinon.stub(chrome.tabs.onActivated, 'addListener');
+        onMessageStub = sinon.stub(browser.runtime.onMessage, 'addListener');
+        onActivatedStub = sinon.stub(browser.tabs.onActivated, 'addListener');
 
         handleLoadStub.returns(null);
         onMessageStub.returns(null);
@@ -35,7 +35,7 @@ describe('Background Scripts', () => {
         onActivatedStub.restore();
       });
 
-      it('should call chrome runtime on message add listener with correct listener', () => {
+      it('should call browser runtime on message add listener with correct listener', () => {
         messageHandler.addListeners();
         expect(onMessageStub.calledOnce).to.equal(true);
         expect(onMessageStub.firstCall.args[0]).to.equal(messageHandler.handleMessage);
@@ -129,13 +129,14 @@ describe('Background Scripts', () => {
 
       let getActiveTabStub;
       let isExtensionOnStub;
+      let isSettingOnStub;
       let messageActiveTabStub;
       let setIconStub;
 
       let testTab;
 
       before(() => {
-        chrome.browserAction = {
+        browser.browserAction = {
           setIcon: () => {}
         };
 
@@ -146,8 +147,9 @@ describe('Background Scripts', () => {
 
         getActiveTabStub = sinon.stub(messageHandler.utils, 'getActiveTab');
         isExtensionOnStub = sinon.stub(messageHandler.utils, 'isExtensionOn');
+        isSettingOnStub = sinon.stub(messageHandler.utils, 'isSettingOn').resolves(true);
         messageActiveTabStub = sinon.stub(messageHandler.utils, 'messageActiveTab');
-        setIconStub = sinon.stub(chrome.browserAction, 'setIcon');
+        setIconStub = sinon.stub(browser.browserAction, 'setIcon');
 
         getActiveTabStub.resolves(testTab);
       });
@@ -155,19 +157,30 @@ describe('Background Scripts', () => {
       afterEach(() => {
         getActiveTabStub.resetHistory();
         isExtensionOnStub.resetHistory();
+        isSettingOnStub.resetHistory();
         messageActiveTabStub.resetHistory();
         setIconStub.resetHistory();
 
+        isSettingOnStub.resolves(true);
         isExtensionOnStub.resolves(null);
       });
 
       after(() => {
         getActiveTabStub.restore();
         isExtensionOnStub.restore();
+        isSettingOnStub.restore();
         messageActiveTabStub.restore();
         setIconStub.restore();
       });
 
+      it('should message active tab with dark mode and reverse settings', () => {
+        return messageHandler.handleLoad()
+          .then(() => {
+            expect(messageActiveTabStub.called).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'toggle-dark', isOn: true}]);
+            expect(messageActiveTabStub.secondCall.args).to.deep.equal([{message: 'toggle-reverse', isOn: true}]);
+          });
+      });
 
       it('should message active tab to start and set active icon if extension is on', () => {
         isExtensionOnStub.resolves(true);
@@ -175,8 +188,8 @@ describe('Background Scripts', () => {
           .then(() => {
             expect(getActiveTabStub.calledOnce).to.equal(true);
             expect(isExtensionOnStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
+            expect(messageActiveTabStub.calledThrice).to.equal(true);
+            expect(messageActiveTabStub.thirdCall.args).to.deep.equal([{message: 'start'}]);
             expect(setIconStub.calledOnce).to.equal(true);
             expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}]);
           });
@@ -188,8 +201,8 @@ describe('Background Scripts', () => {
           .then(() => {
             expect(getActiveTabStub.calledOnce).to.equal(true);
             expect(isExtensionOnStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
+            expect(messageActiveTabStub.calledThrice).to.equal(true);
+            expect(messageActiveTabStub.thirdCall.args).to.deep.equal([{message: 'stop'}]);
             expect(setIconStub.calledOnce).to.equal(true);
             expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}]);
           });
@@ -585,22 +598,22 @@ describe('Background Scripts', () => {
       });
 
       it('should return true if cache has records and player, record is correct version, timestamp is under three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: false}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '2.0.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return true if cache has records and player, record is current version, timestamp is under three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '1.2.0', active: true}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 1, version: '2.0.0', active: true}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return true if cache has records and player, record is current version, timestamp is over three hours old, and player is inactive', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: false}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '2.0.0', active: false}], 1);
         expect(result).to.equal(true);
       });
 
       it('should return false if cache has records and player, record is current version, timestamp is over three hours old, and player is active', () => {
-        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '1.2.0', active: true}], 1);
+        const result = messageHandler.statsInCacheAndCurrent([{id: 1, timestamp: 0, version: '2.0.0', active: true}], 1);
         expect(result).to.equal(false);
       });
 
@@ -616,7 +629,8 @@ describe('Background Scripts', () => {
       let saveToStorageStub;
 
       const getStatsResponse = {
-        rows: 'rows',
+        regularSeasonRows: 'regularRows',
+        postSeasonRows: 'postRows',
         profile: 'profile'
       };
 
@@ -683,11 +697,12 @@ describe('Background Scripts', () => {
 
       describe('if apiGet resolves', () => {
 
-        it('should call getCareerHTML with returned rows', () => {
+        it('should call getCareerHTML twice, once for regular and once for post rows', () => {
           return messageHandler.fetchNonCachedStats(1)
             .then(() => {
-              expect(getCareerHTMLStub.calledOnce).to.equal(true);
-              expect(getCareerHTMLStub.withArgs('rows').calledOnce).to.equal(true);
+              expect(getCareerHTMLStub.calledTwice).to.equal(true);
+              expect(getCareerHTMLStub.firstCall.args).to.deep.equal(['regularRows']);
+              expect(getCareerHTMLStub.secondCall.args).to.deep.equal(['postRows']);
             })
         });
 
@@ -695,7 +710,7 @@ describe('Background Scripts', () => {
           return messageHandler.fetchNonCachedStats(1)
               .then(() => {
                 expect(getActiveStub.calledOnce).to.equal(true);
-                expect(getActiveStub.withArgs('rows').calledOnce).to.equal(true);
+                expect(getActiveStub.withArgs('regularRows').calledOnce).to.equal(true);
               })
         });
 
@@ -710,11 +725,12 @@ describe('Background Scripts', () => {
         describe('if getProfileHTML resolves', () => {
 
           it('should return stats with active flag, profile and career html', () => {
-            getCareerHTMLStub.returns('careerStats');
+            getCareerHTMLStub.onFirstCall().returns('regularRows');
+            getCareerHTMLStub.onSecondCall().returns('postRows');
             getProfileHTMLStub.resolves('profileStats');
             return messageHandler.fetchNonCachedStats(1)
               .then(result => {
-                expect(result).to.deep.equal({id: 1, careerHTML: 'careerStats', profileHTML: 'profileStats', active: true});
+                expect(result).to.deep.equal({id: 1, regularSeasonHTML: 'regularRows', postSeasonHTML: 'postRows', profileHTML: 'profileStats', active: true});
               });
           });
 
@@ -757,7 +773,7 @@ describe('Background Scripts', () => {
 
       it('should save cache records to storage with new player, version, and timestamp added', () => {
         messageHandler.cacheStats({active: true}, 1, []);
-        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, version: '1.2.0', active: true}]]);
+        expect(saveToLocalStorageStub.secondCall.args).to.deep.equal(['cache-records', [{id: 1, timestamp: 0, version: '2.0.0', active: true}]]);
       });
 
     });
@@ -851,8 +867,8 @@ describe('Background Scripts', () => {
       it('should return seasons as HTML string', () => {
         const rows = [{SEASON_ID: '2000-01', ALL_STAR: 1, TEAM_ABBREVIATION: 'TM', PLAYER_AGE: 20, FG_PCT: 0.5, FG3_PCT: 0, FT_PCT: 1}, {SEASON_ID: 'Career'}];
 
-        const expected = '<tr><td class="season stick-left">2000-01<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TM</td><td>20</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>.500</td><td>n/a</td><td>n/a</td><td>.000</td><td>n/a</td><td>n/a</td><td>1.000</td><td>n/a</td></tr>' +
-            '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>';
+        const expected = '<tr><td class="season stick-left">2000-01<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TM</td><td>20</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>.500</td><td>n/a</td><td>n/a</td><td>.000</td><td>n/a</td><td>n/a</td><td>1.000</td><td style="width: 100%">n/a</td></tr>' +
+            '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td style="width: 100%">n/a</td></tr>';
         expect(messageHandler.getCareerHTML(rows)).to.equal(expected);
       });
 

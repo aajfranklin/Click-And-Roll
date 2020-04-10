@@ -4,8 +4,8 @@ function MessageHandler() {
 
   this.addListeners = () => {
     // pass in anon function invoking handleLoad, rather than handleLoad itself, so that we don't pass onActivated result to handleLoad
-    chrome.tabs.onActivated.addListener(() => this.handleLoad());
-    chrome.runtime.onMessage.addListener(this.handleMessage);
+    browser.tabs.onActivated.addListener(() => this.handleLoad());
+    browser.runtime.onMessage.addListener(this.handleMessage);
   };
 
   this.handleMessage = (request, sender, sendResponse) => {
@@ -29,15 +29,21 @@ function MessageHandler() {
     return this.utils.getActiveTab()
       .then(tab => {
         activeTab = tab;
+        return this.utils.isSettingOn('dark');
+      }).then(isOn => {
+        this.utils.messageActiveTab({message: 'toggle-dark', isOn});
+        return this.utils.isSettingOn('reverse');
+      }).then(isOn => {
+        this.utils.messageActiveTab({message: 'toggle-reverse', isOn});
         return this.utils.isExtensionOn(this.utils.getTabUrl(activeTab));
       })
       .then(isExtensionOnForDomain => {
         if (isExtensionOnForDomain) {
           this.utils.messageActiveTab({message: 'start'});
-          chrome.browserAction.setIcon({path: '../assets/static/active32.png', tabId: activeTab.id});
+          browser.browserAction.setIcon({path: '../assets/static/active32.png', tabId: activeTab.id});
         } else {
           this.utils.messageActiveTab({message: 'stop'});
-          chrome.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: activeTab.id});
+          browser.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: activeTab.id});
         }
         if (sendResponse) sendResponse([null, null]);
       });
@@ -122,8 +128,9 @@ function MessageHandler() {
         return this.apiGet('player', id);
       })
       .then(response => {
-        stats.active = this.getActive(response.rows);
-        stats.careerHTML = this.getCareerHTML(response.rows);
+        stats.active = this.getActive(response.regularSeasonRows);
+        stats.regularSeasonHTML = this.getCareerHTML(response.regularSeasonRows);
+        stats.postSeasonHTML = this.getCareerHTML(response.postSeasonRows);
         return this.getProfileHTML(response.profile);
       })
       .then(profileHTML => {
@@ -184,7 +191,7 @@ function MessageHandler() {
       + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`;
 
     for (let stat of countingStats) {
-      tableDataCells += `<td>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
+      tableDataCells += `<td${stat === 'PF' ? ' style="width: 100%"' : ''}>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
     }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';
