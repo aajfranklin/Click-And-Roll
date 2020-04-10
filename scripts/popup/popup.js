@@ -37,7 +37,7 @@ function Popup() {
     return this.utils.isSettingOn(setting)
       .then(isOn => {
         if (setting === 'dark') this.applyColourScheme(!isOn);
-        if (setting === 'reverse') utils.messageActiveTab({message: 'toggle-reverse', isOn: !isOn});
+        if (setting === 'reverse') this.utils.messageActiveTab({message: 'toggle-reverse', isOn: !isOn});
         if (isOn) {
           return this.utils.removeFromSyncStorage(setting);
         }
@@ -46,7 +46,7 @@ function Popup() {
   };
 
   this.applyColourScheme = (isDark) => {
-    utils.messageActiveTab({message: 'toggle-dark', isOn: isDark});
+    this.utils.messageActiveTab({message: 'toggle-dark', isOn: isDark});
     if (isDark) {
       document.body.classList.add('dark-mode');
       return;

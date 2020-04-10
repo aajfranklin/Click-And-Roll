@@ -165,7 +165,7 @@ function ClickAndRoll() {
 
   this.getStats = async (newPlayerId) => {
     try {
-      const stats = await this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId});
+      const stats = await this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: newPlayerId});
       // current player id may have been reassigned by a later hover, making these stats out of date
       if (newPlayerId === this.currentPlayerId) {
         this.dataReceived = true;
@@ -349,8 +349,8 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-name').textContent = name;
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
-      this.applySeasonTable(stats.regularSeasonHTML, 'regular');
-      this.applySeasonTable(stats.postSeasonHTML, 'post');
+      await this.applySeasonTable(stats.regularSeasonHTML, 'regular');
+      await this.applySeasonTable(stats.postSeasonHTML, 'post');
     }
 
     if (!this.frameContainer.hidden) {
@@ -367,7 +367,7 @@ function ClickAndRoll() {
       tableBody.innerHTML += config.emptyRowString;
     }
 
-    const isReverseOn = await utils.isSettingOn('reverse');
+    const isReverseOn = await this.utils.isSettingOn('reverse');
     if (isReverseOn) this.reverseCareer(tableBody, isReverseOn);
   };
 

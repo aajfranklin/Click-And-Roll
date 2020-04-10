@@ -536,28 +536,38 @@ describe('Content Scripts', () => {
 
       let runStub;
       let teardownStub;
+      let toggleDarkStub;
+      let toggleReverseStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
         runStub = sinon.stub(testClickAndRoll, 'run');
         teardownStub = sinon.stub(testClickAndRoll, 'teardown');
+        toggleDarkStub = sinon.stub(testClickAndRoll, 'toggleDarkMode');
+        toggleReverseStub = sinon.stub(testClickAndRoll, 'toggleReverse');
       });
 
       afterEach(() => {
         runStub.resetHistory();
         teardownStub.resetHistory();
+        toggleDarkStub.resetHistory();
+        toggleReverseStub.resetHistory();
       });
 
       after(() => {
         testClickAndRoll.isRunning = false;
         runStub.restore();
         teardownStub.restore();
+        toggleDarkStub.restore();
+        toggleReverseStub.restore();
       });
 
       it('should call run if message is start and isRunning is false', () => {
         testClickAndRoll.handleMessage({message: 'start'});
         expect(runStub.calledOnce).to.equal(true);
         expect(teardownStub.notCalled).to.equal(true);
+        expect(toggleDarkStub.notCalled).to.equal(true);
+        expect(toggleReverseStub.notCalled).to.equal(true);
       });
 
       it('should call teardown if message is stop and isRunning is true', () => {
@@ -565,6 +575,8 @@ describe('Content Scripts', () => {
         testClickAndRoll.handleMessage({message: 'stop'});
         expect(runStub.notCalled).to.equal(true);
         expect(teardownStub.calledOnce).to.equal(true);
+        expect(toggleDarkStub.notCalled).to.equal(true);
+        expect(toggleReverseStub.notCalled).to.equal(true);
       });
 
       it('should make no calls if message is start and isRunning is true', () => {
@@ -572,6 +584,24 @@ describe('Content Scripts', () => {
         testClickAndRoll.handleMessage({message: 'start'});
         expect(runStub.notCalled).to.equal(true);
         expect(teardownStub.notCalled).to.equal(true);
+        expect(toggleDarkStub.notCalled).to.equal(true);
+        expect(toggleReverseStub.notCalled).to.equal(true);
+      });
+
+      it('should call toggleDarkMode if messages is toggle-dark', () => {
+        testClickAndRoll.handleMessage({message: 'toggle-dark'});
+        expect(runStub.notCalled).to.equal(true);
+        expect(teardownStub.notCalled).to.equal(true);
+        expect(toggleDarkStub.calledOnce).to.equal(true);
+        expect(toggleReverseStub.notCalled).to.equal(true);
+      });
+
+      it('should call toggleReverse if messages is toggle-reverse', () => {
+        testClickAndRoll.handleMessage({message: 'toggle-reverse'});
+        expect(runStub.notCalled).to.equal(true);
+        expect(teardownStub.notCalled).to.equal(true);
+        expect(toggleDarkStub.notCalled).to.equal(true);
+        expect(toggleReverseStub.calledOnce).to.equal(true);
       });
 
     });
@@ -650,6 +680,71 @@ describe('Content Scripts', () => {
             expect(observeMutationsStub.calledOnce).to.equal(true);
             expect(observeMutationsStub.firstCall.args.length).to.equal(0);
           });
+      });
+
+    });
+
+    describe('toggleDarkMode', () => {
+
+      let getFrameDocumentStub;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument').returns(document);
+      });
+
+      after(() => {
+        getFrameDocumentStub.restore();
+      });
+
+      it('should apply dark-mode class if dark mode is on', () => {
+        testClickAndRoll.toggleDarkMode(true);
+        expect(document.body.classList.contains('dark-mode')).to.equal(true);
+      });
+
+      it('should remove dark-mode class if dark mode is off', () => {
+        testClickAndRoll.toggleDarkMode(false);
+        expect(document.body.classList.contains('dark-mode')).to.equal(false);
+      });
+
+    });
+
+    describe('toggleReverse', () => {
+
+      let getFrameDocumentStub;
+      let reverseCareerStub;
+      let tbody1;
+      let tbody2;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument').returns(document);
+        reverseCareerStub = sinon.stub(testClickAndRoll, 'reverseCareer');
+
+        tbody1 = document.createElement('tbody');
+        tbody2 = document.createElement('tbody');
+
+        tbody2.classList.add('reversed');
+
+        document.body.appendChild(tbody1);
+        document.body.appendChild(tbody2);
+      });
+
+      after(() => {
+        getFrameDocumentStub.restore();
+        document.body.removeChild(tbody1);
+        document.body.removeChild(tbody2);
+      });
+
+      it('should reverse career for any table that does not match passed in reverse setting', () => {
+        testClickAndRoll.toggleReverse(true);
+        expect(reverseCareerStub.calledOnce).to.equal(true);
+        expect(reverseCareerStub.firstCall.args).to.deep.equal([tbody1, true]);
+
+        testClickAndRoll.toggleReverse(false);
+        expect(reverseCareerStub.calledTwice).to.equal(true);
+        expect(reverseCareerStub.secondCall.args).to.deep.equal([tbody2, false]);
+
       });
 
     });
@@ -870,36 +965,34 @@ describe('Content Scripts', () => {
 
       let sendRuntimeMessageStub;
       let displayStatsStub;
-      let isSettingOnStub;
 
       before(() => {
+        testClickAndRoll = new ClickAndRoll();
         displayStatsStub = sinon.stub(testClickAndRoll, 'displayStats');
         sendRuntimeMessageStub = sinon.stub(testClickAndRoll.utils, 'sendRuntimeMessage');
-        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn');
 
-        isSettingOnStub.resolves(false);
+        testClickAndRoll.activeName = {
+          element: {
+            textContent: 'testName'
+          }
+        };
       });
 
       afterEach(() => {
-        isSettingOnStub.resolves(false);
-
         sendRuntimeMessageStub.resetHistory();
         displayStatsStub.resetHistory();
-        isSettingOnStub.resetHistory();
       });
 
       after(() => {
         sendRuntimeMessageStub.restore();
         displayStatsStub.restore();
-        isSettingOnStub.restore();
       });
 
-      it('get reverse setting value, fetch stats, update player id, and display stats', () => {
+      it('fetch stats and display stats if passed in id equals current id once stats returned', () => {
         sendRuntimeMessageStub.resolves('stats');
+        testClickAndRoll.currentPlayerId = '0';
         return testClickAndRoll.getStats('0')
           .then(() => {
-            expect(isSettingOnStub.calledOnce).to.equal(true);
-            expect(isSettingOnStub.firstCall.args[0]).to.equal('reverse');
             expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
             expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
             expect(testClickAndRoll.dataReceived).to.equal(true);
@@ -908,11 +1001,15 @@ describe('Content Scripts', () => {
           });
       });
 
-      it('should set reverse to true if fetched setting is true', () => {
-        isSettingOnStub.resolves(true);
-        return testClickAndRoll.getStats({target: 'test'})
+      it('fetch stats and not display stats if passed in id does not equal current id once stats returned', () => {
+        sendRuntimeMessageStub.resolves('stats');
+        testClickAndRoll.currentPlayerId = '1';
+        return testClickAndRoll.getStats('0')
           .then(() => {
-            expect(testClickAndRoll.reverse).to.equal(true);
+            expect(sendRuntimeMessageStub.calledOnce).to.equal(true);
+            expect(sendRuntimeMessageStub.firstCall.args[0]).to.deep.equal({message: 'fetchStats', playerId: '0'});
+            expect(testClickAndRoll.dataReceived).to.equal(true);
+            expect(displayStatsStub.called).to.equal(false);
           });
       });
 
@@ -1096,24 +1193,45 @@ describe('Content Scripts', () => {
     describe('applyFrameStyles', () => {
 
       let getFrameDocumentStub;
+      let isSettingOnStub;
+      let toggleDarkStub;
 
       before(() => {
         testClickAndRoll = new ClickAndRoll();
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
+        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn').resolves(true);
+        toggleDarkStub = sinon.stub(testClickAndRoll, 'toggleDarkMode');
         getFrameDocumentStub.returns(document);
+      });
+
+      afterEach(() => {
+        isSettingOnStub.resetHistory();
+        toggleDarkStub.resetHistory();
       });
 
       after(() => {
         getFrameDocumentStub.restore();
         document.head.removeChild(document.getElementsByTagName('style')[0]);
+        isSettingOnStub.restore();
+        toggleDarkStub.restore();
       });
 
       it('should apply appropriate style and id to frame document', () => {
         testClickAndRoll.frameStyle = 'test';
-        testClickAndRoll.applyFrameStyles();
-        expect(document.getElementsByTagName('style')[0].type).to.equal('text/css');
-        expect(document.getElementsByTagName('style')[0].title).to.equal('click-and-roll');
-        expect(document.getElementsByTagName('style')[0].textContent).to.equal('test');
+        return testClickAndRoll.applyFrameStyles()
+          .then(() => {
+            expect(document.getElementsByTagName('style')[0].type).to.equal('text/css');
+            expect(document.getElementsByTagName('style')[0].title).to.equal('click-and-roll');
+            expect(document.getElementsByTagName('style')[0].textContent).to.equal('test');
+          });
+      });
+
+      it('should get dark mode setting and toggle it', () => {
+        return testClickAndRoll.applyFrameStyles()
+          .then(() => {
+            expect(isSettingOnStub.calledOnce).to.equal(true);
+            expect(toggleDarkStub.calledOnce).to.equal(true);
+          });
       });
 
     });
@@ -1123,6 +1241,7 @@ describe('Content Scripts', () => {
       let setScrollParentStub;
 
       before(() => {
+        testClickAndRoll = new ClickAndRoll();
         setScrollParentStub = sinon.stub(testClickAndRoll, 'setScrollParent');
       });
 
@@ -1531,6 +1650,8 @@ describe('Content Scripts', () => {
     describe('displayStats', () => {
       let getFrameDocumentStub;
       let checkContentHeightStub;
+      let isSettingOnStub;
+      let reverseCareerStub;
 
       let nameElement;
 
@@ -1539,6 +1660,8 @@ describe('Content Scripts', () => {
 
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         checkContentHeightStub = sinon.stub(testClickAndRoll, 'checkContentHeight');
+        isSettingOnStub = sinon.stub(testClickAndRoll.utils, 'isSettingOn').resolves(true);
+        reverseCareerStub = sinon.stub(testClickAndRoll, 'reverseCareer');
 
         getFrameDocumentStub.returns(document);
 
@@ -1548,13 +1671,19 @@ describe('Content Scripts', () => {
       });
 
       afterEach(() => {
+        isSettingOnStub.resolves(true);
+
         getFrameDocumentStub.resetHistory();
         checkContentHeightStub.resetHistory();
+        isSettingOnStub.resetHistory();
+        reverseCareerStub.resetHistory();
       });
 
       after(() => {
         getFrameDocumentStub.restore();
         checkContentHeightStub.restore();
+        isSettingOnStub.restore();
+        reverseCareerStub.restore();
 
         document.body.removeChild(nameElement);
       });
@@ -1580,16 +1709,19 @@ describe('Content Scripts', () => {
         document.body.append(testPostTable);
 
         testClickAndRoll.dataReceived = true;
-        testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: 'testRegular', postSeasonHTML: 'testPost'}, 'testName');
-        expect(nameElement.textContent).to.equal('testName');
-        expect(testProfile.innerHTML).to.equal('testProfile');
-        expect(testRegularTable.innerHTML).to.equal('<tbody id="regular-season-body">testRegular</tbody>');
-        expect(testPostTable.innerHTML).to.equal('<tbody id="post-season-body">testPost</tbody>');
-        expect(checkContentHeightStub.calledOnce).to.equal(true);
+        return testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: 'testRegular', postSeasonHTML: 'testPost'}, 'testName')
+          .then(() => {
+            expect(nameElement.textContent).to.equal('testName');
+            expect(testProfile.innerHTML).to.equal('testProfile');
+            expect(testRegularTable.innerHTML).to.equal('<tbody id="regular-season-body">testRegular</tbody>');
+            expect(testPostTable.innerHTML).to.equal('<tbody id="post-season-body">testPost</tbody>');
+            expect(checkContentHeightStub.calledOnce).to.equal(true);
+            expect(reverseCareerStub.called).to.equal(true);
 
-        document.body.removeChild(testProfile);
-        document.body.removeChild(testRegularTable);
-        document.body.removeChild(testPostTable);
+            document.body.removeChild(testProfile);
+            document.body.removeChild(testRegularTable);
+            document.body.removeChild(testPostTable);
+          });
       });
 
       it('should add empty row if season type has no rows', () => {
@@ -1603,26 +1735,58 @@ describe('Content Scripts', () => {
         document.body.appendChild(testCareerSection);
 
         testClickAndRoll.dataReceived = true;
+        isSettingOnStub.resolves(false);
 
-        testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: [], postSeasonHTML: []}, 'testName');
-        expect(nameElement.textContent).to.equal('testName');
-        expect(document.getElementById('regular-season-body').innerHTML).to.equal(config.emptyRowString);
-        expect(document.getElementById('post-season-body').innerHTML).to.equal(config.emptyRowString);
-        expect(checkContentHeightStub.calledOnce).to.equal(true);
+        return testClickAndRoll.displayStats({profileHTML: 'testProfile', regularSeasonHTML: [], postSeasonHTML: []}, 'testName')
+          .then(() => {
+            expect(nameElement.textContent).to.equal('testName');
+            expect(document.getElementById('regular-season-body').innerHTML).to.equal(config.emptyRowString);
+            expect(document.getElementById('post-season-body').innerHTML).to.equal(config.emptyRowString);
+            expect(checkContentHeightStub.calledOnce).to.equal(true);
+            expect(reverseCareerStub.called).to.equal(false);
 
-        document.body.removeChild(testProfile);
-        document.body.removeChild(testCareerSection);
+            document.body.removeChild(testProfile);
+            document.body.removeChild(testCareerSection);
+          });
       });
 
     });
 
     describe('reverseCareer', () => {
 
+      let getFrameDocumentStub;
+      let tbody;
+
+      before(() => {
+        testClickAndRoll = new ClickAndRoll();
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument').returns(document);
+      });
+
+      beforeEach(() => {
+        tbody = document.createElement('tbody');
+        const row1 = document.createElement('tr');
+        row1.id = '1';
+        const row2 = document.createElement('tr');
+        row2.id = '2';
+        tbody.appendChild(row1);
+        tbody.appendChild(row2);
+        document.body.appendChild(tbody);
+      });
+
+      afterEach(() => {
+        document.body.removeChild(document.getElementsByTagName('tbody')[0]);
+      });
+
       it('should reverse the rows of the career table', () => {
-        const career = '<tr><td>1</td></tr><tr><td>2</td></tr><tr><td>3</td></tr><tr class="career"><td>4</td></tr>';
-        const reversed = '<tr class="career"><td>4</td></tr><tr><td>3</td></tr><tr><td>2</td></tr><tr><td>1</td></tr>';
-        expect(testClickAndRoll.reverseCareer(career)).to.equal(reversed);
-      })
+        testClickAndRoll.reverseCareer(tbody, true);
+        expect(document.getElementsByTagName('tbody')[0].firstElementChild.id).to.equal('2');
+        expect(document.getElementsByTagName('tbody')[0].classList.contains('reversed')).to.equal(true);
+      });
+
+      it('should not apply reversed class label if returning from reversed to original order', () => {
+        testClickAndRoll.reverseCareer(tbody, false);
+        expect(document.getElementsByTagName('tbody')[0].classList.contains('reversed')).to.equal(false);
+      });
 
     });
 
@@ -1632,6 +1796,7 @@ describe('Content Scripts', () => {
       let content;
 
       before(() => {
+        testClickAndRoll = new ClickAndRoll();
         getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
         getFrameDocumentStub.returns(document);
       });

@@ -129,6 +129,7 @@ describe('Background Scripts', () => {
 
       let getActiveTabStub;
       let isExtensionOnStub;
+      let isSettingOnStub;
       let messageActiveTabStub;
       let setIconStub;
 
@@ -146,6 +147,7 @@ describe('Background Scripts', () => {
 
         getActiveTabStub = sinon.stub(messageHandler.utils, 'getActiveTab');
         isExtensionOnStub = sinon.stub(messageHandler.utils, 'isExtensionOn');
+        isSettingOnStub = sinon.stub(messageHandler.utils, 'isSettingOn').resolves(true);
         messageActiveTabStub = sinon.stub(messageHandler.utils, 'messageActiveTab');
         setIconStub = sinon.stub(browser.browserAction, 'setIcon');
 
@@ -155,19 +157,30 @@ describe('Background Scripts', () => {
       afterEach(() => {
         getActiveTabStub.resetHistory();
         isExtensionOnStub.resetHistory();
+        isSettingOnStub.resetHistory();
         messageActiveTabStub.resetHistory();
         setIconStub.resetHistory();
 
+        isSettingOnStub.resolves(true);
         isExtensionOnStub.resolves(null);
       });
 
       after(() => {
         getActiveTabStub.restore();
         isExtensionOnStub.restore();
+        isSettingOnStub.restore();
         messageActiveTabStub.restore();
         setIconStub.restore();
       });
 
+      it('should message active tab with dark mode and reverse settings', () => {
+        return messageHandler.handleLoad()
+          .then(() => {
+            expect(messageActiveTabStub.called).to.equal(true);
+            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'toggle-dark', isOn: true}]);
+            expect(messageActiveTabStub.secondCall.args).to.deep.equal([{message: 'toggle-reverse', isOn: true}]);
+          });
+      });
 
       it('should message active tab to start and set active icon if extension is on', () => {
         isExtensionOnStub.resolves(true);
@@ -175,8 +188,8 @@ describe('Background Scripts', () => {
           .then(() => {
             expect(getActiveTabStub.calledOnce).to.equal(true);
             expect(isExtensionOnStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
+            expect(messageActiveTabStub.calledThrice).to.equal(true);
+            expect(messageActiveTabStub.thirdCall.args).to.deep.equal([{message: 'start'}]);
             expect(setIconStub.calledOnce).to.equal(true);
             expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}]);
           });
@@ -188,8 +201,8 @@ describe('Background Scripts', () => {
           .then(() => {
             expect(getActiveTabStub.calledOnce).to.equal(true);
             expect(isExtensionOnStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.calledOnce).to.equal(true);
-            expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
+            expect(messageActiveTabStub.calledThrice).to.equal(true);
+            expect(messageActiveTabStub.thirdCall.args).to.deep.equal([{message: 'stop'}]);
             expect(setIconStub.calledOnce).to.equal(true);
             expect(setIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}]);
           });
