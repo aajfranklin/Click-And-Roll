@@ -191,7 +191,7 @@ function MessageHandler() {
       + `<td>${isCareerRow ? '-' : season['PLAYER_AGE']         || 'n/a'}</td>`;
 
     for (let stat of countingStats) {
-      tableDataCells += `<td>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
+      tableDataCells += `<td${stat === 'PF' ? ' style="width: 100%"' : ''}>${this.parseRawStatToDisplayString(season[stat], stat.indexOf('PCT') !== -1)}</td>`
     }
 
     return '<tr' + (isCareerRow ? ' class="career">' : '>') + tableDataCells + '</tr>';

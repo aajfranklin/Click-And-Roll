@@ -867,8 +867,8 @@ describe('Background Scripts', () => {
       it('should return seasons as HTML string', () => {
         const rows = [{SEASON_ID: '2000-01', ALL_STAR: 1, TEAM_ABBREVIATION: 'TM', PLAYER_AGE: 20, FG_PCT: 0.5, FG3_PCT: 0, FT_PCT: 1}, {SEASON_ID: 'Career'}];
 
-        const expected = '<tr><td class="season stick-left">2000-01<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TM</td><td>20</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>.500</td><td>n/a</td><td>n/a</td><td>.000</td><td>n/a</td><td>n/a</td><td>1.000</td><td>n/a</td></tr>' +
-            '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>';
+        const expected = '<tr><td class="season stick-left">2000-01<span style="color:gold; padding-left: 8px">&#9733;</span></td><td>TM</td><td>20</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>.500</td><td>n/a</td><td>n/a</td><td>.000</td><td>n/a</td><td>n/a</td><td>1.000</td><td style="width: 100%">n/a</td></tr>' +
+            '<tr class="career"><td class="season stick-left">Career</td><td>-</td><td>-</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td style="width: 100%">n/a</td></tr>';
         expect(messageHandler.getCareerHTML(rows)).to.equal(expected);
       });
 
