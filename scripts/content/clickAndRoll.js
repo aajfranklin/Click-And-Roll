@@ -19,11 +19,10 @@ function ClickAndRoll() {
   this.resultSearch = new ResultSearch();
   this.scrollParent = null;
   this.hoverTimer = null;
-  this.reverse = false;
 
   this.utils = new Utils();
 
-  this.handleMessage = (request) => {
+  this.handleMessage = async (request) => {
     switch (request.message) {
       case 'start':
         if (!this.isRunning) this.run();
@@ -31,60 +30,80 @@ function ClickAndRoll() {
       case 'stop':
         if (this.isRunning) this.teardown();
         break;
+      case 'toggle-dark':
+        this.toggleDarkMode(request.isOn);
+        break;
+      case 'toggle-reverse':
+        this.toggleReverse(request.isOn);
+        break;
       default:
         return;
     }
   };
 
-  this.run = () => {
+  this.run = async () => {
     this.isRunning = true;
 
     window.addEventListener('yt-navigate-start', this.onYtNavigate);
 
-    return this.getPlayers()
-      .then(players => {
-        this.players = players.concat(nicknameMap);
-        return $.ajax(browser.runtime.getURL('view/frame.html'), {method: 'GET', dataType: 'text'});
-      })
-      .then(response => {
-        this.statTemplate = response;
-        return $.ajax(browser.runtime.getURL('view/frame.css'), {method: 'GET', dataType: 'text'});
-      })
-      .then(response => {
-        this.frameStyle = response;
+    const players = await this.getPlayers();
+    this.players = players.concat(nicknameMap);
 
-        const playerNames = this.players.map((player) => player['NAME']);
+    this.statTemplate = await $.ajax(browser.runtime.getURL('view/frame.html'), {method: 'GET', dataType: 'text'});
+    this.frameStyle = await $.ajax(browser.runtime.getURL('view/frame.css'), {method: 'GET', dataType: 'text'});
 
-        this.resultSearch.setSearchStrings(playerNames);
-        const resultNodes = this.resultSearch.searchRootNode(document.body);
+    const playerNames = this.players.map((player) => player['NAME']);
+    this.resultSearch.setSearchStrings(playerNames);
+    const resultNodes = this.resultSearch.searchRootNode(document.body);
 
-        this.highlight(resultNodes);
-        this.handleReportedEdgeCases();
-        this.observeMutations();
-      });
+    this.highlight(resultNodes);
+    this.handleReportedEdgeCases();
+    this.observeMutations();
   };
 
   this.onYtNavigate = () => {
     window.location.reload();
   };
 
-  this.getPlayers = () => {
-    let lastUpdated;
+  this.toggleDarkMode = (isOn) => {
+    if (!this.getFrameDocument()) return; // prevent error when popup messages content script before any stats have been viewed
+    if (isOn) {
+      this.getFrameDocument().body.classList.add('dark-mode');
+      return;
+    }
+    this.getFrameDocument().body.classList.remove('dark-mode');
+  };
 
-    return this.utils.getFromLocalStorage('players-timestamp')
-      .then(timestamp => {
-        lastUpdated = timestamp || 0;
-        return this.utils.getFromLocalStorage('players');
-      })
-      .then(players => {
-        const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (config.playersUpdateInterval);
-        if (players && playersUpdatedWithin24Hours) return Promise.resolve(players);
-        return this.utils.sendRuntimeMessage({message: 'fetchPlayers'})
-      })
-      .then(fetchedPlayers => {
-        this.utils.saveToLocalStorage('players', fetchedPlayers);
-        return fetchedPlayers;
-      });
+  this.toggleReverse = (isOn) => {
+    if (!this.getFrameDocument()) return; // prevent error when popup messages content script before any stats have been viewed
+
+    const tableBodies = this.getFrameDocument().getElementsByTagName('tbody');
+    for (let table of tableBodies) {
+      if (isOn === table.classList.contains('reversed')) continue;
+      this.reverseCareer(table, isOn);
+    }
+  };
+
+  this.reverseCareer = (originalTable, reverse) => {
+    let reversedTable = this.getFrameDocument().createElement('tbody');
+    let reversedRows = Array.from(originalTable.rows).reverse();
+    for (let row of reversedRows) reversedTable.appendChild(row);
+    if (reverse) reversedTable.classList.add('reversed');
+    originalTable.parentNode.replaceChild(reversedTable, originalTable);
+  };
+
+  this.getPlayers = async () => {
+    const timestamp = await this.utils.getFromLocalStorage('players-timestamp');
+    const lastUpdated = timestamp || 0;
+
+    const players = await this.utils.getFromLocalStorage('players');
+    const playersUpdatedWithin24Hours = Date.now() - lastUpdated < (config.playersUpdateInterval);
+
+    if (players && playersUpdatedWithin24Hours) return players;
+
+    const fetchedPlayers = await this.utils.sendRuntimeMessage({message: 'fetchPlayers'});
+    this.utils.saveToLocalStorage('players', fetchedPlayers);
+    return fetchedPlayers;
   };
 
   this.highlight = (nodes) => {
@@ -121,7 +140,7 @@ function ClickAndRoll() {
     clearTimeout(this.hoverTimer);
   };
 
-  this.handleHover = (event) => {
+  this.handleHover = async (event) => {
     this.updateActiveName(event.target);
 
     const newPlayerId = this.players.filter(player => player['NAME'] === this.activeName.element.textContent)[0]['PLAYER_ID'];
@@ -144,22 +163,17 @@ function ClickAndRoll() {
     return navigator.userAgent.toLowerCase().indexOf('firefox') !== -1;
   };
 
-  this.getStats = (newPlayerId) => {
-    return this.utils.isSettingOn('reverse')
-      .then(reverse => {
-        this.reverse = reverse;
-        return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId});
-      })
-      .then(stats => {
-        // current player id may have been reassigned by a later hover, making these stats out of date
-        if (newPlayerId === this.currentPlayerId) {
-          this.dataReceived = true;
-          this.displayStats(stats, this.activeName.element.textContent)
-        }
-      })
-      .catch(() => {
+  this.getStats = async (newPlayerId) => {
+    try {
+      const stats = await this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: newPlayerId});
+      // current player id may have been reassigned by a later hover, making these stats out of date
+      if (newPlayerId === this.currentPlayerId) {
+        this.dataReceived = true;
+        this.displayStats(stats, this.activeName.element.textContent)
+      }
+    } catch {
         this.displayNetworkError();
-      });
+    }
   };
 
   this.updateActiveName = (target) => {
@@ -173,7 +187,7 @@ function ClickAndRoll() {
     this.activeName.element.onmouseleave = null;
   };
 
-  this.resetFrame = () => {
+  this.resetFrame = async () => {
     this.attachFrame();
 
     if (this.isFirefox()) {
@@ -190,7 +204,7 @@ function ClickAndRoll() {
     this.frameContainer.appendChild(this.frame);
   };
 
-  this.initialiseFrame = () => {
+  this.initialiseFrame = async () => {
     this.applyScrollRule();
     this.applyFrameStyles();
     this.getFrameDocument().body.innerHTML = '';
@@ -202,13 +216,16 @@ function ClickAndRoll() {
     this.addTabListeners();
   };
 
-  this.applyFrameStyles = () => {
+  this.applyFrameStyles = async () => {
     this.getFrameDocument().body.id = 'frame-body';
     const style = document.createElement('style');
     style.type = 'text/css';
     style.textContent = this.frameStyle;
     style.title = 'click-and-roll';
     this.getFrameDocument().head.appendChild(style);
+
+    const isDarkModeOn = await this.utils.isSettingOn('dark');
+    this.toggleDarkMode(isDarkModeOn);
     this.frameContainer.style.height = 'calc(50vh + 2px)';
   };
 
@@ -321,7 +338,7 @@ function ClickAndRoll() {
     this.getFrameDocument().getElementById(`${seasonType}-season-table`).classList.add('active');
   };
 
-  this.displayStats = (stats, name) => {
+  this.displayStats = async (stats, name) => {
     // catches edge case where user hovers on same name in quick succession, ensures loading graphic displays until data arrives
     if (!this.dataReceived) return;
 
@@ -332,8 +349,8 @@ function ClickAndRoll() {
       this.getFrameDocument().getElementById('player-name').textContent = name;
       this.getFrameDocument().getElementById('player-profile-content').innerHTML += stats.profileHTML;
 
-      this.applySeasonTable(stats.regularSeasonHTML, 'regular');
-      this.applySeasonTable(stats.postSeasonHTML, 'post');
+      await this.applySeasonTable(stats.regularSeasonHTML, 'regular');
+      await this.applySeasonTable(stats.postSeasonHTML, 'post');
     }
 
     if (!this.frameContainer.hidden) {
@@ -341,18 +358,17 @@ function ClickAndRoll() {
     }
   };
 
-  this.applySeasonTable = (careerHTML, seasonType) => {
+  this.applySeasonTable = async (careerHTML, seasonType) => {
     const tableBody = this.getFrameDocument().getElementById(`${seasonType}-season-body`);
 
     if (careerHTML.length) {
-      tableBody.innerHTML += this.reverse ? this.reverseCareer(careerHTML) : careerHTML;
+      tableBody.innerHTML += careerHTML;
     } else {
       tableBody.innerHTML += config.emptyRowString;
     }
-  };
 
-  this.reverseCareer = (careerHTML) => {
-    return careerHTML.replace(/<tr/g, ',<tr').split(',').reverse().join('');
+    const isReverseOn = await this.utils.isSettingOn('reverse');
+    if (isReverseOn) this.reverseCareer(tableBody, isReverseOn);
   };
 
   this.checkContentHeight = () => {
