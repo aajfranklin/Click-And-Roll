@@ -1597,6 +1597,7 @@ describe('Content Scripts', () => {
 
     describe('updateActiveTab', () => {
       let getFrameDocumentStub;
+      let checkContentHeightStub;
       let regularTab;
       let postTab;
       let regularTable;
@@ -1605,8 +1606,8 @@ describe('Content Scripts', () => {
       before(() => {
         testClickAndRoll = new ClickAndRoll();
 
-        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument');
-        getFrameDocumentStub.returns(document);
+        getFrameDocumentStub = sinon.stub(testClickAndRoll, 'getFrameDocument').returns(document);
+        checkContentHeightStub = sinon.stub(testClickAndRoll, 'checkContentHeight');
 
         regularTab = document.createElement('div');
         postTab = document.createElement('div');
@@ -1630,6 +1631,9 @@ describe('Content Scripts', () => {
         document.body.removeChild(postTab);
         document.body.removeChild(regularTable);
         document.body.removeChild(postTable);
+
+        getFrameDocumentStub.restore();
+        checkContentHeightStub.restore();
       });
 
       it('should add active class to correct tab and table', () => {
@@ -1638,11 +1642,13 @@ describe('Content Scripts', () => {
         expect(regularTab.classList.contains('active')).to.equal(false);
         expect(postTable.classList.contains('active')).to.equal(true);
         expect(regularTable.classList.contains('active')).to.equal(false);
+        expect(checkContentHeightStub.calledOnce).to.equal(true);
         testClickAndRoll.updateActiveTab({target: regularTab});
         expect(postTab.classList.contains('active')).to.equal(false);
         expect(regularTab.classList.contains('active')).to.equal(true);
         expect(postTable.classList.contains('active')).to.equal(false);
         expect(regularTable.classList.contains('active')).to.equal(true);
+        expect(checkContentHeightStub.calledTwice).to.equal(true);
       });
 
     });

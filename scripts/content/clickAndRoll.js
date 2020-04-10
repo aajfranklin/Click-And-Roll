@@ -336,6 +336,7 @@ function ClickAndRoll() {
 
     const seasonType = e.target.id;
     this.getFrameDocument().getElementById(`${seasonType}-season-table`).classList.add('active');
+    this.checkContentHeight();
   };
 
   this.displayStats = async (stats, name) => {
