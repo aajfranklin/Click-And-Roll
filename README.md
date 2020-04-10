@@ -4,52 +4,35 @@ Click and Roll is a browser extension that lets you hover over an NBA player's n
 
 ## Features
 
-### Hover over any player's name to view their stats in an overlay
+- Hover over any player's name to view their stats and profile
+- View both regular season and postseason stats
+- Toggle Click and Roll on/off globally or for individual sites
+- Set the order of career rows (first-to-last or last-to-first)
+- Dark mode that's easy on the eyes
 
-Click and Roll highlights a recognised player name in a teal font. Hover over the name to see the player's stats. Here's how it looks in action:
+To see how Click and Roll looks in action, click the image below for a video demo:
 
-![Click and Roll hover demo](assets/animated/demo1.gif)
-
-Dismiss the overlay by clicking the close button, hovering over a different player's name, or clicking anywhere outside the overlay:
-
-![Click and Roll dismiss demo](assets/animated/demo2.gif)
-
-### Toggle Click and Roll globally or for individual websites
-
-Use the Click and Roll options menu to toggle it on or off, globally or for individual sites:
-
-![Click and Roll toggle demo](assets/animated/demo3.gif)
+[![Click and Roll video demo](http://img.youtube.com/vi/IuO4YWIEzAk/0.jpg)](http://www.youtube.com/watch?v=IuO4YWIEzAk)
 
 ## Latest Release Notes
 
-1.2.0 Release Notes:
+2.0.0 Release Notes:
 
-- Moved most important stats (PTS, REB, AST, TOV, BLK, STL) into view without scrolling
-- Added ability to reverse career rows, so that career totals and more recent seasons are at the top
-- Added metric system heights and weights
-- Set stats to only show after hovering on a name for half a second, to prevent accidental openings
-- Removed leading zero from percentage stats, for consistency with most stats sites
-- Fixed issue where nested names would highlight e.g. Mike Bloom was highlighting within the name Mike Bloomberg
-- Fixed issue where un-capped stat window height created huge amounts of white space when viewing players with short careers on very high resolution monitors
-- Fixed error when viewing stats for players with no career games (e.g. recently drafted players)
-- Other code enhancements
+- Support for Firefox, Opera, and Edge
+- Added post season stats tab
+- Added dark mode
+- Fixed an issue with viewing stats for players with no career games
 
 ## Future Features
 
 The order and number of features added will depend on user demand. Possible features include:
 
-- Postseason stats
 - Season totals
 - Per 36 stats
 - Advanced stats
 - Player accolades/awards in the player profile
 - Player bio in the player profile
 - Choice of player name highlight colour (including none)
-- Dark mode
-
-## Requirements
-
-Chrome version 57 or above is recommended. Older versions will have formatting issues.
 
 ## FAQs:
 
