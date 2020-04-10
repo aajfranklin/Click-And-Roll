@@ -19,7 +19,6 @@ function ClickAndRoll() {
   this.resultSearch = new ResultSearch();
   this.scrollParent = null;
   this.hoverTimer = null;
-  this.reverse = false;
 
   this.utils = new Utils();
 
@@ -84,21 +83,21 @@ function ClickAndRoll() {
   };
 
   this.toggleReverse = (isOn) => {
-    if (this.reverse === isOn) return;
-    this.reverse = isOn;
     if (!this.getFrameDocument()) return; // prevent error when popup messages content script before any stats have been viewed
 
-    const tables = this.getFrameDocument().getElementsByTagName('table');
-    if (tables.length) {
-      for (let table of tables) {
-        const rows = table.firstElementChild.children;
-        let careerHTML = '';
-        for (let i = 1; i < rows.length; i++) {
-          careerHTML += rows[i].outerHTML;
-        }
-        table.firstElementChild.innerHTML = rows[0].outerHTML + this.reverseCareer(careerHTML);
-      }
+    const tableBodies = this.getFrameDocument().getElementsByTagName('tbody');
+    for (let table of tableBodies) {
+      if (isOn === table.classList.contains('reversed')) continue;
+      this.reverseCareer(table, isOn);
     }
+  };
+
+  this.reverseCareer = (originalTable, reverse) => {
+    let reversedTable = this.getFrameDocument().createElement('tbody');
+    let reversedRows = Array.from(originalTable.rows).reverse();
+    for (let row of reversedRows) reversedTable.appendChild(row);
+    if (reverse) reversedTable.classList.add('reversed');
+    originalTable.parentNode.replaceChild(reversedTable, originalTable);
   };
 
   this.getPlayers = () => {
@@ -178,11 +177,7 @@ function ClickAndRoll() {
   };
 
   this.getStats = (newPlayerId) => {
-    return this.utils.isSettingOn('reverse')
-      .then(reverse => {
-        this.reverse = reverse;
-        return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId});
-      })
+    return this.utils.sendRuntimeMessage({message: 'fetchStats', playerId: this.currentPlayerId})
       .then(stats => {
         // current player id may have been reassigned by a later hover, making these stats out of date
         if (newPlayerId === this.currentPlayerId) {
@@ -382,14 +377,15 @@ function ClickAndRoll() {
     const tableBody = this.getFrameDocument().getElementById(`${seasonType}-season-body`);
 
     if (careerHTML.length) {
-      tableBody.innerHTML += this.reverse ? this.reverseCareer(careerHTML) : careerHTML;
+      tableBody.innerHTML += careerHTML;
     } else {
       tableBody.innerHTML += config.emptyRowString;
     }
-  };
 
-  this.reverseCareer = (careerHTML) => {
-    return careerHTML.replace(/<tr/g, ',<tr').split(',').reverse().join('');
+    utils.isSettingOn('reverse')
+      .then(isOn => {
+        if (isOn) this.reverseCareer(tableBody, isOn)
+      })
   };
 
   this.checkContentHeight = () => {
