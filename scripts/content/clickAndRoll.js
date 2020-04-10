@@ -31,6 +31,12 @@ function ClickAndRoll() {
       case 'stop':
         if (this.isRunning) this.teardown();
         break;
+      case 'toggle-dark':
+        this.toggleDarkMode(request.isOn);
+        break;
+      case 'toggle-reverse':
+        this.toggleReverse(request.isOn);
+        break;
       default:
         return;
     }
@@ -66,6 +72,33 @@ function ClickAndRoll() {
 
   this.onYtNavigate = () => {
     window.location.reload();
+  };
+
+  this.toggleDarkMode = (isOn) => {
+    if (!this.getFrameDocument()) return; // prevent error when popup messages content script before any stats have been viewed
+    if (isOn) {
+      this.getFrameDocument().body.classList.add('dark-mode');
+      return;
+    }
+    this.getFrameDocument().body.classList.remove('dark-mode');
+  };
+
+  this.toggleReverse = (isOn) => {
+    if (this.reverse === isOn) return;
+    this.reverse = isOn;
+    if (!this.getFrameDocument()) return; // prevent error when popup messages content script before any stats have been viewed
+
+    const tables = this.getFrameDocument().getElementsByTagName('table');
+    if (tables.length) {
+      for (let table of tables) {
+        const rows = table.firstElementChild.children;
+        let careerHTML = '';
+        for (let i = 1; i < rows.length; i++) {
+          careerHTML += rows[i].outerHTML;
+        }
+        table.firstElementChild.innerHTML = rows[0].outerHTML + this.reverseCareer(careerHTML);
+      }
+    }
   };
 
   this.getPlayers = () => {
@@ -211,7 +244,7 @@ function ClickAndRoll() {
     this.getFrameDocument().head.appendChild(style);
     return this.utils.isSettingOn('dark')
       .then(isOn => {
-        if (isOn) this.getFrameDocument().body.classList.add('dark-mode');
+        this.toggleDarkMode(isOn);
         this.frameContainer.style.height = 'calc(50vh + 2px)';
       });
   };

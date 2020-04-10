@@ -29,6 +29,12 @@ function MessageHandler() {
     return this.utils.getActiveTab()
       .then(tab => {
         activeTab = tab;
+        return this.utils.isSettingOn('dark');
+      }).then(isOn => {
+        this.utils.messageActiveTab({message: 'toggle-dark', isOn});
+        return this.utils.isSettingOn('reverse');
+      }).then(isOn => {
+        this.utils.messageActiveTab({message: 'toggle-reverse', isOn});
         return this.utils.isExtensionOn(this.utils.getTabUrl(activeTab));
       })
       .then(isExtensionOnForDomain => {

@@ -1,13 +1,45 @@
+:root {
+  --main-background-color: white;
+  --header-background-color: teal;
+  --toggle-background-color: lightgrey;
+  --toggle-background-color-checked: teal;
+  --slider-color: whitesmoke;
+  --main-text-color: black;
+  --header-text-color: whitesmoke;
+  --box-shadow-color: darkslategrey;
+  --focus-shadow-color: lightskyblue;
+  --border-color: white;
+}
+
+.dark-mode {
+  --main-background-color: #3d4144;
+  --main-text-color: whitesmoke;
+  --toggle-background-color: lightslategrey;
+  --visited-link-color: lightgrey;
+}
+
+.dark-mode a {
+  color: var(--main-text-color);
+  text-decoration: underline;
+}
+
+.dark-mode a:visited {
+  color: var(--visited-link-color);
+}
+
 body {
+  background: var(--main-background-color);
+  border: solid var(--border-color) 1px;
+  border-bottom: none;
   font-family: Montserrat, arial, sans-serif;
   margin: 0;
   width: 225px;
 }
 
 header {
-  background: teal;
-  box-shadow: darkslategrey 0 1px 2px;
-  color: whitesmoke;
+  background: var(--header-background-color);
+  box-shadow: var(--box-shadow-color) 0 1px 2px;
+  color: var(--header-text-color);
   display: flex;
   justify-content: center;
   z-index: 3;
@@ -31,7 +63,7 @@ main {
 }
 
 .toggle-text {
-  color: black;
+  color: var(--main-text-color);
   font-size: 14px;
   font-weight: normal;
   margin: 0;
@@ -51,7 +83,7 @@ main {
 }
 
 .slider, .slider-initial {
-  background-color: #ccc;
+  background-color: var(--toggle-background-color);
   border-radius: 28px;
   bottom: 0;
   cursor: pointer;
@@ -62,7 +94,7 @@ main {
 }
 
 .slider:before, .slider-initial:before {
-  background-color: whitesmoke;
+  background-color: var(--slider-color);
   border-radius: 50%;
   bottom: 5px;
   content: "";
@@ -81,11 +113,11 @@ main {
 }
 
 input:checked + .slider, input:checked + .slider-initial {
-  background-color: teal;
+  background-color: var(--toggle-background-color-checked);
 }
 
 input:focus + .slider, input:focus + .slider-initial {
-  box-shadow: 0 0 2px 3px lightskyblue;
+  box-shadow: 0 0 2px 3px var(--focus-shadow-color);
 }
 
 input:checked + .slider:before, input:checked + .slider-initial:before {

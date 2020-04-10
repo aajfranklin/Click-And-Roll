@@ -34,15 +34,24 @@ function Popup() {
   };
 
   this.toggleSetting = (setting) => {
-    if (config.defaultOffSettings.indexOf(setting) !== -1) {
-      return this.utils.isSettingOn(setting)
-        .then(isSettingOn => {
-          if (isSettingOn) {
-            return this.utils.removeFromSyncStorage(setting);
-          }
-          return this.utils.saveToSyncStorage(setting, 'true');
-        })
+    return this.utils.isSettingOn(setting)
+      .then(isOn => {
+        if (setting === 'dark') this.applyColourScheme(!isOn);
+        if (setting === 'reverse') utils.messageActiveTab({message: 'toggle-reverse', isOn: !isOn});
+        if (isOn) {
+          return this.utils.removeFromSyncStorage(setting);
+        }
+        return this.utils.saveToSyncStorage(setting, 'true');
+      })
+  };
+
+  this.applyColourScheme = (isDark) => {
+    utils.messageActiveTab({message: 'toggle-dark', isOn: isDark});
+    if (isDark) {
+      document.body.classList.add('dark-mode');
+      return;
     }
+    document.body.classList.remove('dark-mode');
   };
 
   this.addToggleAnimation = (slider) => {
@@ -69,7 +78,10 @@ function Popup() {
         return this.utils.isSettingOn('dark');
       })
       .then(isOn => {
-        if (isOn) this.toggleCheckbox('dark-toggle');
+        if (isOn) {
+          this.toggleCheckbox('dark-toggle');
+          this.applyColourScheme(true);
+        }
       });
   };
 
