@@ -263,22 +263,17 @@ table tr {
   white-space: nowrap;
 }
 
-table tr:nth-child(even) {
+tbody tr:nth-child(odd) {
   background-color: var(--alt-background-color);
 }
 
-table tr:nth-child(odd) {
+tbody tr:nth-child(even) {
   background-color: var(--main-background-color);
 }
 
-table tr:hover {
+tbody tr:hover {
   background-color: var(--header-background-color);
   color: var(--hover-text-color);
-}
-
-table tr:first-child:hover {
-  background-color: var(--main-background-color);
-  color: var(--alt-text-color);
 }
 
 table th {
@@ -295,6 +290,7 @@ table th {
 }
 
 th:first-child {
+  border-right: solid 1px var(--border-color);
   padding: 8px 10px;
 }
 
