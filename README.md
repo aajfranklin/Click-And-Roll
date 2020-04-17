@@ -47,41 +47,41 @@ The order and number of features added will depend on user demand. Possible feat
 
 ## FAQ:
 
-- **How many players does Click and Roll cover?**
+#### How many players does Click and Roll cover?
 
 Click and Roll covers over 4500 current and former NBA players.
 
-- **How far back does the data go?**
+#### How far back does the data go?
 
 Click and Roll's data stretches back all the way to the founding of the Basketball Association of America in 1946. Whether you're interested in George Mikan or Zion Williamson, Click and Roll has you covered.
 
-- **How up-to-date is the data?**
+#### How up-to-date is the data?
 
 Click and Roll's database updates every three hours during the season, so it's never too far behind the latest games.
 
 If you notice a player's stats are still out of date after three hours, or some other error in the stats, please [report an issue](https://github.com/aajfranklin/Click-And-Roll/issues).
 
-- **How do you find the players' names in each web page?**
+#### How do you find the players' names in each web page?
 
 Click and Roll uses the [Aho-Corasick algorithm](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm) to quickly locate player's names in a website's text content. Version used is [GitHub user BrunoRB's Aho-Corasick implementation for javascript](https://github.com/BrunoRB/ahocorasick), lightly edited with ES6 syntax.
 
-- **How does this affect performance?**
+#### How does this affect performance?
 
 Click and Roll should not noticeably affect performance during normal usage of most websites. Some slow down may be noticeable when scrolling very quickly through a site with a lot of dynamically loaded content, such as a social media feed.
 
 If you do experience serious performance issues on any site, please toggle Click and Roll off for that site and [report the problem](https://github.com/aajfranklin/Click-And-Roll/issues).
 
-- **Why is the player's photo sometimes a placeholder silhouette?**
+#### Why is the player's photo sometimes a placeholder silhouette?
 
 Not all 4500+ players have photos available. The placeholder is a fallback for players without photos.
 
 The placeholder image is [generic person silhouette 16](http://getdrawings.com/generic-person-silhouette#generic-person-silhouette-16.jpg) from [Get Drawings](http://getdrawings.com/).
 
-- **What does the star next to some seasons mean?**
+#### What does the star next to some seasons mean?
 
 That means the player played in the All-Star game that season.
 
-- **Why do player names sometimes not highlight?**
+#### Why do player names sometimes not highlight?
 
 Sometimes you will recognise an NBA player's name, but Click and Roll won't. The name might be:
 
@@ -90,7 +90,7 @@ Sometimes you will recognise an NBA player's name, but Click and Roll won't. The
 - A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry and Magic Johnson. If you want to see a new nickname added, submit a feature request!
 - Split over multiple html elements, which makes it difficult to recognise. You might notice this when a player's name is split across two lines, or when one part of the name is in bold or italics.
 
-- **Why am I getting an error when viewing a player?**
+#### Why am I getting an error when viewing a player?
 
 This could be for a few reasons:
 
@@ -103,7 +103,7 @@ This could be for a few reasons:
 
 It may be possible to increase the Click and Roll server's capacity and uptime in future. Whether or not that happens will depend on how popular the extension becomes and how affordable those improvements are.
 
-- **Who designed the Click and Roll icon?**
+#### Who designed the Click and Roll icon?
 
 The Click and Roll icon combines the [basketball](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3) icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com. 
 
