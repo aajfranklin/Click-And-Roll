@@ -2,6 +2,12 @@
 
 Click and Roll is a free browser extension for getting NBA stats anywhere. Hover over any NBA player's name on any web page to quickly view their stats.
 
+- [Installation](#installation)
+- [Features](#features)
+- [Changelog](#changelog)
+- [FAQ](#faq)
+- [Donations](#donations)
+
 ## Installation
 
 | Browser | Recommended Version | Store Link                                                                                                                     |
@@ -25,7 +31,16 @@ Click below for a video demo:
 
 [![Click and Roll video demo](assets/static/Thumbnail%20-%20README.jpg)](http://www.youtube.com/watch?v=IuO4YWIEzAk)
 
-## Latest Release Notes
+Possible future features include:
+
+- Season totals
+- Per 36 stats
+- Advanced stats
+- Player accolades/awards in the player profile
+- Player bio in the player profile
+- Choice of player name highlight colour (including none)
+
+## Changelog
 
 2.0.0:
 
@@ -34,16 +49,7 @@ Click below for a video demo:
 - Added dark mode
 - Fixed an issue with viewing stats for players with no career games
 
-## Future Features
-
-The order and number of features added will depend on user demand. Possible features include:
-
-- Season totals
-- Per 36 stats
-- Advanced stats
-- Player accolades/awards in the player profile
-- Player bio in the player profile
-- Choice of player name highlight colour (including none)
+For earlier changes, see the [releases page](https://github.com/aajfranklin/Click-And-Roll/releases).
 
 ## FAQ:
 
