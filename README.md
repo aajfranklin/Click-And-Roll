@@ -1,6 +1,17 @@
 # Click and Roll
 
-Click and Roll is a browser extension that lets you hover over an NBA player's name on any web page to quickly view their stats. You can [get Click and Roll here](https://chrome.google.com/webstore/detail/click-and-roll/mkindbniefmmhpmcelmkhcpaaieeddml).
+Click and Roll is a free browser extension for getting NBA stats anywhere. Hover over any NBA player's name on any web page to quickly view their stats.
+
+## Installation
+
+| Browser | Recommended Version | Store Link                                                                                                                     |
+| ------- | :-----------------: | ------------------------------------------------------------------------------------------------------------------------------ |
+| Chrome  | 57+                 | [Click and Roll - Chrome Web Store](https://chrome.google.com/webstore/detail/click-and-roll/mkindbniefmmhpmcelmkhcpaaieeddml) |
+| Firefox | 68+                 | [Click and Roll - Firefox Add-Ons](https://addons.mozilla.org/en-GB/firefox/addon/click-and-roll/)                             |
+| Edge    | 89+                 | [Click and Roll - Edge Add-Ons](https://microsoftedge.microsoft.com/addons/detail/edijdhnfekmllaeppcecmmoabggpdana)            |
+| Opera   | 44+                 | [Click and Roll - Chrome Web Store](https://chrome.google.com/webstore/detail/click-and-roll/mkindbniefmmhpmcelmkhcpaaieeddml) |
+
+Opera users should add the [Install Chrome Extensions Opera Add-On](https://addons.opera.com/en/extensions/details/install-chrome-extensions/) before installing Click and Roll.
 
 ## Features
 
@@ -8,15 +19,15 @@ Click and Roll is a browser extension that lets you hover over an NBA player's n
 - View both regular season and postseason stats
 - Toggle Click and Roll on/off globally or for individual sites
 - Set the order of career rows (first-to-last or last-to-first)
-- Dark mode that's easy on the eyes
+- Light and dark modes
 
-To see how Click and Roll looks in action, click the image below for a video demo:
+Click below for a video demo:
 
-[![Click and Roll video demo](http://img.youtube.com/vi/IuO4YWIEzAk/0.jpg)](http://www.youtube.com/watch?v=IuO4YWIEzAk)
+[![Click and Roll video demo](assets/static/Thumbnail%20-%20README.jpg)](http://www.youtube.com/watch?v=IuO4YWIEzAk)
 
 ## Latest Release Notes
 
-2.0.0 Release Notes:
+2.0.0:
 
 - Support for Firefox, Opera, and Edge
 - Added post season stats tab
@@ -34,43 +45,43 @@ The order and number of features added will depend on user demand. Possible feat
 - Player bio in the player profile
 - Choice of player name highlight colour (including none)
 
-## FAQs:
+## FAQ:
 
-### How many players does Click and Roll cover?
+- **How many players does Click and Roll cover?**
 
 Click and Roll covers over 4500 current and former NBA players.
 
-### How far back does the data go?
+- **How far back does the data go?**
 
 Click and Roll's data stretches back all the way to the founding of the Basketball Association of America in 1946. Whether you're interested in George Mikan or Zion Williamson, Click and Roll has you covered.
 
-### How up-to-date is the data?
+- **How up-to-date is the data?**
 
 Click and Roll's database updates every three hours during the season, so it's never too far behind the latest games.
 
 If you notice a player's stats are still out of date after three hours, or some other error in the stats, please [report an issue](https://github.com/aajfranklin/Click-And-Roll/issues).
 
-### How do you find the players' names in each web page?
+- **How do you find the players' names in each web page?**
 
 Click and Roll uses the [Aho-Corasick algorithm](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm) to quickly locate player's names in a website's text content. Version used is [GitHub user BrunoRB's Aho-Corasick implementation for javascript](https://github.com/BrunoRB/ahocorasick), lightly edited with ES6 syntax.
 
-### How does this affect performance?
+- **How does this affect performance?**
 
 Click and Roll should not noticeably affect performance during normal usage of most websites. Some slow down may be noticeable when scrolling very quickly through a site with a lot of dynamically loaded content, such as a social media feed.
 
 If you do experience serious performance issues on any site, please toggle Click and Roll off for that site and [report the problem](https://github.com/aajfranklin/Click-And-Roll/issues).
 
-### Why is the player's photo sometimes a placeholder silhouette?
+- **Why is the player's photo sometimes a placeholder silhouette?**
 
 Not all 4500+ players have photos available. The placeholder is a fallback for players without photos.
 
 The placeholder image is [generic person silhouette 16](http://getdrawings.com/generic-person-silhouette#generic-person-silhouette-16.jpg) from [Get Drawings](http://getdrawings.com/).
 
-### What does the star next to some seasons mean?
+- **What does the star next to some seasons mean?**
 
 That means the player played in the All-Star game that season.
 
-### Why do player names sometimes not highlight?
+- **Why do player names sometimes not highlight?**
 
 Sometimes you will recognise an NBA player's name, but Click and Roll won't. The name might be:
 
@@ -79,7 +90,7 @@ Sometimes you will recognise an NBA player's name, but Click and Roll won't. The
 - A nickname. Click and Roll doesn't recognise nicknames, with a couple of exceptions for Steph Curry and Magic Johnson. If you want to see a new nickname added, submit a feature request!
 - Split over multiple html elements, which makes it difficult to recognise. You might notice this when a player's name is split across two lines, or when one part of the name is in bold or italics.
 
-### Why am I getting an error when viewing a player?
+- **Why am I getting an error when viewing a player?**
 
 This could be for a few reasons:
 
@@ -92,10 +103,12 @@ This could be for a few reasons:
 
 It may be possible to increase the Click and Roll server's capacity and uptime in future. Whether or not that happens will depend on how popular the extension becomes and how affordable those improvements are.
 
-### Who designed the Click and Roll icon?
+- **Who designed the Click and Roll icon?**
 
-Two icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com were used to create the Click and Roll icon. They are the [basketball icon](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor icon](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3). These were combined and edited to form the final icon.
+The Click and Roll icon combines the [basketball](https://www.flaticon.com/free-icon/basketball_167739#term=basketball&page=1&position=2) and [cursor](https://www.flaticon.com/free-icon/cursor_99173#term=cursor&page=1&position=3) icons by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com. 
 
-## Support
+## Donations
 
-Click and Roll is a hobby project developed in my free time. If you enjoy Click and Roll and want to support its ongoing development, consider donating via this [donate link](https://paypal.me/clickandroll).
+Click and Roll is developed and maintained as a hobby project. If you enjoy Click and Roll and want to support its ongoing development, please consider making a donation.
+ 
+[![PayPal Donate Button](assets/static/PayPal%20Button.png)](https://paypal.me/clickandroll)
