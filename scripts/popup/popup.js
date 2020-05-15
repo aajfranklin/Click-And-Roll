@@ -86,24 +86,37 @@ function Popup() {
   };
 
   this.handleClick = (e) => {
-    const id = e.target.id;
-    const targetIsToggle = id.indexOf('-toggle') !== -1;
+    const targetIsToggle = e.target.id.indexOf('-toggle') !== -1;
+    const targetIsTab = e.target.classList.contains('tab');
     const targetIsLink = e.target.href !== undefined;
 
-    if (targetIsToggle) {
-      const slider = e.target.nextElementSibling;
+    if (targetIsToggle) return this.handleToggle(e);
+    if (targetIsTab) return this.updateActiveTab(e);
+    if (targetIsLink) browser.tabs.create({url: e.target.href});
+  };
 
-      if (slider.classList.contains('slider-initial')) {
-        this.addToggleAnimation(slider);
-      }
+  this.handleToggle = (e) => {
+    const id = e.target.id;
+    const slider = e.target.nextElementSibling;
 
-      this.toggleCheckbox(id);
-      if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab));
-      if (id === 'extension-toggle') this.toggleOnOffSetting('clickAndRoll');
-      if (id === 'reverse-toggle') this.toggleSetting('reverse');
-      if (id === 'dark-toggle') this.toggleSetting('dark');
+    if (slider.classList.contains('slider-initial')) {
+      this.addToggleAnimation(slider);
     }
 
-    if (targetIsLink) browser.tabs.create({url: e.target.href});
+    this.toggleCheckbox(id);
+    if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab));
+    if (id === 'extension-toggle') this.toggleOnOffSetting('clickAndRoll');
+    if (id === 'reverse-toggle') this.toggleSetting('reverse');
+    if (id === 'dark-toggle') this.toggleSetting('dark');
+  };
+
+  this.updateActiveTab = (e) => {
+    const tabs = document.getElementsByClassName('tab');
+    for (let tab of tabs) tab.classList.remove('active');
+    e.target.classList.add('active');
+
+    const tabSections = document.getElementsByClassName('tab-section');
+    for (let section of tabSections) section.classList.remove('active');
+    document.getElementById(`${e.target.id}-section`).classList.add('active');
   };
 }

@@ -361,6 +361,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: '-toggle',
+          classList: {
+            contains: () => false
+          },
           nextElementSibling: {
             classList: {
               contains: () => true
@@ -377,6 +380,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: 'extension-toggle',
+          classList: {
+            contains: () => false
+          },
           nextElementSibling: {
             classList: {
               contains: () => false
@@ -396,6 +402,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: 'domain-toggle',
+          classList: {
+            contains: () => false
+          },
           nextElementSibling: {
             classList: {
               contains: () => false
@@ -415,6 +424,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: 'reverse-toggle',
+          classList: {
+            contains: () => false
+          },
           nextElementSibling: {
             classList: {
               contains: () => false
@@ -434,6 +446,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: 'dark-toggle',
+          classList: {
+            contains: () => false
+          },
           nextElementSibling: {
             classList: {
               contains: () => false
@@ -453,6 +468,9 @@ describe('Popup', () => {
       const e = {
         target: {
           id: 'other',
+          classList: {
+            contains: () => false
+          },
           href: 'https://www.test.com/test'
         }
       };
