@@ -6,14 +6,19 @@ function Popup() {
     browser.storage.sync.get(null, res => {
       const sites = Object.keys(res).filter(key => key !== 'clickAndRoll' && key !== "dark" && key !== "reverse");
 
-      let siteListHTML = '<ul>';
-      const buttonHTML = '<button><svg data-prefix="fas" data-icon="times-circle" class="svg-inline--fa fa-times-circle fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path></svg></button>';
-      sites.forEach(site => {
-        siteListHTML += `<li><span>${site}</span>${buttonHTML}</li>`;
-      });
+      if (sites.length > 0) {
+        let siteListHTML = '<ul>';
+        const buttonHTML = '<button><svg data-prefix="fas" data-icon="times-circle" class="svg-inline--fa fa-times-circle fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path></svg></button>';
+        sites.forEach(site => {
+          siteListHTML += `<li><span>${site}</span>${buttonHTML}</li>`;
+        });
 
-      siteListHTML += '</ul>';
-      document.getElementById('sites-section').innerHTML = siteListHTML;
+        siteListHTML += '</ul>';
+        document.getElementById('sites-section').innerHTML = siteListHTML;
+        return;
+      }
+
+      document.getElementById('sites-section').innerHTML = '';
     })
   };
 
@@ -81,20 +86,20 @@ function Popup() {
         return this.utils.isSettingOn(this.utils.getTabUrl(this.tab));
       })
       .then(isOn => {
-        if (isOn) this.toggleCheckbox('domain-toggle');
+        if (isOn) this.toggleCheckbox('domain-input');
         return this.utils.isSettingOn('clickAndRoll');
       })
       .then(isOn => {
-        if (isOn) this.toggleCheckbox('extension-toggle');
+        if (isOn) this.toggleCheckbox('extension-input');
         return this.utils.isSettingOn('reverse');
       })
       .then(isOn => {
-        if (isOn) this.toggleCheckbox('reverse-toggle');
+        if (isOn) this.toggleCheckbox('reverse-input');
         return this.utils.isSettingOn('dark');
       })
       .then(isOn => {
         if (isOn) {
-          this.toggleCheckbox('dark-toggle');
+          this.toggleCheckbox('dark-input');
           this.applyColourScheme(true);
         }
         this.loadSiteList();
@@ -102,28 +107,30 @@ function Popup() {
   };
 
   this.handleClick = (e) => {
-    const targetIsToggle = e.target.id.indexOf('-toggle') !== -1;
+    e.preventDefault();
+    const targetIsSlider = e.target.id.indexOf('-slider') !== -1;
     const targetIsTab = e.target.classList.contains('tab');
     const targetIsLink = e.target.href !== undefined;
+    const isButton = e.target.tagName === 'BUTTON';
 
-    if (targetIsToggle) return this.handleToggle(e);
+    if (targetIsSlider) return this.handleToggle(e);
     if (targetIsTab) return this.updateActiveTab(e);
+    if (isButton) return this.handleButton(e);
     if (targetIsLink) browser.tabs.create({url: e.target.href});
   };
 
   this.handleToggle = (e) => {
     const id = e.target.id;
-    const slider = e.target.nextElementSibling;
 
-    if (slider.classList.contains('slider-initial')) {
-      this.addToggleAnimation(slider);
+    if (e.target.classList.contains('slider-initial')) {
+      this.addToggleAnimation(e.target);
     }
 
-    this.toggleCheckbox(id);
-    if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab)).then(() => this.loadSiteList());
-    if (id === 'extension-toggle') this.toggleOnOffSetting('clickAndRoll');
-    if (id === 'reverse-toggle') this.toggleSetting('reverse');
-    if (id === 'dark-toggle') this.toggleSetting('dark');
+    this.toggleCheckbox(`${id.split('-')[0]}-input`);
+    if (id === 'domain-slider') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab)).then(() => this.loadSiteList());
+    if (id === 'extension-slider') this.toggleOnOffSetting('clickAndRoll');
+    if (id === 'reverse-slider') this.toggleSetting('reverse');
+    if (id === 'dark-slider') this.toggleSetting('dark');
   };
 
   this.updateActiveTab = (e) => {
@@ -135,4 +142,11 @@ function Popup() {
     for (let section of tabSections) section.classList.remove('active');
     document.getElementById(`${e.target.id}-section`).classList.add('active');
   };
+
+  this.handleButton = (e) => {
+    const urlToRemove = e.target.previousElementSibling.textContent;
+    const tabUrl = this.utils.getTabUrl(this.tab);
+    if (urlToRemove === tabUrl) this.toggleCheckbox('domain-input');
+    this.toggleOnOffSetting(urlToRemove).then(() => this.loadSiteList());
+  }
 }

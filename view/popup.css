@@ -73,7 +73,6 @@ nav ul {
   border-top: none;
   border-bottom: none;
   color: var(--alt-text-color);
-  flex-grow: 1;
   font-size: 14px;
   font-weight: bold;
   padding: 0.5em;
@@ -82,6 +81,9 @@ nav ul {
 
 .tab:hover {
   background: var(--header-background-color);
+  border: solid 1px var(--header-background-color);
+  border-top: none;
+  border-bottom: none;
   color: var(--hover-text-color);
 }
 
@@ -91,6 +93,10 @@ nav ul {
   border-bottom: none;
   border-top: none;
   color: var(--active-tab-text-color)
+}
+
+#menu, #sites {
+  flex-grow: 1;
 }
 
 main {
@@ -104,6 +110,9 @@ main {
 .tab-section.active {
   display: block;
   height: 12em;
+}
+
+#sites-section, #nicknames-section {
   overflow: scroll;
 }
 
