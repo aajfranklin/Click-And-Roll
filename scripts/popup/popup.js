@@ -14,11 +14,11 @@ function Popup() {
         });
 
         siteListHTML += '</ul>';
-        document.getElementById('sites-section').innerHTML = siteListHTML;
+        document.getElementById('sites-list-container').innerHTML = siteListHTML;
         return;
       }
 
-      document.getElementById('sites-section').innerHTML = '';
+      document.getElementById('sites-list-container').innerHTML = '';
     })
   };
 

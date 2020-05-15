@@ -116,6 +116,39 @@ main {
   overflow: scroll;
 }
 
+#sites-toggle-container {
+  align-items: center;
+  color: var(--main-text-color);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1em;
+}
+
+.named-toggle {
+  display: flex;
+  border: solid 1px var(--border-color);
+  width: fit-content;
+}
+
+.named-toggle-button {
+  background: var(--alt-background-color);
+  color: var(--alt-text-color);
+  padding: 0.5em;
+}
+
+.named-toggle-button.active {
+  background: var(--header-background-color);
+  color: var(--header-text-color);
+}
+
+.named-toggle-button:hover {
+  background: var(--main-background-color);
+}
+
+.named-toggle-button.active:hover {
+  background: var(--header-background-color);
+}
+
 .tab-section ul {
   margin: 0;
   padding: 0;
