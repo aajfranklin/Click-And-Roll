@@ -58,6 +58,14 @@ function Utils() {
     browser.storage.local.remove([name], () => {})
   };
 
+  this.getFromSyncStorage = (name) => {
+    return new Promise(resolve => {
+      browser.storage.sync.get([name], result => {
+        return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
+      })
+    })
+  };
+
   this.saveToSyncStorage = (name, value) => {
     return new Promise(resolve => {
       browser.storage.sync.set({[name]: value}, () => {
@@ -75,14 +83,19 @@ function Utils() {
   };
 
   this.isSettingOn = (setting) => {
-    return new Promise(resolve => {
-      browser.storage.sync.get(setting, result => {
-        if ($.isEmptyObject(result)) {
-          return resolve(config.defaultOffSettings.indexOf(setting) === -1);
-        }
-        return resolve(!!result[setting]);
+    const isDomainSetting = config.nonCustomSettings.indexOf(setting) === -1;
+    const isOnByDefault = config.defaultOffSettings.indexOf(setting) === -1;
+    let whitelist;
+
+    return this.getFromSyncStorage('whitelist')
+      .then(result => {
+        whitelist = result !== null;
+        return this.getFromSyncStorage(setting);
+      })
+      .then(result => {
+        if (isDomainSetting) return Promise.resolve(whitelist ? result !== null : result === null);
+        return Promise.resolve(isOnByDefault ? result === null : result !== null);
       });
-    });
   };
 
   this.isExtensionOn = (domain) => {

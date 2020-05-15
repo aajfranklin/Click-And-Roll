@@ -154,7 +154,7 @@ main {
   padding: 0;
 }
 
-.tab-section ul:first-child {
+.tab-section li:first-child {
   border-top: 1px solid var(--border-color);
 }
 
