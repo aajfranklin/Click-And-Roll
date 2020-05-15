@@ -2,6 +2,20 @@ function Popup() {
   this.utils = new Utils();
   this.tab = null;
 
+  this.loadSiteList = () => {
+    browser.storage.sync.get(null, res => {
+      const sites = Object.keys(res).filter(key => key !== 'clickAndRoll' && key !== "dark" && key !== "reverse");
+
+      let siteListHTML = '<ul>';
+      sites.forEach(site => {
+        siteListHTML += `<li>${site}</li>`;
+      });
+
+      siteListHTML += '</ul>';
+      document.getElementById('sites-section').innerHTML = siteListHTML;
+    })
+  };
+
   this.toggleCheckbox = (id) => {
     const checkbox = document.getElementById(id);
     if (checkbox.getAttribute('checked') === 'checked') {
@@ -82,6 +96,7 @@ function Popup() {
           this.toggleCheckbox('dark-toggle');
           this.applyColourScheme(true);
         }
+        this.loadSiteList();
       });
   };
 
@@ -104,7 +119,7 @@ function Popup() {
     }
 
     this.toggleCheckbox(id);
-    if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab));
+    if (id === 'domain-toggle') this.toggleOnOffSetting(this.utils.getTabUrl(this.tab)).then(() => this.loadSiteList());
     if (id === 'extension-toggle') this.toggleOnOffSetting('clickAndRoll');
     if (id === 'reverse-toggle') this.toggleSetting('reverse');
     if (id === 'dark-toggle') this.toggleSetting('dark');

@@ -67,7 +67,11 @@ function Utils() {
   };
 
   this.removeFromSyncStorage = (name) => {
-    browser.storage.sync.remove([name], () => {})
+    return new Promise(resolve => {
+      browser.storage.sync.remove([name], () => {
+        return resolve();
+      });
+    });
   };
 
   this.isSettingOn = (setting) => {
