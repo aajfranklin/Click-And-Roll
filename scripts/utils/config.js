@@ -3,7 +3,7 @@ const config = {
   cmPerFeet: 30.48,
   cmPerInch: 2.54,
   currentCacheRecordVersion: '2.0.0',
-  defaultOffSettings: ['dark', 'reverse'],
+  defaultOffSettings: ['dark', 'reverse', 'whitelist'],
   emptyRowString: '<tr><td class="season stick-left">n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td style="width: 100%">n/a</td></tr>',
   hoverTimeout: 500,
   kgPerLb: 0.45359237,

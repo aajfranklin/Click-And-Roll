@@ -60,8 +60,8 @@ function Utils() {
 
   this.getFromSyncStorage = (name) => {
     return new Promise(resolve => {
-      browser.storage.sync.get([name], result => {
-        return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
+      browser.storage.sync.get(name ? [name] : null, result => {
+        return resolve(!result || $.isEmptyObject(result) ? null : (name === undefined ? result : result[name]));
       })
     })
   };
@@ -83,31 +83,30 @@ function Utils() {
   };
 
   this.isSettingOn = (setting) => {
-    const isDomainSetting = config.nonCustomSettings.indexOf(setting) === -1;
     const isOnByDefault = config.defaultOffSettings.indexOf(setting) === -1;
-    let whitelist;
 
-    return this.getFromSyncStorage('whitelist')
-      .then(result => {
-        whitelist = result !== null;
-        return this.getFromSyncStorage(setting);
-      })
-      .then(result => {
-        if (isDomainSetting) return Promise.resolve(whitelist ? result !== null : result === null);
-        return Promise.resolve(isOnByDefault ? result === null : result !== null);
-      });
+    return this.getFromSyncStorage(setting)
+      .then(result => Promise.resolve(isOnByDefault ? result === null : result !== null));
   };
 
   this.isExtensionOn = (domain) => {
+    let isExtensionOn;
+    let isDomainOn;
+    let whitelist;
+
     return this.isSettingOn('clickAndRoll')
-      .then(isExtensionOn => {
-        if (isExtensionOn) {
-          return this.isSettingOn(domain);
-        }
-        return Promise.resolve(false);
+      .then(isOn => {
+        isExtensionOn = isOn;
+        return this.isSettingOn(domain);
       })
-      .then(isDomainOn => {
-        return isDomainOn;
+      .then(isOn => {
+        isDomainOn = isOn;
+        return this.isSettingOn('whitelist');
+      })
+      .then(isOn => {
+        whitelist = isOn;
+        isDomainOn = whitelist ? !isDomainOn : isDomainOn;
+        return isExtensionOn && isDomainOn;
       })
   }
 
