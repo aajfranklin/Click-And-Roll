@@ -93,16 +93,58 @@ nav ul {
   color: var(--active-tab-text-color)
 }
 
+main {
+  padding: 8px;
+}
+
 .tab-section {
   display: none;
 }
 
 .tab-section.active {
   display: block;
+  height: 12em;
+  overflow: scroll;
 }
 
-main {
-  padding: 8px;
+.tab-section ul {
+  margin: 0;
+  padding: 0;
+}
+
+.tab-section ul:first-child {
+  border-top: 1px solid var(--border-color);
+}
+
+.tab-section li {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  color: var(--main-text-color);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5em 1em;
+}
+
+button {
+  background: var(--alt-background-color);
+  border-radius: 50%;
+  color: var(--alt-text-color);
+  height: 1em;
+  margin-top: 1px;
+  padding: 0;
+  width: 1em;
+}
+
+button {
+  border: none;
+}
+
+button > * {
+  pointer-events: none;
+}
+
+button:hover {
+  color: var(--header-background-color);
 }
 
 .toggle-group {
