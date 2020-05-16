@@ -81,10 +81,10 @@ function Popup() {
         whitelist = isOn;
         if (whitelist) document.getElementById('whitelist').classList.add('active');
         if (!whitelist) document.getElementById('blacklist').classList.add('active');
-        return this.utils.isSettingOn(this.utils.getTabUrl(this.tab));
+        return this.utils.getFromSyncStorage(this.utils.getTabUrl(this.tab));
       })
-      .then(isOn => {
-        if ((isOn && !whitelist) || (!isOn && whitelist)) this.toggleCheckbox('domain-input');
+      .then(res => {
+        if ((res !== null && whitelist) || (res === null && !whitelist)) this.toggleCheckbox('domain-input');
         return this.utils.isSettingOn('clickAndRoll');
       })
       .then(isOn => {
@@ -130,7 +130,12 @@ function Popup() {
 
     switch (id) {
       case 'domain-slider':
-        return this.toggleSetting(this.utils.getTabUrl(this.tab))
+        const tabUrl = this.utils.getTabUrl(this.tab);
+        return this.utils.getFromSyncStorage(tabUrl)
+          .then(res => {
+            if (res === null) return this.utils.saveToSyncStorage(tabUrl, '');
+            return this.utils.removeFromSyncStorage(tabUrl);
+          })
           .then(() => this.updateIconAndStatus())
           .then(() => this.loadSiteList());
       case 'extension-slider':
@@ -170,7 +175,7 @@ function Popup() {
     const urlToRemove = e.target.previousElementSibling.textContent;
     const tabUrl = this.utils.getTabUrl(this.tab);
     if (urlToRemove === tabUrl) this.toggleCheckbox('domain-input');
-    return this.toggleSetting(urlToRemove)
+    return this.utils.removeFromSyncStorage(urlToRemove)
       .then(() => this.updateIconAndStatus())
       .then(() => this.loadSiteList());
   }

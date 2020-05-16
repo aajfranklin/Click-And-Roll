@@ -49,7 +49,7 @@ function Utils() {
   this.getFromLocalStorage = (name) => {
     return new Promise(resolve => {
       browser.storage.local.get([name], result => {
-        return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
+        return resolve((!result || $.isEmptyObject(result)) ? null : result[name]);
       })
     })
   };
@@ -61,7 +61,7 @@ function Utils() {
   this.getFromSyncStorage = (name) => {
     return new Promise(resolve => {
       browser.storage.sync.get(name ? [name] : null, result => {
-        return resolve(!result || $.isEmptyObject(result) ? null : (name === undefined ? result : result[name]));
+        return resolve((!result || $.isEmptyObject(result)) ? null : (name === undefined ? result : result[name]));
       })
     })
   };
@@ -90,23 +90,23 @@ function Utils() {
   };
 
   this.isExtensionOn = (domain) => {
-    let isExtensionOn;
-    let isDomainOn;
+    let isExtensionOnGlobally;
+    let isDomainListed;
     let whitelist;
 
     return this.isSettingOn('clickAndRoll')
       .then(isOn => {
-        isExtensionOn = isOn;
-        return this.isSettingOn(domain);
+        isExtensionOnGlobally = isOn;
+        return this.getFromSyncStorage(domain);
       })
-      .then(isOn => {
-        isDomainOn = isOn;
+      .then(res => {
+        isDomainListed = res !== null;
         return this.isSettingOn('whitelist');
       })
       .then(isOn => {
         whitelist = isOn;
-        isDomainOn = whitelist ? !isDomainOn : isDomainOn;
-        return isExtensionOn && isDomainOn;
+        const isExtensionOnForDomain = whitelist ? isDomainListed : !isDomainListed;
+        return isExtensionOnGlobally && isExtensionOnForDomain;
       })
   }
 
