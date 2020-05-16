@@ -3,7 +3,7 @@ function Popup() {
   this.tab = null;
 
   this.loadSiteList = () => {
-    this.getSites()
+    return this.getSites()
       .then(sites => {
         let siteListHTML = '<ul>';
         const buttonHTML = config.buttonString;
@@ -17,6 +17,16 @@ function Popup() {
       });
   };
 
+  this.getSites = () => {
+    return this.utils.getFromSyncStorage()
+      .then(res => res ? Object.keys(res).filter(key => config.nonCustomSettings.indexOf(key) === -1) : []);
+  };
+
+  this.addToggleAnimation = (slider) => {
+    slider.classList.add('slider');
+    slider.classList.remove('slider-initial');
+  };
+
   this.toggleCheckbox = (id) => {
     const checkbox = document.getElementById(id);
     if (checkbox.getAttribute('checked') === 'checked') {
@@ -24,11 +34,6 @@ function Popup() {
     } else {
       checkbox.setAttribute('checked', 'checked');
     }
-  };
-
-  this.getSites = () => {
-    return utils.getFromSyncStorage()
-      .then(res => res ? Object.keys(res).filter(key => config.nonCustomSettings.indexOf(key) === -1) : []);
   };
 
   this.toggleSetting = (setting) => {
@@ -63,11 +68,6 @@ function Popup() {
           browser.browserAction.setIcon({path: '../assets/static/inactive32.png', tabId: this.tab.id});
         }
       });
-  };
-
-  this.addToggleAnimation = (slider) => {
-    slider.classList.add('slider');
-    slider.classList.remove('slider-initial');
   };
 
   this.initialiseSettings = () => {
@@ -114,7 +114,7 @@ function Popup() {
 
     if (targetIsSlider) return this.handleToggle(e);
     if (targetIsNamedToggle) return this.handleNamedToggle(e);
-    if (targetIsTab) return this.updateActiveTab(e);
+    if (targetIsTab) return this.handleTab(e);
     if (isButton) return this.handleButton(e);
     if (targetIsLink) browser.tabs.create({url: e.target.href});
   };
@@ -130,14 +130,7 @@ function Popup() {
 
     switch (id) {
       case 'domain-slider':
-        const tabUrl = this.utils.getTabUrl(this.tab);
-        return this.utils.getFromSyncStorage(tabUrl)
-          .then(res => {
-            if (res === null) return this.utils.saveToSyncStorage(tabUrl, '');
-            return this.utils.removeFromSyncStorage(tabUrl);
-          })
-          .then(() => this.updateIconAndStatus())
-          .then(() => this.loadSiteList());
+        return this.handleToggleDomain();
       case 'extension-slider':
         return this.toggleSetting('clickAndRoll').then(() => this.updateIconAndStatus());
       case 'reverse-slider':
@@ -147,6 +140,17 @@ function Popup() {
       default:
         return
     }
+  };
+
+  this.handleToggleDomain = () => {
+    const tabUrl = this.utils.getTabUrl(this.tab);
+    return this.utils.getFromSyncStorage(tabUrl)
+      .then(res => {
+        if (res === null) return this.utils.saveToSyncStorage(tabUrl, '');
+        return this.utils.removeFromSyncStorage(tabUrl);
+      })
+      .then(() => this.updateIconAndStatus())
+      .then(() => this.loadSiteList());
   };
 
   this.handleNamedToggle = (e) => {
@@ -161,7 +165,7 @@ function Popup() {
       .then(() => this.toggleCheckbox('domain-input'));
   };
 
-  this.updateActiveTab = (e) => {
+  this.handleTab = (e) => {
     const tabs = document.getElementsByClassName('tab');
     for (let tab of tabs) tab.classList.remove('active');
     e.target.classList.add('active');

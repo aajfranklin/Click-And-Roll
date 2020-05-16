@@ -2,6 +2,65 @@ describe('Popup', () => {
 
   const testPopup = new Popup();
 
+  describe('loadSiteList', () => {
+
+    let sitesListContainer;
+    let getSitesStub;
+
+    before(() => {
+      sitesListContainer = document.createElement('div');
+      sitesListContainer.id = 'sites-list-container';
+      document.body.appendChild(sitesListContainer);
+
+      getSitesStub = sinon.stub(testPopup, 'getSites');
+      getSitesStub.resolves(['test.com', 'test.co.uk'])
+    });
+
+    after(() => {
+      document.body.removeChild(sitesListContainer);
+      getSitesStub.restore();
+    });
+
+    it('should add list item and button for each site', () => {
+      const expected = `<ul><li><span>test.com</span>${config.buttonString}</li><li><span>test.co.uk</span>${config.buttonString}</li></ul>`;
+
+      return testPopup.loadSiteList()
+        .then(() => {
+          expect(sitesListContainer.innerHTML).to.equal(expected);
+        });
+    });
+
+  });
+
+  describe('getSites', () => {
+
+    let getFromSyncStorageStub;
+
+    before(() => {
+      getFromSyncStorageStub = sinon.stub(testPopup.utils, 'getFromSyncStorage')
+        .resolves({
+          dark: '',
+          reverse: '',
+          clickAndRoll: '',
+          whitelist: '',
+          'test.com': '',
+          'test.co.uk': ''
+        });
+    });
+
+    after(() => {
+      getFromSyncStorageStub.restore();
+    });
+
+    it('should return only sites from fetched items', () => {
+      return testPopup.getSites()
+        .then(res => {
+          expect(res).to.deep.equal(['test.com', 'test.co.uk']);
+        })
+    });
+
+  });
+
   describe('toggleCheckbox', () => {
 
     let checkbox;
@@ -59,107 +118,6 @@ describe('Popup', () => {
 
   });
 
-  describe('toggleOnOffSetting', () => {
-
-    let isExtensionOnStub;
-    let isSettingOnStub;
-    let messageActiveTabStub;
-    let saveToSyncStorageStub;
-    let removeFromSyncStorageStub;
-    let browserSetIconStub;
-    let testTab;
-
-    before(() => {
-      testTab = {
-        url: 'https://www.test.com/test',
-        id: 'test'
-      };
-
-      testPopup.tab = testTab;
-
-      browser.browserAction = {
-        setIcon: () => {}
-      };
-
-      isExtensionOnStub = sinon.stub(testPopup.utils, 'isExtensionOn');
-      isSettingOnStub = sinon.stub(testPopup.utils, 'isSettingOn');
-      messageActiveTabStub = sinon.stub(testPopup.utils, 'messageActiveTab');
-      saveToSyncStorageStub = sinon.stub(testPopup.utils, 'saveToSyncStorage');
-      removeFromSyncStorageStub = sinon.stub(testPopup.utils, 'removeFromSyncStorage');
-      browserSetIconStub = sinon.stub(browser.browserAction, 'setIcon');
-    });
-
-    afterEach(() => {
-      isExtensionOnStub.resetHistory();
-      isSettingOnStub.resetHistory();
-      messageActiveTabStub.resetHistory();
-      saveToSyncStorageStub.resetHistory();
-      removeFromSyncStorageStub.resetHistory();
-      browserSetIconStub.resetHistory();
-
-      isExtensionOnStub.resolves(null);
-      isSettingOnStub.resolves(null);
-      saveToSyncStorageStub.resolves(null);
-    });
-
-    after(() => {
-      isExtensionOnStub.restore();
-      isSettingOnStub.restore();
-      messageActiveTabStub.restore();
-      saveToSyncStorageStub.restore();
-      removeFromSyncStorageStub.restore();
-      browserSetIconStub.restore();
-
-      delete browser.browserAction;
-      testPopup.tab = null;
-    });
-
-    it('should save setting as \'\', send \'stop\' message, and set inactive icon if setting is on', () => {
-      isSettingOnStub.resolves(true);
-      saveToSyncStorageStub.resolves(true);
-      return testPopup.toggleOnOffSetting('testSetting')
-        .then(() => {
-          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
-          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['testSetting', '']);
-          expect(messageActiveTabStub.calledOnce).to.equal(true);
-          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
-          expect(browserSetIconStub.calledOnce).to.equal(true);
-          expect(browserSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/inactive32.png', tabId: 'test'}])
-        })
-    });
-
-    it('should remove setting, send \'start\' message, and set active icon if setting is off and extension is on', () => {
-      isSettingOnStub.resolves(false);
-      isExtensionOnStub.resolves(true);
-      return testPopup.toggleOnOffSetting('testSetting')
-        .then(() => {
-          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
-          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
-          expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
-          expect(messageActiveTabStub.calledOnce).to.equal(true);
-          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
-          expect(browserSetIconStub.calledOnce).to.equal(true);
-          expect(browserSetIconStub.firstCall.args).to.deep.equal([{path: '../assets/static/active32.png', tabId: 'test'}])
-        });
-    });
-
-    it('should remove setting and send no message if setting is off and extension is off', () => {
-      isSettingOnStub.resolves(false);
-      isExtensionOnStub.resolves(false);
-      return testPopup.toggleOnOffSetting('testSetting')
-        .then(() => {
-          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
-          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['testSetting']);
-          expect(isExtensionOnStub.calledOnce).to.equal(true);
-          expect(isExtensionOnStub.firstCall.args).to.deep.equal(['www.test.com']);
-          expect(messageActiveTabStub.notCalled).to.equal(true);
-          expect(browserSetIconStub.notCalled).to.equal(true);
-        });
-    });
-
-  });
-
   describe('toggleSetting', () => {
 
     let isSettingOnStub;
@@ -201,7 +159,7 @@ describe('Popup', () => {
       testPopup.tab = null;
     });
 
-    it('should remove setting if it was on', () => {
+    it('should remove off by default setting if it was on', () => {
       isSettingOnStub.resolves(true);
       return testPopup.toggleSetting('reverse')
         .then(() => {
@@ -210,12 +168,30 @@ describe('Popup', () => {
         })
     });
 
-    it('should save setting as true if it was off', () => {
+    it('should save off by default setting as true if it was off', () => {
       isSettingOnStub.resolves(false);
       return testPopup.toggleSetting('reverse')
         .then(() => {
           expect(saveToSyncStorageStub.calledOnce).to.equal(true);
           expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['reverse', 'true']);
+        })
+    });
+
+    it('should save on by default setting if it was on', () => {
+      isSettingOnStub.resolves(true);
+      return testPopup.toggleSetting('clickAndRoll')
+        .then(() => {
+          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
+          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['clickAndRoll', '']);
+        })
+    });
+
+    it('should remove on by default setting if it was off', () => {
+      isSettingOnStub.resolves(false);
+      return testPopup.toggleSetting('clickAndRoll')
+        .then(() => {
+          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['clickAndRoll']);
         })
     });
 
@@ -257,12 +233,80 @@ describe('Popup', () => {
 
   });
 
+  describe('updateIconAndStatus', () => {
+
+    let isExtensionOnStub;
+    let messageActiveTabStub;
+    let getTabUrlStub;
+    let setIconStub;
+
+    before(() => {
+      browser.browserAction = {
+        setIcon: (arg) => {}
+      };
+
+      testPopup.tab = { id: 0 }
+
+      isExtensionOnStub = sinon.stub(testPopup.utils, 'isExtensionOn');
+      messageActiveTabStub = sinon.stub(testPopup.utils, 'messageActiveTab');
+      getTabUrlStub = sinon.stub(testPopup.utils, 'getTabUrl');
+      setIconStub = sinon.stub(browser.browserAction, 'setIcon');
+    });
+
+    afterEach(() => {
+      isExtensionOnStub.resetHistory();
+      messageActiveTabStub.resetHistory();
+      getTabUrlStub.resetHistory();
+      setIconStub.resetHistory();
+    });
+
+    after(() => {
+      isExtensionOnStub.restore();
+      messageActiveTabStub.restore();
+      getTabUrlStub.restore();
+      setIconStub.restore();
+
+      delete browser.browserAction;
+    });
+
+    it('should message active tab to start and set active icon if extension is on', () => {
+      isExtensionOnStub.resolves(true);
+
+      return testPopup.updateIconAndStatus()
+        .then(() => {
+          expect(messageActiveTabStub.calledOnce).to.equal(true);
+          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'start'}]);
+          expect(setIconStub.calledOnce).to.equal(true);
+          expect(setIconStub.firstCall.args).to.deep.equal([{ path: '../assets/static/active32.png', tabId: 0}]);
+        });
+    });
+
+    it('should message active tab to stop and set inactive icon if extension is on', () => {
+      isExtensionOnStub.resolves(false);
+
+      return testPopup.updateIconAndStatus()
+        .then(() => {
+          expect(messageActiveTabStub.calledOnce).to.equal(true);
+          expect(messageActiveTabStub.firstCall.args).to.deep.equal([{message: 'stop'}]);
+          expect(setIconStub.calledOnce).to.equal(true);
+          expect(setIconStub.firstCall.args).to.deep.equal([{ path: '../assets/static/inactive32.png', tabId: 0}]);
+        });
+    });
+
+  });
+
   describe('initialiseSettings', () => {
 
     let getActiveTabStub;
     let isSettingOnStub;
+    let getFromSyncStorageStub;
     let toggleCheckboxStub;
+    let loadSiteListStub;
+    let applyColourSchemeStub;
     let testTab;
+
+    let whitelist;
+    let blacklist;
 
     before(() => {
       testTab = {
@@ -270,26 +314,50 @@ describe('Popup', () => {
         id: 'test'
       };
 
+      whitelist = document.createElement('div');
+      whitelist.id = 'whitelist';
+
+      blacklist = document.createElement('div');
+      blacklist.id = 'blacklist';
+
+      document.body.appendChild(whitelist);
+      document.body.appendChild(blacklist);
+
       getActiveTabStub = sinon.stub(testPopup.utils, 'getActiveTab').resolves(testTab);
       isSettingOnStub = sinon.stub(testPopup.utils, 'isSettingOn');
+      getFromSyncStorageStub = sinon.stub(testPopup.utils, 'getFromSyncStorage');
       toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
+      loadSiteListStub = sinon.stub(testPopup, 'loadSiteList');
+      applyColourSchemeStub = sinon.stub(testPopup, 'applyColourScheme');
+
+      isSettingOnStub.withArgs('whitelist').resolves(true);
+      getFromSyncStorageStub.withArgs('www.test.com').resolves({'www.test.com': ''});
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('reverse').resolves(true);
+      isSettingOnStub.withArgs('dark').resolves(true);
     });
 
     afterEach(() => {
-      isSettingOnStub.resolves(null);
       isSettingOnStub.resetHistory();
+      getFromSyncStorageStub.resetHistory();
       toggleCheckboxStub.resetHistory();
+      loadSiteListStub.resetHistory();
+      applyColourSchemeStub.resetHistory();
     });
 
     after(() => {
       getActiveTabStub.restore();
       isSettingOnStub.restore();
+      getFromSyncStorageStub.restore();
       toggleCheckboxStub.restore();
+      loadSiteListStub.restore();
+      applyColourSchemeStub.restore();
+
+      document.body.removeChild(whitelist);
+      document.body.removeChild(blacklist);
     });
 
     it('should set the tab', () => {
-      isSettingOnStub.withArgs('www.test.com').resolves(true);
-      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
       return testPopup.initialiseSettings()
         .then(() => {
           expect(testPopup.tab).to.equal(testTab);
@@ -297,190 +365,457 @@ describe('Popup', () => {
     });
 
     it('should visually toggle settings which are on', () => {
-      isSettingOnStub.withArgs('www.test.com').resolves(true);
-      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
-      isSettingOnStub.withArgs('reverse').resolves(false);
       return testPopup.initialiseSettings()
         .then(() => {
-          expect(toggleCheckboxStub.calledTwice).to.equal(true);
-          expect(toggleCheckboxStub.firstCall.args[0]).to.equal('domain-toggle');
-          expect(toggleCheckboxStub.secondCall.args[0]).to.equal('extension-toggle');
+          expect(toggleCheckboxStub.callCount).to.equal(4);
         })
+    });
+
+    it('should apply dark mode if on', () => {
+      return testPopup.initialiseSettings()
+        .then(() => {
+          expect(applyColourSchemeStub.calledOnce).to.equal(true);
+          expect(applyColourSchemeStub.firstCall.args).to.deep.equal([true]);
+
+        });
+    });
+
+    it('should load sitelist', () => {
+      return testPopup.initialiseSettings()
+        .then(() => {
+          expect(loadSiteListStub.calledOnce).to.equal(true);
+        });
     });
 
   });
 
   describe('handleClick', () => {
 
-    let addToggleAnimationStub;
-    let toggleCheckboxStub;
-    let toggleSettingStub;
-    let toggleOnOffSettingStub;
-    let browserCreateTabStub;
-
-    let testTab;
+    let event;
+    let handleToggleStub;
+    let handleNamedToggleStub;
+    let handleTabStub;
+    let handleButtonStub;
+    let createTabStub;
+    let containsStub;
 
     before(() => {
-      browser.tabs = {
-        create: () => {}
+      event = {
+        target: {
+          id: '',
+          classList: { contains: () => {} },
+          href: '',
+          tagName: ''
+        },
+        preventDefault: () => {}
       };
 
-      testTab = {
-        url: 'https://www.test.com/test',
-        id: 'test'
-      };
+      browser.tabs = { create: () => {} };
 
-      testPopup.tab = testTab;
+      handleToggleStub = sinon.stub(testPopup, 'handleToggle');
+      handleNamedToggleStub = sinon.stub(testPopup, 'handleNamedToggle');
+      handleTabStub = sinon.stub(testPopup, 'handleTab');
+      handleButtonStub = sinon.stub(testPopup, 'handleButton');
+      createTabStub = sinon.stub(browser.tabs, 'create');
+      containsStub = sinon.stub(event.target.classList, 'contains');
 
-      addToggleAnimationStub = sinon.stub(testPopup, 'addToggleAnimation');
-      toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
-      toggleSettingStub = sinon.stub(testPopup, 'toggleSetting');
-      toggleOnOffSettingStub = sinon.stub(testPopup, 'toggleOnOffSetting');
-      browserCreateTabStub = sinon.stub(browser.tabs, 'create');
+      containsStub.withArgs('named-toggle-button').returns(false);
+      containsStub.withArgs('tab').returns(false);
     });
 
     afterEach(() => {
-      addToggleAnimationStub.resetHistory();
-      toggleCheckboxStub.resetHistory();
-      toggleSettingStub.resetHistory();
-      toggleOnOffSettingStub.resetHistory();
-      browserCreateTabStub.resetHistory();
+      handleToggleStub.resetHistory();
+      handleNamedToggleStub.resetHistory();
+      handleTabStub.resetHistory();
+      handleButtonStub.resetHistory();
+      createTabStub.resetHistory();
+      containsStub.resetHistory();
+
+      containsStub.withArgs('named-toggle-button').returns(false);
+      containsStub.withArgs('tab').returns(false);
+
+      event.target.id = '';
+      event.target.tagName = undefined;
     });
 
     after(() => {
+      handleToggleStub.restore();
+      handleNamedToggleStub.restore();
+      handleTabStub.restore();
+      handleButtonStub.restore();
+      createTabStub.restore();
+      containsStub.restore();
+
+      delete browser.tabs;
+    });
+
+    it('should handle toggle if target is slider', () => {
+      event.target.id = 'test-slider';
+
+      testPopup.handleClick(event);
+      expect(handleToggleStub.calledOnce).to.equal(true);
+      expect(handleNamedToggleStub.notCalled).to.equal(true);
+      expect(handleTabStub.notCalled).to.equal(true);
+      expect(handleButtonStub.notCalled).to.equal(true);
+      expect(createTabStub.notCalled).to.equal(true);
+    });
+
+    it('should handle named if target is named toggle', () => {
+      containsStub.withArgs('named-toggle-button').returns(true);
+
+      testPopup.handleClick(event);
+      expect(handleToggleStub.notCalled).to.equal(true);
+      expect(handleNamedToggleStub.calledOnce).to.equal(true);
+      expect(handleTabStub.notCalled).to.equal(true);
+      expect(handleButtonStub.notCalled).to.equal(true);
+      expect(createTabStub.notCalled).to.equal(true);
+    });
+
+    it('should handle tab if target is tab ', () => {
+      containsStub.withArgs('tab').returns(true);
+
+      testPopup.handleClick(event);
+      expect(handleToggleStub.notCalled).to.equal(true);
+      expect(handleNamedToggleStub.notCalled).to.equal(true);
+      expect(handleTabStub.calledOnce).to.equal(true);
+      expect(handleButtonStub.notCalled).to.equal(true);
+      expect(createTabStub.notCalled).to.equal(true);
+    });
+
+    it('should handle button if target is button', () => {
+      event.target.tagName = 'BUTTON';
+
+      testPopup.handleClick(event);
+      expect(handleToggleStub.notCalled).to.equal(true);
+      expect(handleNamedToggleStub.notCalled).to.equal(true);
+      expect(handleTabStub.notCalled).to.equal(true);
+      expect(handleButtonStub.calledOnce).to.equal(true);
+      expect(createTabStub.notCalled).to.equal(true);
+    });
+
+    it('should create tab with target href if target is link', () => {
+      event.target.href = 'test';
+
+      testPopup.handleClick(event);
+      expect(handleToggleStub.notCalled).to.equal(true);
+      expect(handleNamedToggleStub.notCalled).to.equal(true);
+      expect(handleTabStub.notCalled).to.equal(true);
+      expect(handleButtonStub.notCalled).to.equal(true);
+      expect(createTabStub.calledOnce).to.equal(true);
+      expect(createTabStub.firstCall.args).to.deep.equal([{url: 'test'}]);
+    });
+
+  });
+
+  describe('handleToggle', () => {
+
+    let event;
+    let containsStub;
+    let addToggleAnimationStub;
+    let toggleCheckboxStub;
+    let handleToggleDomainStub;
+    let toggleSettingStub;
+    let updateIconAndStatusStub;
+
+    before(() => {
+      event = {
+        target: {
+          id: '',
+          classList: { contains: () => {} }
+        }
+      };
+
+      containsStub = sinon.stub(event.target.classList, 'contains');
+      addToggleAnimationStub = sinon.stub(testPopup, 'addToggleAnimation');
+      toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox').resolves();
+      handleToggleDomainStub = sinon.stub(testPopup, 'handleToggleDomain').resolves();
+      toggleSettingStub = sinon.stub(testPopup, 'toggleSetting').resolves();
+      updateIconAndStatusStub = sinon.stub(testPopup, 'updateIconAndStatus').resolves();
+    });
+
+    afterEach(() => {
+      containsStub.resetHistory();
+      addToggleAnimationStub.resetHistory();
+      toggleCheckboxStub.resetHistory();
+      handleToggleDomainStub.resetHistory();
+      toggleSettingStub.resetHistory();
+      updateIconAndStatusStub.resetHistory();
+
+      containsStub.withArgs('slider-initial').returns(false);
+
+      event.id = '';
+    });
+
+    after(() => {
+      containsStub.restore();
       addToggleAnimationStub.restore();
       toggleCheckboxStub.restore();
+      handleToggleDomainStub.restore();
       toggleSettingStub.restore();
-      toggleOnOffSettingStub.restore();
-      browserCreateTabStub.restore();
-
-      testPopup.tab = null;
+      updateIconAndStatusStub.restore();
     });
 
-    it('should add the toggle animation if target id contains toggle and animation not present', () => {
-      const e = {
+    it('should add toggle animation if slider has initial class', () => {
+      event.target.id = 'domain-slider';
+      containsStub.withArgs('slider-initial').returns(true);
+
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(addToggleAnimationStub.calledOnce).to.equal(true);
+        });
+    });
+
+    it('should not add toggle animation if slider does not have initial class', () => {
+      event.target.id = 'domain-slider';
+      containsStub.withArgs('slider-initial').returns(false);
+
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(addToggleAnimationStub.calledOnce).to.equal(false);
+        });
+    });
+
+    it('should toggle the checkbox', () => {
+      event.target.id = 'domain-slider';
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(toggleCheckboxStub.calledOnce).to.equal(true);
+        });
+    });
+
+    it('should toggle domain if target domain slider', () => {
+      event.target.id = 'domain-slider';
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(handleToggleDomainStub.calledOnce).to.equal(true);
+        });
+    });
+
+    it('should toggle clickAndRoll and update icon and status if target is extension slider', () => {
+      event.target.id = 'extension-slider';
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['clickAndRoll']);
+          expect(updateIconAndStatusStub.calledOnce).to.equal(true);
+        });
+    });
+
+    it('should toggle reverse if is revers slider', () => {
+      event.target.id = 'reverse-slider';
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['reverse']);
+        });
+    });
+
+    it('should toggle reverse if is revers slider', () => {
+      event.target.id = 'dark-slider';
+      return testPopup.handleToggle(event)
+        .then(() => {
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['dark']);
+        });
+    });
+
+  });
+
+  describe('handleToggleDomain', () => {
+
+    let getTabUrlStub;
+    let getFromSyncStorageStub;
+    let saveToSyncStorageStub;
+    let removeFromSyncStorageStub;
+    let updateIconAndStatusStub;
+    let loadSiteListStub;
+
+    before(() => {
+      getTabUrlStub = sinon.stub(testPopup.utils, 'getTabUrl').returns('test.com');
+      getFromSyncStorageStub = sinon.stub(testPopup.utils, 'getFromSyncStorage');
+      saveToSyncStorageStub = sinon.stub(testPopup.utils, 'saveToSyncStorage');
+      removeFromSyncStorageStub = sinon.stub(testPopup.utils, 'removeFromSyncStorage');
+      updateIconAndStatusStub = sinon.stub(testPopup, 'updateIconAndStatus');
+      loadSiteListStub = sinon.stub(testPopup, 'loadSiteList');
+    });
+
+    afterEach(() => {
+      getTabUrlStub.resetHistory();
+      getFromSyncStorageStub.resetHistory();
+      saveToSyncStorageStub.resetHistory();
+      removeFromSyncStorageStub.resetHistory();
+      updateIconAndStatusStub.resetHistory();
+      loadSiteListStub.resetHistory();
+    });
+
+    after(() => {
+      getTabUrlStub.restore();
+      getFromSyncStorageStub.restore();
+      saveToSyncStorageStub.restore();
+      removeFromSyncStorageStub.restore();
+      updateIconAndStatusStub.restore();
+      loadSiteListStub.restore();
+    });
+
+    it ('should save url to storage if absent', () => {
+      getFromSyncStorageStub.resolves(null);
+      return testPopup.handleToggleDomain()
+        .then(() => {
+          expect(saveToSyncStorageStub.calledOnce).to.equal(true);
+          expect(saveToSyncStorageStub.firstCall.args).to.deep.equal(['test.com', '']);
+        })
+    });
+
+    it ('should remove url from storage if present', () => {
+      getFromSyncStorageStub.resolves({'test.com': ''});
+      return testPopup.handleToggleDomain()
+        .then(() => {
+          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['test.com']);
+        })
+    });
+
+    it ('should update icon and status and toggle checkbox', () => {
+      return testPopup.handleToggleDomain()
+        .then(() => {
+          expect(updateIconAndStatusStub.calledOnce).to.equal(true);
+          expect(loadSiteListStub.calledOnce).to.equal(true);
+        })
+    });
+
+  });
+
+  describe('handleNamedToggle', () => {
+
+    let event;
+    let containsStub;
+    let addStub;
+    let toggleSettingStub;
+    let updateIconAndStatusStub;
+    let toggleCheckboxStub;
+
+    before(() => {
+      event = {
         target: {
-          id: '-toggle',
           classList: {
-            contains: () => false
-          },
-          nextElementSibling: {
-            classList: {
-              contains: () => true
-            }
+            contains: () => {},
+            add: () => {},
           }
         }
       };
 
-      testPopup.handleClick(e);
-      expect(addToggleAnimationStub.calledOnce).to.equal(true);
+      containsStub = sinon.stub(event.target.classList, 'contains');
+      addStub = sinon.stub(event.target.classList, 'add');
+      toggleSettingStub = sinon.stub(testPopup, 'toggleSetting').resolves();
+      updateIconAndStatusStub = sinon.stub(testPopup, 'updateIconAndStatus').resolves();
+      toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox').resolves();
     });
 
-    it('should toggle extension slider and setting if target is extension toggle', () => {
-      const e = {
-        target: {
-          id: 'extension-toggle',
-          classList: {
-            contains: () => false
-          },
-          nextElementSibling: {
-            classList: {
-              contains: () => false
-            }
-          }
-        }
-      };
-
-      testPopup.handleClick(e);
-      expect(toggleCheckboxStub.calledOnce).to.equal(true);
-      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['extension-toggle']);
-      expect(toggleOnOffSettingStub.calledOnce).to.equal(true);
-      expect(toggleOnOffSettingStub.firstCall.args).to.deep.equal(['clickAndRoll']);
+    afterEach(() => {
+      containsStub.resetHistory();
+      addStub.resetHistory();
+      toggleSettingStub.resetHistory();
+      updateIconAndStatusStub.resetHistory();
+      toggleCheckboxStub.resetHistory();
     });
 
-    it('should toggle domain slider and setting if target is domain toggle', () => {
-      const e = {
-        target: {
-          id: 'domain-toggle',
-          classList: {
-            contains: () => false
-          },
-          nextElementSibling: {
-            classList: {
-              contains: () => false
-            }
-          }
-        }
-      };
-
-      testPopup.handleClick(e);
-      expect(toggleCheckboxStub.calledOnce).to.equal(true);
-      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-toggle']);
-      expect(toggleOnOffSettingStub.calledOnce).to.equal(true);
-      expect(toggleOnOffSettingStub.firstCall.args).to.deep.equal(['www.test.com']);
+    after(() => {
+      containsStub.restore();
+      addStub.restore();
+      toggleSettingStub.restore();
+      updateIconAndStatusStub.restore();
+      toggleCheckboxStub.restore();
     });
 
-    it('should toggle reverse slider and setting if target is reverse toggle', () => {
-      const e = {
-        target: {
-          id: 'reverse-toggle',
-          classList: {
-            contains: () => false
-          },
-          nextElementSibling: {
-            classList: {
-              contains: () => false
-            }
-          }
-        }
-      };
-
-      testPopup.handleClick(e);
-      expect(toggleCheckboxStub.calledOnce).to.equal(true);
-      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['reverse-toggle']);
-      expect(toggleSettingStub.calledOnce).to.equal(true);
-      expect(toggleSettingStub.firstCall.args).to.deep.equal(['reverse']);
+    it('should return if target is active', () => {
+      containsStub.returns(true);
+      testPopup.handleNamedToggle(event);
+      expect(addStub.notCalled).to.equal(true);
     });
 
-    it('should toggle dark mode slider and setting if target is dark toggle', () => {
-      const e = {
-        target: {
-          id: 'dark-toggle',
-          classList: {
-            contains: () => false
-          },
-          nextElementSibling: {
-            classList: {
-              contains: () => false
-            }
-          }
-        }
-      };
+    it('should add active class, toggle whitelist, update icon and status, and toggle checkbox if target is inactive', () => {
+      containsStub.returns(false);
 
-      testPopup.handleClick(e);
-      expect(toggleCheckboxStub.calledOnce).to.equal(true);
-      expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['dark-toggle']);
-      expect(toggleSettingStub.calledOnce).to.equal(true);
-      expect(toggleSettingStub.firstCall.args).to.deep.equal(['dark']);
+      return testPopup.handleNamedToggle(event)
+        .then(() => {
+          expect(addStub.calledOnce).to.equal(true);
+          expect(addStub.firstCall.args).to.deep.equal(['active']);
+          expect(toggleSettingStub.calledOnce).to.equal(true);
+          expect(toggleSettingStub.firstCall.args).to.deep.equal(['whitelist']);
+          expect(updateIconAndStatusStub.calledOnce).to.equal(true);
+          expect(toggleCheckboxStub.calledOnce).to.equal(true);
+          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-input']);
+        });
     });
 
-    it('should open target href in new tab if target is not a toggle and has an href', () => {
-      const e = {
-        target: {
-          id: 'other',
-          classList: {
-            contains: () => false
-          },
-          href: 'https://www.test.com/test'
-        }
-      };
+  });
 
-      testPopup.handleClick(e);
-      expect(addToggleAnimationStub.notCalled).to.equal(true);
-      expect(toggleCheckboxStub.notCalled).to.equal(true);
-      expect(toggleSettingStub.notCalled).to.equal(true);
-      expect(browserCreateTabStub.calledOnce).to.equal(true);
-      expect(browserCreateTabStub.firstCall.args).to.deep.equal([{url: 'https://www.test.com/test'}]);
+  describe('handleButton', () => {
+
+    let event;
+    let getTabUrlStub;
+    let toggleCheckboxStub;
+    let removeFromSyncStorageStub;
+    let updateIconAndStatusSub;
+    let loadSiteListStub;
+
+    before(() => {
+      event = { target: { previousElementSibling: { textContent : '' } } };
+
+      getTabUrlStub = sinon.stub(testPopup.utils, 'getTabUrl');
+      toggleCheckboxStub = sinon.stub(testPopup, 'toggleCheckbox');
+      removeFromSyncStorageStub = sinon.stub(testPopup.utils, 'removeFromSyncStorage').resolves();
+      updateIconAndStatusSub = sinon.stub(testPopup, 'updateIconAndStatus').resolves();
+      loadSiteListStub = sinon.stub(testPopup, 'loadSiteList').resolves();
+    });
+
+    afterEach(() => {
+      getTabUrlStub.resetHistory();
+      toggleCheckboxStub.resetHistory();
+      removeFromSyncStorageStub.resetHistory();
+      updateIconAndStatusSub.resetHistory();
+      loadSiteListStub.resetHistory();
+    });
+
+    after(() => {
+      getTabUrlStub.restore();
+      toggleCheckboxStub.restore();
+      removeFromSyncStorageStub.restore();
+      updateIconAndStatusSub.restore();
+      loadSiteListStub.restore();
+    });
+
+    it('should toggle checkbox if current tab is same as url to remove', () => {
+      event.target.previousElementSibling.textContent = 'test.com';
+      getTabUrlStub.returns('test.com');
+
+      return testPopup.handleButton(event)
+        .then(() => {
+          expect(toggleCheckboxStub.calledOnce).to.equal(true);
+          expect(toggleCheckboxStub.firstCall.args).to.deep.equal(['domain-input']);
+        })
+    });
+
+    it('should not toggle checkbox if current tab is different from url to remove', () => {
+      event.target.previousElementSibling.textContent = 'test.co.uk';
+      getTabUrlStub.returns('test.com');
+
+      return testPopup.handleButton(event)
+        .then(() => {
+          expect(toggleCheckboxStub.notCalled).to.equal(true);
+        })
+    });
+
+    it('should remove url from sync storage, update icon and status, and load site list', () => {
+      event.target.previousElementSibling.textContent = 'test.com';
+
+      return testPopup.handleButton(event)
+        .then(() => {
+          expect(removeFromSyncStorageStub.calledOnce).to.equal(true);
+          expect(removeFromSyncStorageStub.firstCall.args).to.deep.equal(['test.com']);
+          expect(updateIconAndStatusSub.calledOnce).to.equal(true);
+          expect(loadSiteListStub.calledOnce).to.equal(true);
+        });
     });
 
   });
