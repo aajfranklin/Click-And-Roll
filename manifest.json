@@ -23,7 +23,8 @@
       ],
       "css": [
         "./view/page.css"
-      ]
+      ],
+      "run_at": "document_start"
     }
   ],
   "background": {
