@@ -1,19 +1,29 @@
 :root {
   --main-background-color: white;
+  --alt-background-color: whitesmoke;
   --header-background-color: teal;
   --toggle-background-color: lightgrey;
   --toggle-background-color-checked: teal;
   --slider-color: whitesmoke;
   --main-text-color: black;
+  --alt-text-color: lightslategrey;
   --header-text-color: whitesmoke;
+  --hover-text-color: whitesmoke;
+  --active-tab-text-color: teal;
   --box-shadow-color: darkslategrey;
   --focus-shadow-color: lightskyblue;
-  --border-color: white;
+  --border-color: lightgrey;
+  --body-border-color: white;
+
 }
 
 .dark-mode {
   --main-background-color: #3d4144;
+  --alt-background-color: #27292b;
   --main-text-color: whitesmoke;
+  --alt-text-color: lightgrey;
+  --active-tab-text-color: whitesmoke;
+  --border-color: slategrey;
   --toggle-background-color: lightslategrey;
   --visited-link-color: lightgrey;
 }
@@ -29,7 +39,7 @@
 
 body {
   background: var(--main-background-color);
-  border: solid var(--border-color) 1px;
+  border: solid var(--body-border-color) 1px;
   border-bottom: none;
   font-family: Montserrat, arial, sans-serif;
   margin: 0;
@@ -38,7 +48,6 @@ body {
 
 header {
   background: var(--header-background-color);
-  box-shadow: var(--box-shadow-color) 0 1px 2px;
   color: var(--header-text-color);
   display: flex;
   justify-content: center;
@@ -51,8 +60,136 @@ h1 {
   padding: 6px;
 }
 
+nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tab {
+  background: var(--alt-background-color);
+  border: solid 1px var(--alt-background-color);
+  border-top: none;
+  border-bottom: none;
+  color: var(--alt-text-color);
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0.5em;
+  text-align: center;
+}
+
+.tab:hover {
+  background: var(--header-background-color);
+  border: solid 1px var(--header-background-color);
+  border-top: none;
+  border-bottom: none;
+  color: var(--hover-text-color);
+}
+
+.tab.active {
+  background: var(--main-background-color);
+  border: solid 1px var(--border-color);
+  border-bottom: none;
+  border-top: none;
+  color: var(--active-tab-text-color)
+}
+
+#menu, #sites {
+  flex-grow: 1;
+}
+
 main {
   padding: 8px;
+}
+
+section {
+  font-size: 12px;
+}
+
+.tab-section {
+  display: none;
+}
+
+.tab-section.active {
+  display: block;
+  height: 12em;
+}
+
+#sites-section {
+  overflow: scroll;
+}
+
+#sites-toggle-container {
+  align-items: center;
+  color: var(--main-text-color);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1em;
+}
+
+.named-toggle {
+  display: flex;
+  border: solid 1px var(--border-color);
+}
+
+.named-toggle-button {
+  background: var(--alt-background-color);
+  color: var(--alt-text-color);
+  padding: 0.5em;
+}
+
+.named-toggle-button.active {
+  background: var(--header-background-color);
+  color: var(--header-text-color);
+}
+
+.named-toggle-button:hover {
+  background: var(--main-background-color);
+}
+
+.named-toggle-button.active:hover {
+  background: var(--header-background-color);
+}
+
+.tab-section ul {
+  margin: 0;
+  padding: 0;
+}
+
+.tab-section li:first-child {
+  border-top: 1px solid var(--border-color);
+}
+
+.tab-section li {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  color: var(--main-text-color);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5em 1em;
+}
+
+button {
+  background: var(--alt-background-color);
+  border-radius: 50%;
+  color: var(--alt-text-color);
+  height: 1em;
+  margin-top: 1px;
+  padding: 0;
+  width: 1em;
+}
+
+button {
+  border: none;
+}
+
+button > * {
+  pointer-events: none;
+}
+
+button:hover {
+  color: var(--header-background-color);
 }
 
 .toggle-group {

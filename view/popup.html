@@ -16,36 +16,52 @@
         <header>
             <h1>Click and Roll</h1>
         </header>
+        <nav>
+            <ul>
+                <li id="menu" class="active tab">Menu</li>
+                <li id="sites" class="tab">Site list</li>
+            </ul>
+        </nav>
         <main>
-            <section id="toggle-settings">
+            <section id="menu-section" class="tab-section active">
                 <div class="toggle-group">
                     <div class="toggle-text">Toggle Click and Roll</div>
                     <label class="toggle">
-                        <input type="checkbox" id="extension-toggle">
-                        <span class="slider-initial"></span>
+                        <input type="checkbox" id="extension-input">
+                        <span id="extension-slider" class="slider-initial"></span>
                     </label>
                 </div>
                 <div class="toggle-group">
                     <div class="toggle-text">Toggle for this site</div>
                     <label class="toggle">
-                        <input type="checkbox" id="domain-toggle">
-                        <span class="slider-initial"></span>
+                        <input type="checkbox" id="domain-input">
+                        <span id="domain-slider" class="slider-initial"></span>
                     </label>
                 </div>
                 <div class="toggle-group">
                     <div class="toggle-text">Reverse career rows</div>
                     <label class="toggle">
-                        <input type="checkbox" id="reverse-toggle">
-                        <span class="slider-initial"></span>
+                        <input type="checkbox" id="reverse-input">
+                        <span id="reverse-slider" class="slider-initial"></span>
                     </label>
                 </div>
                 <div class="toggle-group">
                     <div class="toggle-text">Dark mode</div>
                     <label class="toggle">
-                        <input type="checkbox" id="dark-toggle">
-                        <span class="slider-initial"></span>
+                        <input type="checkbox" id="dark-input">
+                        <span id="dark-slider" class="slider-initial"></span>
                     </label>
                 </div>
+            </section>
+            <section id="sites-section" class="tab-section">
+                <div id="sites-toggle-container">
+                    <span>Use sites as:</span>
+                    <span class="named-toggle">
+                        <span id="whitelist" class="named-toggle-button">Whitelist</span>
+                        <span id="blacklist" class="named-toggle-button">Blacklist</span>
+                    </span>
+                </div>
+                <div id="sites-list-container"></div>
             </section>
             <section id="links">
                 <a href="https://github.com/aajfranklin/Click-And-Roll">GitHub</a>
