@@ -103,6 +103,10 @@ main {
   padding: 8px;
 }
 
+section {
+  font-size: 12px;
+}
+
 .tab-section {
   display: none;
 }
@@ -112,7 +116,7 @@ main {
   height: 12em;
 }
 
-#sites-section, #nicknames-section {
+#sites-section {
   overflow: scroll;
 }
 
@@ -127,7 +131,6 @@ main {
 .named-toggle {
   display: flex;
   border: solid 1px var(--border-color);
-  width: fit-content;
 }
 
 .named-toggle-button {
