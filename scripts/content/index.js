@@ -1,8 +1,7 @@
-const utils = new Utils();
-const clickAndRoll = new ClickAndRoll();
+window.addEventListener('DOMContentLoaded', () => {
+  const clickAndRoll = new ClickAndRoll();
+  browser.runtime.onMessage.addListener(clickAndRoll.handleMessage);
 
-browser.runtime.onMessage.addListener(clickAndRoll.handleMessage);
-
-window.addEventListener('load', () => {
+  const utils = new Utils();
   utils.sendRuntimeMessage({message: 'load'});
 });

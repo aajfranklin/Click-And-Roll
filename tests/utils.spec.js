@@ -257,6 +257,40 @@ describe('Utils', () => {
 
   });
 
+  describe('getFromSyncStorage', () => {
+
+    let browserStorageSyncSpy;
+
+    before(() => {
+      browser.storage = {
+        sync: {
+          get: (input, callback) => callback()
+        }
+      };
+
+      browserStorageSyncSpy = sinon.spy(browser.storage.sync, 'get');
+    });
+
+    afterEach(() => {
+      browserStorageSyncSpy.resetHistory();
+    });
+
+    after(() => {
+      browserStorageSyncSpy.restore();
+      delete browser.storage;
+    });
+
+    it('should call get on browser sync storage with passed in name', () => {
+      return testUtils.getFromSyncStorage('testName')
+        .then(result => {
+          expect(browserStorageSyncSpy.calledOnce).to.equal(true);
+          expect(browserStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
+          expect(result).to.equal(null);
+        });
+    });
+
+  });
+
   describe('removeFromSyncStorage', () => {
 
     let browserStorageSyncSpy;
@@ -281,9 +315,11 @@ describe('Utils', () => {
     });
 
     it('should call remove on browser sync storage with passed in name', () => {
-      testUtils.removeFromSyncStorage('testName');
-      expect(browserStorageSyncSpy.calledOnce).to.equal(true);
-      expect(browserStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
+      return testUtils.removeFromSyncStorage('testName')
+        .then(() => {
+          expect(browserStorageSyncSpy.calledOnce).to.equal(true);
+          expect(browserStorageSyncSpy.withArgs(['testName']).calledOnce).to.equal(true);
+        });
     });
 
   });
@@ -304,82 +340,116 @@ describe('Utils', () => {
       delete browser.storage;
     });
 
-    it('should resolve false if browser storage value is empty string', () => {
-      result = {test: ''};
+    it('should resolve true if setting is present and off by default', () => {
+      result = { dark: '' };
 
-      return testUtils.isSettingOn('test')
-        .then((response) => {
-          expect(response).to.equal(false);
-        });
+      return testUtils.isSettingOn('dark')
+        .then(res => {
+          expect(res).to.equal(true);
+        })
     });
 
-    it('should resolve true if browser storage value is \'true\'', () => {
-      result = {test: 'true'};
-
-      return testUtils.isSettingOn('test')
-        .then((response) => {
-          expect(response).to.equal(true);
-        });
-    });
-
-    it('should resolve false if browser storage value is empty object and setting defaults to off', () => {
+    it('should resolve false if setting is absent and off by default', () => {
       result = {};
 
-      return testUtils.isSettingOn('reverse')
-        .then((response) => {
-          expect(response).to.equal(false);
-        });
+      return testUtils.isSettingOn('dark')
+        .then(res => {
+          expect(res).to.equal(false);
+        })
     });
 
-    it('should resolve true if browser storage value is empty object and setting defaults to on', () => {
+    it('should resolve false if setting is present and on by default', () => {
+      result = { clickAndRoll: '' };
+
+      return testUtils.isSettingOn('clickAndRoll')
+        .then(res => {
+          expect(res).to.equal(false);
+        })
+    });
+
+    it('should resolve true if setting is absent and on by default', () => {
       result = {};
 
-      return testUtils.isSettingOn('test')
-        .then((response) => {
-          expect(response).to.equal(true);
-        });
+      return testUtils.isSettingOn('clickAndRoll')
+        .then(res => {
+          expect(res).to.equal(true);
+        })
     });
 
   });
 
   describe('isExtensionOn', () => {
+    let getFromSyncStorageStub;
     let isSettingOnStub;
 
     before(() => {
+      getFromSyncStorageStub = sinon.stub(testUtils, 'getFromSyncStorage');
       isSettingOnStub = sinon.stub(testUtils, 'isSettingOn');
     });
 
     afterEach(() => {
+      getFromSyncStorageStub.resetHistory();
       isSettingOnStub.resetHistory();
     });
 
     after(() => {
+      getFromSyncStorageStub.restore();
       isSettingOnStub.restore();
     });
 
-    it('should resolve true if extension is active globally and for the passed in domain', () => {
-      isSettingOnStub.resolves(true);
-      return testUtils.isExtensionOn('testDomain')
-        .then(result => {
-          expect(result).to.equal(true);
-        })
+    it('should resolve true if extension is on globally, site list is blacklist, and domain not in sitelist', () => {
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('whitelist').resolves(false);
+      getFromSyncStorageStub.withArgs('test.com').resolves(null);
+
+      return testUtils.isExtensionOn('test.com')
+        .then(res => {
+          expect(res).to.equal(true);
+        });
     });
 
-    it('should resolve false if extension is off globally', () => {
-      isSettingOnStub.resolves(false);
-      return testUtils.isExtensionOn('testDomain')
-        .then(result => {
-          expect(result).to.equal(false);
-        })
+    it('should resolve false if extension is on globally, site list is blacklist, and domain is in site list', () => {
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('whitelist').resolves(false);
+      getFromSyncStorageStub.withArgs('test.com').resolves({ 'test.com': '' });
+
+      return testUtils.isExtensionOn('test.com')
+        .then(res => {
+          expect(res).to.equal(false);
+        });
     });
 
-    it('should resolve false if extension is off for the passed in domain', () => {
-      isSettingOnStub.onCall(0).resolves(true);
-      isSettingOnStub.onCall(1).resolves(false);
-      return testUtils.isExtensionOn('testDomain')
-        .then(result => {
-          expect(result).to.equal(false);
-        })
+    it('should resolve false if extension is on globally, site list is whitelist, and domain not in site list', () => {
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('whitelist').resolves(true);
+      getFromSyncStorageStub.withArgs('test.com').resolves(null);
+
+      return testUtils.isExtensionOn('test.com')
+        .then(res => {
+          expect(res).to.equal(false);
+        });
+    });
+
+    it('should resolve true if extension is on globally, site list is whitelist, and domain is in site list', () => {
+      isSettingOnStub.withArgs('clickAndRoll').resolves(true);
+      isSettingOnStub.withArgs('whitelist').resolves(true);
+      getFromSyncStorageStub.withArgs('test.com').resolves({ 'test.com': '' });
+
+      return testUtils.isExtensionOn('')
+        .then(res => {
+          expect(res).to.equal(true);
+        });
+    });
+
+    it('should resolve false if extension is of globally', () => {
+      isSettingOnStub.withArgs('clickAndRoll').resolves(false);
+      isSettingOnStub.withArgs('whitelist').resolves(true);
+      getFromSyncStorageStub.withArgs('test.com').resolves({ 'test.com': '' });
+
+      return testUtils.isExtensionOn('')
+        .then(res => {
+          expect(res).to.equal(false);
+        });
     });
 
   });

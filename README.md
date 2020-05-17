@@ -42,6 +42,11 @@ Possible future features include:
 
 ## Changelog
 
+2.1.0:
+
+- Added site list management and option to use listed sites as either a whitelist or a blacklist
+- Improved speed of highlighting names on initial page load
+
 2.0.0:
 
 - Support for Firefox, Opera, and Edge

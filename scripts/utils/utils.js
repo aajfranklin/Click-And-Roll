@@ -49,13 +49,21 @@ function Utils() {
   this.getFromLocalStorage = (name) => {
     return new Promise(resolve => {
       browser.storage.local.get([name], result => {
-        return resolve(!result || $.isEmptyObject(result) ? null : result[name]);
+        return resolve((!result || $.isEmptyObject(result)) ? null : result[name]);
       })
     })
   };
 
   this.removeFromLocalStorage = (name) => {
     browser.storage.local.remove([name], () => {})
+  };
+
+  this.getFromSyncStorage = (name) => {
+    return new Promise(resolve => {
+      browser.storage.sync.get(name ? [name] : null, result => {
+        return resolve((!result || $.isEmptyObject(result)) ? null : (name === undefined ? result : result[name]));
+      })
+    })
   };
 
   this.saveToSyncStorage = (name, value) => {
@@ -67,30 +75,38 @@ function Utils() {
   };
 
   this.removeFromSyncStorage = (name) => {
-    browser.storage.sync.remove([name], () => {})
-  };
-
-  this.isSettingOn = (setting) => {
     return new Promise(resolve => {
-      browser.storage.sync.get(setting, result => {
-        if ($.isEmptyObject(result)) {
-          return resolve(config.defaultOffSettings.indexOf(setting) === -1);
-        }
-        return resolve(!!result[setting]);
+      browser.storage.sync.remove([name], () => {
+        return resolve();
       });
     });
   };
 
+  this.isSettingOn = (setting) => {
+    const isOnByDefault = config.defaultOffSettings.indexOf(setting) === -1;
+
+    return this.getFromSyncStorage(setting)
+      .then(result => Promise.resolve(isOnByDefault ? result === null : result !== null));
+  };
+
   this.isExtensionOn = (domain) => {
+    let isExtensionOnGlobally;
+    let isDomainListed;
+    let whitelist;
+
     return this.isSettingOn('clickAndRoll')
-      .then(isExtensionOn => {
-        if (isExtensionOn) {
-          return this.isSettingOn(domain);
-        }
-        return Promise.resolve(false);
+      .then(isOn => {
+        isExtensionOnGlobally = isOn;
+        return this.getFromSyncStorage(domain);
       })
-      .then(isDomainOn => {
-        return isDomainOn;
+      .then(res => {
+        isDomainListed = res !== null;
+        return this.isSettingOn('whitelist');
+      })
+      .then(isOn => {
+        whitelist = isOn;
+        const isExtensionOnForDomain = whitelist ? isDomainListed : !isDomainListed;
+        return isExtensionOnGlobally && isExtensionOnForDomain;
       })
   }
 
