@@ -117,7 +117,7 @@ section {
 }
 
 #sites-section {
-  overflow: scroll;
+  overflow-y: scroll;
 }
 
 #sites-toggle-container {
