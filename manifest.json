@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Click and Roll",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "icons": {
     "128": "./assets/static/clickAndRoll.png"
   },
