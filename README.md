@@ -1,3 +1,9 @@
+# DISCONTINUATION
+
+As of September 2023, Click and Roll is no longer published on any browser extension stores and the Click and Roll data server is no longer running. This is due to a lack of donations to cover the running costs of the Click and Roll server. As a more experienced developer this is no longer the key portfolio piece it once was, so I can't justify keeping it running at a recurring cost to my wallet.
+
+Thank you to the ~1,500 monthly users of Click and Roll for finding value in this work - I sincerely hope it was useful! This was a fun and challenging project for me as an early-career web developer when I kicked it off, and I look back on it fondly.
+
 # Click and Roll
 
 Click and Roll is a free browser extension for getting NBA stats anywhere. Hover over any NBA player's name on any web page to quickly view their stats.
